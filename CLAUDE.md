@@ -59,7 +59,8 @@ src/
 ## Coding Conventions
 
 ### General
-- Use functional components with hooks exclusively — no class components
+- Use arrow function expressions for components and functions: `export const Foo = () => {}`
+- No class components
 - Prefer named exports over default exports (exception: page-level route components)
 - Use `type` over `interface` unless extending/merging is needed
 - Use early returns to reduce nesting

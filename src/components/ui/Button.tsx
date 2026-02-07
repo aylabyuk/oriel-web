@@ -1,0 +1,35 @@
+import type { ButtonHTMLAttributes } from 'react';
+import { cn } from '@/utils/cn';
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary';
+};
+
+export const Button = ({
+  variant = 'primary',
+  className,
+  children,
+  ...props
+}: ButtonProps) => (
+  <button
+    className={cn(
+      'rounded-lg px-6 py-2.5 font-semibold transition-colors',
+      'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black',
+      'disabled:cursor-not-allowed disabled:opacity-50',
+      variant === 'primary' && [
+        'bg-red-600 text-white',
+        'hover:bg-red-500',
+        'focus:ring-red-500',
+      ],
+      variant === 'secondary' && [
+        'border border-neutral-600 bg-transparent text-neutral-300',
+        'hover:border-neutral-400 hover:text-white',
+        'focus:ring-neutral-500',
+      ],
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </button>
+);
