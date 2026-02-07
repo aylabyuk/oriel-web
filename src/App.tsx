@@ -14,7 +14,7 @@ export const App = () => {
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
       data-theme={mode}
     >
-      <BackgroundScene mode={mode} />
+      <BackgroundScene mode={mode} showTable={hasEnteredWelcome} />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50">
           <ThemeToggle />

@@ -64,6 +64,7 @@ src/
 - Prefer named exports over default exports (exception: page-level route components)
 - Use `type` over `interface` unless extending/merging is needed
 - Use early returns to reduce nesting
+- One component per file — if a file grows too large, split into separate files in the same folder
 - Keep components under 150 lines; extract custom hooks for complex logic
 - Use absolute imports via `@/` path alias (configured in `tsconfig.json` and `vite.config.ts`)
 - No `any` — use `unknown` and narrow types properly
