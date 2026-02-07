@@ -1,7 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { useAppDispatch } from '@/store/hooks';
-import { setVisitorInfo } from '@/store/slices/visitorSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  setName,
+  setCompany,
+  setNameError,
+  submitWelcome,
+  selectVisitorName,
+  selectVisitorCompany,
+  selectNameError,
+} from '@/store/slices/visitorSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -11,10 +19,9 @@ export const WelcomeScreen = () => {
   const { t } = useTranslation();
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [nameError, setNameError] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const name = useAppSelector(selectVisitorName);
+  const company = useAppSelector(selectVisitorCompany);
+  const nameError = useAppSelector(selectNameError);
 
   useEffect(() => {
     nameInputRef.current?.focus();
@@ -22,23 +29,15 @@ export const WelcomeScreen = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
 
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      setNameError(t('welcome.nameRequired'));
+    if (!name.trim()) {
+      dispatch(setNameError(t('welcome.nameRequired')));
+      dispatch(submitWelcome());
       nameInputRef.current?.focus();
       return;
     }
 
-    dispatch(setVisitorInfo({ name: trimmedName, company: company.trim() }));
-  };
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (submitted && value.trim()) {
-      setNameError('');
-    }
+    dispatch(submitWelcome());
   };
 
   return (
@@ -59,7 +58,7 @@ export const WelcomeScreen = () => {
             label={t('welcome.nameLabel')}
             placeholder={t('welcome.namePlaceholder')}
             value={name}
-            onChange={(e) => handleNameChange(e.target.value)}
+            onChange={(e) => dispatch(setName(e.target.value))}
             error={nameError}
             required
             autoComplete="name"
@@ -68,7 +67,7 @@ export const WelcomeScreen = () => {
             label={t('welcome.companyLabel')}
             placeholder={t('welcome.companyPlaceholder')}
             value={company}
-            onChange={(e) => setCompany(e.target.value)}
+            onChange={(e) => dispatch(setCompany(e.target.value))}
             autoComplete="organization"
           />
           <Button type="submit" className="w-full">

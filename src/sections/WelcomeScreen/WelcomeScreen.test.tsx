@@ -46,7 +46,7 @@ describe('WelcomeScreen', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('dispatches setVisitorInfo on valid submit', async () => {
+  it('enters welcome on valid submit', async () => {
     const user = userEvent.setup();
     const { store } = renderWithProviders(<WelcomeScreen />);
 
@@ -54,11 +54,10 @@ describe('WelcomeScreen', () => {
     await user.type(screen.getByLabelText(en.welcome.companyLabel), 'Acme');
     await user.click(screen.getByRole('button', { name: en.welcome.startButton }));
 
-    expect(store.getState().visitor).toEqual({
-      name: 'Oriel',
-      company: 'Acme',
-      hasEnteredWelcome: true,
-    });
+    const { visitor } = store.getState();
+    expect(visitor.name).toBe('Oriel');
+    expect(visitor.company).toBe('Acme');
+    expect(visitor.hasEnteredWelcome).toBe(true);
   });
 
   it('submits successfully without a company', async () => {

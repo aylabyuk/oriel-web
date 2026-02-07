@@ -12,7 +12,7 @@ describe('App', () => {
   it('renders the main content after entering welcome', () => {
     renderWithProviders(<App />, {
       preloadedState: {
-        visitor: { name: 'Oriel', company: '', hasEnteredWelcome: true },
+        visitor: { name: 'Oriel', company: '', nameError: '', submitted: true, hasEnteredWelcome: true },
       },
     });
     expect(screen.getByText('Oriel Absin')).toBeInTheDocument();
