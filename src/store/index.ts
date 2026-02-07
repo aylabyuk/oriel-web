@@ -1,8 +1,8 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { themeSlice } from '@/store/slices/themeSlice';
-import { navigationSlice } from '@/store/slices/navigationSlice';
-import { gameSlice } from '@/store/slices/gameSlice';
-import { visitorSlice } from '@/store/slices/visitorSlice';
+import { themeSlice } from '@/store/slices/theme';
+import { navigationSlice } from '@/store/slices/navigation';
+import { gameSlice } from '@/store/slices/game';
+import { visitorSlice } from '@/store/slices/visitor';
 
 export const rootReducer = combineReducers({
   theme: themeSlice.reducer,

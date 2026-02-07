@@ -5,7 +5,7 @@ import {
   setNameError,
   submitWelcome,
   resetVisitor,
-} from '@/store/slices/visitorSlice';
+} from '@/store/slices/visitor';
 
 const reducer = visitorSlice.reducer;
 

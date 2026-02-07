@@ -1,5 +1,5 @@
 import { useAppSelector } from '@/store/hooks';
-import { selectHasEnteredWelcome } from '@/store/slices/visitorSlice';
+import { selectHasEnteredWelcome } from '@/store/slices/visitor';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
 
 export const App = () => {
