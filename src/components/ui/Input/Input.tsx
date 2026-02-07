@@ -26,8 +26,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             'rounded-lg border border-neutral-700 bg-neutral-900 px-4 py-2.5',
             'text-white placeholder:text-neutral-500',
             'transition-colors outline-none',
-            'focus:border-red-500 focus:ring-1 focus:ring-red-500',
-            error && 'border-red-400',
+            'focus:border-accent-500 focus:ring-1 focus:ring-accent-500',
+            error && 'border-accent-400',
             className,
           )}
           aria-invalid={error ? true : undefined}
@@ -37,7 +37,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="text-sm text-red-400"
+            className="text-sm text-accent-400"
             role="alert"
           >
             {error}

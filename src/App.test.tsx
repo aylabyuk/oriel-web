@@ -9,6 +9,13 @@ describe('App', () => {
     expect(screen.getByText(en.welcome.title)).toBeInTheDocument();
   });
 
+  it('renders the theme switcher', () => {
+    renderWithProviders(<App />);
+    expect(
+      screen.getByRole('radiogroup', { name: 'Color theme' }),
+    ).toBeInTheDocument();
+  });
+
   it('renders the main content after entering welcome', () => {
     renderWithProviders(<App />, {
       preloadedState: {

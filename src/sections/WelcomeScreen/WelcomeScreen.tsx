@@ -45,7 +45,7 @@ export const WelcomeScreen = () => {
   return (
     <section className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
-        <div className="space-y-2 text-center">
+        <div className="space-y-7 mb-32 text-center">
           <Avatar
             src={MY_AVATAR_URL}
             alt="Oriel Absin"

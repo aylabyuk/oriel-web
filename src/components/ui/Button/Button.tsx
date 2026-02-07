@@ -17,9 +17,9 @@ export const Button = ({
       'focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
       'disabled:cursor-not-allowed disabled:opacity-50',
       variant === 'primary' && [
-        'bg-red-600 text-white',
-        'hover:bg-red-500',
-        'focus:ring-red-500',
+        'bg-accent-600 text-white',
+        'hover:bg-accent-500',
+        'focus:ring-accent-500',
       ],
       variant === 'secondary' && [
         'border border-neutral-600 bg-transparent text-neutral-300',

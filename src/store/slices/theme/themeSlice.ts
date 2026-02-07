@@ -1,15 +1,18 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { CardColor } from '@/types/game';
 
 type ThemeMode = 'light' | 'dark';
 
 type ThemeState = {
   mode: ThemeMode;
   reducedMotion: boolean;
+  accentColor: CardColor;
 };
 
 const initialState: ThemeState = {
   mode: 'dark',
   reducedMotion: false,
+  accentColor: 'red',
 };
 
 export const themeSlice = createSlice({
@@ -25,13 +28,22 @@ export const themeSlice = createSlice({
     setReducedMotion(state, action: PayloadAction<boolean>) {
       state.reducedMotion = action.payload;
     },
+    setAccentColor(state, action: PayloadAction<CardColor>) {
+      state.accentColor = action.payload;
+    },
   },
   selectors: {
     selectThemeMode: (state) => state.mode,
     selectReducedMotion: (state) => state.reducedMotion,
+    selectAccentColor: (state) => state.accentColor,
   },
 });
 
-export const { setThemeMode, toggleThemeMode, setReducedMotion } =
-  themeSlice.actions;
-export const { selectThemeMode, selectReducedMotion } = themeSlice.selectors;
+export const {
+  setThemeMode,
+  toggleThemeMode,
+  setReducedMotion,
+  setAccentColor,
+} = themeSlice.actions;
+export const { selectThemeMode, selectReducedMotion, selectAccentColor } =
+  themeSlice.selectors;
