@@ -30,5 +30,7 @@ export const navigationSlice = createSlice({
   },
 });
 
-export const { setActiveSection, setMenuOpen, toggleMenu } = navigationSlice.actions;
-export const { selectActiveSection, selectMenuOpen } = navigationSlice.selectors;
+export const { setActiveSection, setMenuOpen, toggleMenu } =
+  navigationSlice.actions;
+export const { selectActiveSection, selectMenuOpen } =
+  navigationSlice.selectors;

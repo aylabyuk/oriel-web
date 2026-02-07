@@ -8,7 +8,7 @@ export const App = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       {hasEnteredWelcome ? (
-        <h1 className="text-4xl font-bold p-8">Oriel Absin</h1>
+        <h1 className="p-8 text-4xl font-bold">Oriel Absin</h1>
       ) : (
         <WelcomeScreen />
       )}

@@ -14,7 +14,7 @@ export const Button = ({
   <button
     className={cn(
       'rounded-lg px-6 py-2.5 font-semibold transition-colors',
-      'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black',
+      'focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
       'disabled:cursor-not-allowed disabled:opacity-50',
       variant === 'primary' && [
         'bg-red-600 text-white',

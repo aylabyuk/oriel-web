@@ -14,7 +14,10 @@ const translationsByLocale: Record<Locale, Translations> = {
   en,
 };
 
-export const I18nProvider = ({ locale = 'en', children }: I18nProviderProps) => {
+export const I18nProvider = ({
+  locale = 'en',
+  children,
+}: I18nProviderProps) => {
   const value = useMemo<I18nContextValue>(
     () => ({
       locale,

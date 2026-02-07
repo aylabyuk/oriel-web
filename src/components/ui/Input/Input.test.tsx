@@ -15,7 +15,10 @@ describe('Input', () => {
 
   it('sets aria-invalid when there is an error', () => {
     render(<Input label="Name" error="Required" />);
-    expect(screen.getByLabelText('Name')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Name')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
   });
 
   it('links aria-describedby to the error element', () => {

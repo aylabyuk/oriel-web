@@ -10,7 +10,9 @@ export const renderWithProviders = (
   {
     preloadedState,
     ...options
-  }: { preloadedState?: Partial<RootState> } & Parameters<typeof render>[1] = {},
+  }: { preloadedState?: Partial<RootState> } & Parameters<
+    typeof render
+  >[1] = {},
 ) => {
   const store = configureStore({
     reducer: rootReducer,

@@ -19,7 +19,9 @@ describe('WelcomeScreen', () => {
 
   it('renders the submit button', () => {
     renderWithProviders(<WelcomeScreen />);
-    expect(screen.getByRole('button', { name: en.welcome.startButton })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: en.welcome.startButton }),
+    ).toBeInTheDocument();
   });
 
   it('auto-focuses the name input', () => {
@@ -31,15 +33,21 @@ describe('WelcomeScreen', () => {
     const user = userEvent.setup();
     renderWithProviders(<WelcomeScreen />);
 
-    await user.click(screen.getByRole('button', { name: en.welcome.startButton }));
-    expect(screen.getByRole('alert')).toHaveTextContent(en.welcome.nameRequired);
+    await user.click(
+      screen.getByRole('button', { name: en.welcome.startButton }),
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      en.welcome.nameRequired,
+    );
   });
 
   it('clears error when typing a valid name after failed submit', async () => {
     const user = userEvent.setup();
     renderWithProviders(<WelcomeScreen />);
 
-    await user.click(screen.getByRole('button', { name: en.welcome.startButton }));
+    await user.click(
+      screen.getByRole('button', { name: en.welcome.startButton }),
+    );
     expect(screen.getByRole('alert')).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(en.welcome.nameLabel), 'Oriel');
@@ -52,7 +60,9 @@ describe('WelcomeScreen', () => {
 
     await user.type(screen.getByLabelText(en.welcome.nameLabel), 'Oriel');
     await user.type(screen.getByLabelText(en.welcome.companyLabel), 'Acme');
-    await user.click(screen.getByRole('button', { name: en.welcome.startButton }));
+    await user.click(
+      screen.getByRole('button', { name: en.welcome.startButton }),
+    );
 
     const { visitor } = store.getState();
     expect(visitor.name).toBe('Oriel');
@@ -65,7 +75,9 @@ describe('WelcomeScreen', () => {
     const { store } = renderWithProviders(<WelcomeScreen />);
 
     await user.type(screen.getByLabelText(en.welcome.nameLabel), 'Oriel');
-    await user.click(screen.getByRole('button', { name: en.welcome.startButton }));
+    await user.click(
+      screen.getByRole('button', { name: en.welcome.startButton }),
+    );
 
     expect(store.getState().visitor.hasEnteredWelcome).toBe(true);
     expect(store.getState().visitor.company).toBe('');

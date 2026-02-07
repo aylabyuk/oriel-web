@@ -1,5 +1,9 @@
 import type { Card } from 'uno-engine';
-import type { SerializedCard, SerializedPlayer, PlayDirection } from '@/types/game';
+import type {
+  SerializedCard,
+  SerializedPlayer,
+  PlayDirection,
+} from '@/types/game';
 
 let cardIdCounter = 0;
 const cardIdMap = new WeakMap<Card, string>();

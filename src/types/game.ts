@@ -1,7 +1,13 @@
 import type { Card, Color, Value } from 'uno-engine';
 
 export type CardColor = 'red' | 'blue' | 'green' | 'yellow';
-export type CardType = 'number' | 'skip' | 'reverse' | 'draw_two' | 'wild' | 'wild_draw_four';
+export type CardType =
+  | 'number'
+  | 'skip'
+  | 'reverse'
+  | 'draw_two'
+  | 'wild'
+  | 'wild_draw_four';
 
 export type SerializedCard = {
   value: Value;
@@ -17,11 +23,7 @@ export type SerializedPlayer = {
 
 export type PlayDirection = 'clockwise' | 'counter_clockwise';
 
-export type GamePhase =
-  | 'idle'
-  | 'playing'
-  | 'choosing_color'
-  | 'ended';
+export type GamePhase = 'idle' | 'playing' | 'choosing_color' | 'ended';
 
 export type GameSnapshot = {
   phase: GamePhase;

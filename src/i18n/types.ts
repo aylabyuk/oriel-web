@@ -46,4 +46,9 @@ export type TranslationValue<
 export type TranslationArgs<K extends TranslationKey> =
   InterpolationParams<TranslationValue<K> & string> extends never
     ? []
-    : [params: Record<InterpolationParams<TranslationValue<K> & string>, string | number>];
+    : [
+        params: Record<
+          InterpolationParams<TranslationValue<K> & string>,
+          string | number
+        >,
+      ];

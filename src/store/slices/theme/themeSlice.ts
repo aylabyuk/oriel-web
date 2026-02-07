@@ -32,5 +32,6 @@ export const themeSlice = createSlice({
   },
 });
 
-export const { setThemeMode, toggleThemeMode, setReducedMotion } = themeSlice.actions;
+export const { setThemeMode, toggleThemeMode, setReducedMotion } =
+  themeSlice.actions;
 export const { selectThemeMode, selectReducedMotion } = themeSlice.selectors;

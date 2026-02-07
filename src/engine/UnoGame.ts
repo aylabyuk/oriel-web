@@ -6,7 +6,11 @@ import type {
   GameEventListener,
   DialogueTrigger,
 } from '@/types/game';
-import { serializeCard, serializePlayer, serializeDirection } from '@/engine/serializers';
+import {
+  serializeCard,
+  serializePlayer,
+  serializeDirection,
+} from '@/engine/serializers';
 
 type HouseRule = { setup: (...args: unknown[]) => void };
 
@@ -57,43 +61,55 @@ export class UnoGame {
   }
 
   private bindEngineEvents(): void {
-    this.engine.on('cardplay', ({ data }: { data: { card: Card; player: { name: string } } }) => {
-      const trigger = this.getDialogueTrigger(data.card);
-      this.emit({
-        type: 'card_played',
-        playerName: data.player.name,
-        card: serializeCard(data.card),
-        data: { trigger },
-      });
-    });
+    this.engine.on(
+      'cardplay',
+      ({ data }: { data: { card: Card; player: { name: string } } }) => {
+        const trigger = this.getDialogueTrigger(data.card);
+        this.emit({
+          type: 'card_played',
+          playerName: data.player.name,
+          card: serializeCard(data.card),
+          data: { trigger },
+        });
+      },
+    );
 
-    this.engine.on('draw', ({ data }: { data: { player: { name: string }; cards: Card[] } }) => {
-      this._hasDrawn = true;
-      this.emit({
-        type: 'card_drawn',
-        playerName: data.player.name,
-        data: { count: data.cards.length },
-      });
-    });
+    this.engine.on(
+      'draw',
+      ({ data }: { data: { player: { name: string }; cards: Card[] } }) => {
+        this._hasDrawn = true;
+        this.emit({
+          type: 'card_drawn',
+          playerName: data.player.name,
+          data: { count: data.cards.length },
+        });
+      },
+    );
 
-    this.engine.on('nextplayer', ({ data }: { data: { player: { name: string } } }) => {
-      this._hasDrawn = false;
-      this.emit({
-        type: 'turn_changed',
-        playerName: data.player.name,
-      });
-    });
+    this.engine.on(
+      'nextplayer',
+      ({ data }: { data: { player: { name: string } } }) => {
+        this._hasDrawn = false;
+        this.emit({
+          type: 'turn_changed',
+          playerName: data.player.name,
+        });
+      },
+    );
 
-    this.engine.on('end', ({ data }: { data: { winner: { name: string }; score: number } }) => {
-      this.phase = 'ended';
-      this.winner = data.winner.name;
-      this.score = data.score;
-      this.emit({
-        type: 'game_ended',
-        playerName: data.winner.name,
-        data: { score: data.score },
-      });
-    });
+    this.engine.on(
+      'end',
+      ({ data }: { data: { winner: { name: string }; score: number } }) => {
+        this.phase = 'ended';
+        this.winner = data.winner.name;
+        this.score = data.score;
+        this.emit({
+          type: 'game_ended',
+          playerName: data.winner.name,
+          data: { score: data.score },
+        });
+      },
+    );
   }
 
   // ---------------------------------------------------------------------------

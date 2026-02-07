@@ -53,8 +53,13 @@ export const visitorSlice = createSlice({
   },
 });
 
-export const { setName, setCompany, setNameError, submitWelcome, resetVisitor } =
-  visitorSlice.actions;
+export const {
+  setName,
+  setCompany,
+  setNameError,
+  submitWelcome,
+  resetVisitor,
+} = visitorSlice.actions;
 export const {
   selectVisitorName,
   selectVisitorCompany,

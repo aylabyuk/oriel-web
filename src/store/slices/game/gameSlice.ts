@@ -35,12 +35,14 @@ export const gameSlice = createSlice({
     selectSnapshot: (state) => state.snapshot,
     selectPhase: (state) => state.phase,
     selectEvents: (state) => state.events,
-    selectCurrentPlayerName: (state) => state.snapshot?.currentPlayerName ?? null,
+    selectCurrentPlayerName: (state) =>
+      state.snapshot?.currentPlayerName ?? null,
     selectIsGameOver: (state) => state.phase === 'ended',
   },
 });
 
-export const { setSnapshot, pushEvent, clearEvents, resetGame } = gameSlice.actions;
+export const { setSnapshot, pushEvent, clearEvents, resetGame } =
+  gameSlice.actions;
 export const {
   selectSnapshot,
   selectPhase,
