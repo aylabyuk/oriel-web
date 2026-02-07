@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/utils';
 import { en } from '@/i18n/en';
@@ -64,10 +64,11 @@ describe('WelcomeScreen', () => {
       screen.getByRole('button', { name: en.welcome.startButton }),
     );
 
-    const { visitor } = store.getState();
-    expect(visitor.name).toBe('Oriel');
-    expect(visitor.company).toBe('Acme');
-    expect(visitor.hasEnteredWelcome).toBe(true);
+    expect(store.getState().visitor.name).toBe('Oriel');
+    expect(store.getState().visitor.company).toBe('Acme');
+    await waitFor(() => {
+      expect(store.getState().visitor.hasEnteredWelcome).toBe(true);
+    });
   });
 
   it('submits successfully without a company', async () => {
@@ -79,7 +80,9 @@ describe('WelcomeScreen', () => {
       screen.getByRole('button', { name: en.welcome.startButton }),
     );
 
-    expect(store.getState().visitor.hasEnteredWelcome).toBe(true);
+    await waitFor(() => {
+      expect(store.getState().visitor.hasEnteredWelcome).toBe(true);
+    });
     expect(store.getState().visitor.company).toBe('');
   });
 });
