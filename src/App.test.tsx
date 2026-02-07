@@ -9,10 +9,10 @@ describe('App', () => {
     expect(screen.getByText(en.welcome.title)).toBeInTheDocument();
   });
 
-  it('renders the theme switcher', () => {
+  it('renders the theme toggle', () => {
     renderWithProviders(<App />);
     expect(
-      screen.getByRole('radiogroup', { name: 'Color theme' }),
+      screen.getByRole('button', { name: 'Switch to light mode' }),
     ).toBeInTheDocument();
   });
 

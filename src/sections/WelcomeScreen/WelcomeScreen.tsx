@@ -45,7 +45,7 @@ export const WelcomeScreen = () => {
   return (
     <section className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
-        <div className="space-y-7 mb-32 text-center">
+        <div className="mb-32 space-y-7 text-center">
           <Avatar
             src={MY_AVATAR_URL}
             alt="Oriel Absin"
@@ -55,7 +55,9 @@ export const WelcomeScreen = () => {
           <h1 className="text-4xl font-bold tracking-tight">
             {t('welcome.title')}
           </h1>
-          <p className="text-neutral-400">{t('welcome.subtitle')}</p>
+          <p className="text-neutral-500 dark:text-neutral-400">
+            {t('welcome.subtitle')}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>

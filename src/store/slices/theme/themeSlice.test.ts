@@ -3,7 +3,6 @@ import {
   setThemeMode,
   toggleThemeMode,
   setReducedMotion,
-  setAccentColor,
 } from '@/store/slices/theme';
 
 const reducer = themeSlice.reducer;
@@ -14,7 +13,6 @@ describe('themeSlice', () => {
     expect(state).toEqual({
       mode: 'dark',
       reducedMotion: false,
-      accentColor: 'red',
     });
   });
 
@@ -35,22 +33,10 @@ describe('themeSlice', () => {
     expect(state.reducedMotion).toBe(true);
   });
 
-  it('sets accent color', () => {
-    const state = reducer(undefined, setAccentColor('blue'));
-    expect(state.accentColor).toBe('blue');
-  });
-
-  it('sets accent color to each UNO color', () => {
-    for (const color of ['red', 'blue', 'green', 'yellow'] as const) {
-      const state = reducer(undefined, setAccentColor(color));
-      expect(state.accentColor).toBe(color);
-    }
-  });
-
-  it('preserves other state when setting accent color', () => {
-    const initial = reducer(undefined, setThemeMode('light'));
-    const state = reducer(initial, setAccentColor('green'));
+  it('preserves other state when toggling theme mode', () => {
+    const initial = reducer(undefined, setReducedMotion(true));
+    const state = reducer(initial, toggleThemeMode());
     expect(state.mode).toBe('light');
-    expect(state.accentColor).toBe('green');
+    expect(state.reducedMotion).toBe(true);
   });
 });
