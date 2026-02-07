@@ -212,6 +212,10 @@ expect(mesh.props.position).toEqual([0, 0, 0]);
 - Support `prefers-reduced-motion` — disable or simplify animations accordingly
 - Maintain color contrast ratios (WCAG AA minimum) on all text overlays
 
+## Ideas & Design Docs
+
+- [UNO Portfolio Concept](ideas/uno-portfolio.md) — Core concept: portfolio site as an UNO card game where visitors unlock resume info through gameplay
+
 ## Git Conventions
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`
 - Commit messages: conventional commits (`feat:`, `fix:`, `test:`, `chore:`, `docs:`, `refactor:`)

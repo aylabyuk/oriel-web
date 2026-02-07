@@ -22,7 +22,8 @@
     "react-dom": "^19.2.4",
     "react-redux": "^9.2.0",
     "tailwind-merge": "^3.4.0",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "uno-engine": "^2.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
