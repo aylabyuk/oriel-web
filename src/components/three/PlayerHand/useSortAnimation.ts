@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SpringRef } from '@react-spring/three';
 import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
@@ -65,7 +65,9 @@ export const useSortAnimation = ({
   faceUp,
   surfaceY,
   sortDelay,
-}: UseSortAnimationArgs) => {
+}: UseSortAnimationArgs): { sorted: boolean } => {
+  const [sorted, setSorted] = useState(false);
+  const doneRef = useRef(false);
   const seatDist = Math.hypot(seat.position[0], seat.position[2]);
   const pullDirX = seat.position[0] / seatDist;
   const pullDirZ = seat.position[2] / seatDist;
@@ -88,7 +90,8 @@ export const useSortAnimation = ({
   }, [cards]);
 
   useEffect(() => {
-    if (sortDelay == null || count <= 1) return;
+
+    if (sortDelay == null || count <= 1 || doneRef.current) return;
     let cancelled = false;
 
     // Normal spread position for a slot
@@ -201,6 +204,12 @@ export const useSortAnimation = ({
           }),
         );
       }
+
+      if (!cancelled) {
+
+        doneRef.current = true;
+        setSorted(true);
+      }
     }, sortDelay);
 
     return () => {
@@ -208,4 +217,6 @@ export const useSortAnimation = ({
       clearTimeout(timeout);
     };
   }, [sortDelay, api, count, sortOrder, liftedY, settledY, settledRotX, spread, pulledX, pulledZ, perpX, perpZ, pullDirX, pullDirZ]);
+
+  return { sorted };
 };

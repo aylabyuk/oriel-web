@@ -1,4 +1,5 @@
 import { useTexture } from '@react-three/drei';
+import { useSpring, animated } from '@react-spring/three';
 import { Shape, ShapeGeometry, ExtrudeGeometry } from 'three';
 import type { Value, Color } from 'uno-engine';
 import { getCardFilename } from '@/utils/cardTexture';
@@ -55,6 +56,8 @@ type Card3DProps = {
   faceUp?: boolean;
   position?: [number, number, number];
   rotation?: [number, number, number];
+  glowColor?: string;
+  glowIntensity?: number;
 };
 
 export const Card3D = ({
@@ -63,6 +66,8 @@ export const Card3D = ({
   faceUp = true,
   position = [0, 0, 0],
   rotation = [0, 0, 0],
+  glowColor,
+  glowIntensity = 0,
 }: Card3DProps) => {
   const showFront = faceUp && value !== undefined;
   const frontUrl = showFront
@@ -77,10 +82,21 @@ export const Card3D = ({
     ? textures
     : [undefined, textures[0]];
 
+  const { intensity } = useSpring({
+    intensity: glowIntensity,
+    config: { tension: 120, friction: 14 },
+  });
+
   return (
     <group position={position} rotation={rotation}>
       <mesh geometry={bodyGeo}>
-        <meshStandardMaterial color="#ffffff" roughness={0.5} />
+        <animated.meshStandardMaterial
+          color="#ffffff"
+          roughness={0.5}
+          emissive={glowColor ?? '#000000'}
+          emissiveIntensity={intensity}
+          toneMapped={false}
+        />
       </mesh>
 
       {frontTex && (

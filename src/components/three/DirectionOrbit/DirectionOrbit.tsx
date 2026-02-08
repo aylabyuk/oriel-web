@@ -7,23 +7,16 @@ import {
   DoubleSide,
   type Mesh,
 } from 'three';
-import { Color } from 'uno-engine';
+import type { Color } from 'uno-engine';
 import { useAppSelector } from '@/store/hooks';
 import { selectReducedMotion } from '@/store/slices/theme';
+import { unoColorToHex } from '@/constants';
 import type { PlayDirection } from '@/types/game';
 import {
   useOrbitAnimation,
   TAIL_SAMPLES,
   VERTS_PER_SAMPLE,
 } from './useOrbitAnimation';
-
-const UNO_COLORS: Record<number, string> = {
-  [Color.RED]: '#ef6f6f',
-  [Color.BLUE]: '#5b8ef5',
-  [Color.GREEN]: '#4dcb7a',
-  [Color.YELLOW]: '#f0b84d',
-};
-const WILD_COLOR = '#ffffff';
 
 const ARROW_INDICES = [
   0, 1, 2,
@@ -82,7 +75,7 @@ export const DirectionOrbit = ({
   const arrow2Geo = useMemo(() => makeArrowGeo(), []);
   const tail2Geo = useMemo(() => makeTailGeo(), []);
 
-  const targetHex = activeColor != null ? UNO_COLORS[activeColor] : WILD_COLOR;
+  const targetHex = unoColorToHex(activeColor);
 
   const [{ colorR, colorG, colorB }, api] = useSpring(() => {
     const c = new ThreeColor(targetHex);

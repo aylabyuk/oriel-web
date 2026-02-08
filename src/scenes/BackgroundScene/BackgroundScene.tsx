@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -16,6 +16,7 @@ import {
   SEAT_ORDER,
   DRAW_PILE_POSITION,
   DISCARD_PILE_POSITION,
+  unoColorToHex,
 } from '@/constants';
 
 const CARDS_PER_PLAYER = 7;
@@ -59,6 +60,9 @@ export const BackgroundScene = ({
   const discardDelay =
     TABLE_SETTLE_MS + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
   const revealDelay = discardDelay;
+  const activeColorHex = unoColorToHex(snapshot?.discardedCard.color);
+  const [readyToPlay, setReadyToPlay] = useState(false);
+  const handleReady = useCallback(() => setReadyToPlay(true), []);
 
   return (
     <div className="fixed inset-0 z-0">
@@ -101,12 +105,17 @@ export const BackgroundScene = ({
                       deckTopY={deckTopY}
                       dealBaseDelay={TABLE_SETTLE_MS}
                       revealDelay={revealDelay}
+                      isActive={player.name === snapshot.currentPlayerName}
+                      glowColor={activeColorHex}
+                      onReady={i === 0 ? handleReady : undefined}
                     />
                   ))}
-                  <DirectionOrbit
-                    direction={snapshot.direction}
-                    activeColor={snapshot.discardedCard.color}
-                  />
+                  {readyToPlay && (
+                    <DirectionOrbit
+                      direction={snapshot.direction}
+                      activeColor={snapshot.discardedCard.color}
+                    />
+                  )}
                 </>
               )}
             </Table>

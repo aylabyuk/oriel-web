@@ -66,6 +66,7 @@ export const useRevealAnimation = ({
   useEffect(() => {
     if (revealDelay == null) return;
     const timeout = setTimeout(() => {
+
       api.start(() => ({
         to: {
           posX: seat.position[0] + pullDirX * PULL_DISTANCE,
@@ -81,6 +82,7 @@ export const useRevealAnimation = ({
   useEffect(() => {
     if (revealDelay == null) return;
     const timeout = setTimeout(() => {
+
       api.start((i) => ({
         to: {
           rotX: 0,
@@ -100,6 +102,7 @@ export const useRevealAnimation = ({
   useEffect(() => {
     if (revealDelay == null) return;
     const timeout = setTimeout(() => {
+
       api.start((i) => {
         const spread = faceUp ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
         const offset = (i - (count - 1) / 2) * spread;
@@ -119,6 +122,7 @@ export const useRevealAnimation = ({
   useEffect(() => {
     if (revealDelay == null || !faceUp) return;
     const timeout = setTimeout(() => {
+
       api.start((i) => {
         const spread = CARD_SPREAD;
         const offset = (i - (count - 1) / 2) * spread;

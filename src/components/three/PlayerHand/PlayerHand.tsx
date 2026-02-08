@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { animated } from '@react-spring/three';
 import { Card3D } from '@/components/three/Card3D';
 import { useDealAnimation } from './useDealAnimation';
@@ -5,6 +6,8 @@ import { useRevealAnimation, REVEAL_TOTAL_MS } from './useRevealAnimation';
 import { useSortAnimation } from './useSortAnimation';
 import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
+
+const GLOW_INTENSITY = 2.0;
 
 type PlayerHandProps = {
   cards: SerializedCard[];
@@ -17,6 +20,9 @@ type PlayerHandProps = {
   deckTopY: number;
   dealBaseDelay?: number;
   revealDelay?: number;
+  isActive?: boolean;
+  glowColor?: string;
+  onReady?: () => void;
 };
 
 export const PlayerHand = ({
@@ -30,6 +36,9 @@ export const PlayerHand = ({
   deckTopY,
   dealBaseDelay = 0,
   revealDelay,
+  isActive = false,
+  glowColor,
+  onReady,
 }: PlayerHandProps) => {
   const count = faceUp ? cards.length : cardCount;
 
@@ -55,7 +64,7 @@ export const PlayerHand = ({
   const sortDelay =
     revealDelay != null ? revealDelay + REVEAL_TOTAL_MS : undefined;
 
-  useSortAnimation({
+  const { sorted } = useSortAnimation({
     api,
     cards,
     count,
@@ -64,6 +73,12 @@ export const PlayerHand = ({
     surfaceY,
     sortDelay,
   });
+
+  useEffect(() => {
+    if (sorted) onReady?.();
+  }, [sorted, onReady]);
+
+  const ready = sorted || sortDelay == null;
 
   return (
     <group>
@@ -83,6 +98,8 @@ export const PlayerHand = ({
               value={card?.value}
               color={card?.color}
               faceUp={faceUp}
+              glowColor={glowColor}
+              glowIntensity={ready && isActive ? GLOW_INTENSITY : 0}
             />
           </animated.group>
         );
