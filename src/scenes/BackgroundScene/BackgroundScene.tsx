@@ -11,6 +11,7 @@ import { CardDeck } from '@/components/three/CardDeck';
 import { DiscardPile } from '@/components/three/DiscardPile';
 import { PlayerHand } from '@/components/three/PlayerHand';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
+import { CameraRig } from '@/components/three/CameraRig';
 import {
   SEATS,
   SEAT_ORDER,
@@ -61,6 +62,9 @@ export const BackgroundScene = ({
     TABLE_SETTLE_MS + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
   const revealDelay = discardDelay;
   const activeColorHex = unoColorToHex(snapshot?.discardedCard.color);
+  const activeSeatIndex = snapshot
+    ? snapshot.players.findIndex((p) => p.name === snapshot.currentPlayerName)
+    : 0;
   const [readyToPlay, setReadyToPlay] = useState(false);
   const handleReady = useCallback(() => setReadyToPlay(true), []);
 
@@ -121,7 +125,8 @@ export const BackgroundScene = ({
             </Table>
           </Suspense>
         )}
-        <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} />
+        {readyToPlay && <CameraRig activeSeatIndex={activeSeatIndex} />}
+        <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} enabled={!readyToPlay} />
         <EffectComposer>
           <Bloom
             luminanceThreshold={0.9}
