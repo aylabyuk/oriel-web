@@ -53,13 +53,14 @@ export const PlayerHand = ({
   });
 
   const sortDelay =
-    faceUp && revealDelay != null ? revealDelay + REVEAL_TOTAL_MS : undefined;
+    revealDelay != null ? revealDelay + REVEAL_TOTAL_MS : undefined;
 
   useSortAnimation({
     api,
     cards,
     count,
     seat,
+    faceUp,
     surfaceY,
     sortDelay,
   });

@@ -6,6 +6,7 @@ import type { Seat } from '@/constants';
 const CARD_DEPTH = 0.003;
 const PULL_DISTANCE = 1.2;
 const CARD_SPREAD = 0.25;
+const OPPONENT_CARD_SPREAD = 0.1;
 const CARD_WIDTH = 0.7;
 const CARD_HALF_HEIGHT = 0.5;
 const CAMERA_TILT_X = -0.35;
@@ -31,6 +32,7 @@ type UseSortAnimationArgs = {
   cards: SerializedCard[];
   count: number;
   seat: Seat;
+  faceUp: boolean;
   surfaceY: number;
   sortDelay: number | undefined;
 };
@@ -60,6 +62,7 @@ export const useSortAnimation = ({
   cards,
   count,
   seat,
+  faceUp,
   surfaceY,
   sortDelay,
 }: UseSortAnimationArgs) => {
@@ -71,8 +74,10 @@ export const useSortAnimation = ({
   const perpX = -pullDirZ;
   const perpZ = pullDirX;
 
-  const settledY = surfaceY + CARD_HALF_HEIGHT + CAMERA_LIFT_Y;
+  const spread = faceUp ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
+  const settledY = surfaceY + CARD_HALF_HEIGHT + (faceUp ? CAMERA_LIFT_Y : 0);
   const liftedY = settledY + SORT_LIFT_Y;
+  const settledRotX = faceUp ? CAMERA_TILT_X : 0;
 
   // sortOrder[slot] = original card index that belongs at that slot
   const sortOrder = useMemo(() => {
@@ -88,7 +93,7 @@ export const useSortAnimation = ({
 
     // Normal spread position for a slot
     const slotPos = (slot: number) => {
-      const offset = (slot - (count - 1) / 2) * CARD_SPREAD;
+      const offset = (slot - (count - 1) / 2) * spread;
       return {
         posX: pulledX + perpX * offset - pullDirX * slot * CARD_DEPTH,
         posZ: pulledZ + perpZ * offset - pullDirZ * slot * CARD_DEPTH,
@@ -174,7 +179,7 @@ export const useSortAnimation = ({
             return {
               to: {
                 posY: settledY,
-                rotX: CAMERA_TILT_X,
+                rotX: settledRotX,
                 posX: targetPos.posX,
                 posZ: targetPos.posZ,
               },
@@ -202,5 +207,5 @@ export const useSortAnimation = ({
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [sortDelay, api, count, sortOrder, liftedY, settledY, pulledX, pulledZ, perpX, perpZ, pullDirX, pullDirZ]);
+  }, [sortDelay, api, count, sortOrder, liftedY, settledY, settledRotX, spread, pulledX, pulledZ, perpX, perpZ, pullDirX, pullDirZ]);
 };
