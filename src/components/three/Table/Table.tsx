@@ -1,9 +1,15 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { MeshReflectorMaterial, RoundedBox, useTexture } from '@react-three/drei';
 import { useSpring, animated } from '@react-spring/three';
-import { RepeatWrapping } from 'three';
+import { RepeatWrapping, type Texture } from 'three';
 import woodDiffUrl from '@/assets/textures/wood_table_diff.jpg';
 import woodRoughUrl from '@/assets/textures/wood_table_rough.jpg';
+
+const configureTexture = (tex: Texture) => {
+  tex.wrapS = tex.wrapT = RepeatWrapping;
+  tex.repeat.set(2, 2);
+  return tex;
+};
 
 const TABLE_WIDTH = 4;
 const TABLE_HEIGHT = 0.1;
@@ -13,20 +19,19 @@ export const TABLE_SURFACE_Y = TABLE_HEIGHT / 2 + 0.001;
 
 type TableProps = {
   children?: ReactNode;
+  onReady?: () => void;
 };
 
-export const Table = ({ children }: TableProps) => {
-  const [diffMap, roughMap] = useTexture([woodDiffUrl, woodRoughUrl]);
-
-  diffMap.wrapS = diffMap.wrapT = RepeatWrapping;
-  diffMap.repeat.set(2, 2);
-  roughMap.wrapS = roughMap.wrapT = RepeatWrapping;
-  roughMap.repeat.set(2, 2);
+export const Table = ({ children, onReady }: TableProps) => {
+  const [rawDiff, rawRough] = useTexture([woodDiffUrl, woodRoughUrl]);
+  const diffMap = useMemo(() => configureTexture(rawDiff), [rawDiff]);
+  const roughMap = useMemo(() => configureTexture(rawRough), [rawRough]);
 
   const { posZ } = useSpring({
     from: { posZ: 15 },
     to: { posZ: -2 },
     config: { tension: 80, friction: 20 },
+    onRest: onReady,
   });
 
   return (

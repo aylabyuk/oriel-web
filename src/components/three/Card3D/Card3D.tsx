@@ -50,7 +50,7 @@ const faceGeo = (() => {
 })();
 
 type Card3DProps = {
-  value: Value;
+  value?: Value;
   color?: Color;
   faceUp?: boolean;
   position?: [number, number, number];
@@ -64,14 +64,16 @@ export const Card3D = ({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
 }: Card3DProps) => {
-  const filename = getCardFilename(value, color);
-  const frontUrl = CARD_TEXTURES[filename];
+  const showFront = faceUp && value !== undefined;
+  const frontUrl = showFront
+    ? CARD_TEXTURES[getCardFilename(value, color)]
+    : undefined;
 
   const textures = useTexture(
-    faceUp ? [frontUrl, CARD_BACK_TEXTURE] : [CARD_BACK_TEXTURE],
+    frontUrl ? [frontUrl, CARD_BACK_TEXTURE] : [CARD_BACK_TEXTURE],
   );
 
-  const [frontTex, backTex] = faceUp
+  const [frontTex, backTex] = frontUrl
     ? textures
     : [undefined, textures[0]];
 
