@@ -1,11 +1,19 @@
+import { useSpring, animated } from '@react-spring/web';
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
+import { selectReducedMotion } from '@/store/slices/theme';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
 import { EnvironmentSelector } from '@/components/ui/EnvironmentSelector';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
+  const reducedMotion = useAppSelector(selectReducedMotion);
+
+  const contentSpring = useSpring({
+    opacity: hasEnteredWelcome ? 1 : 0,
+    immediate: reducedMotion,
+  });
 
   return (
     <div
@@ -18,7 +26,9 @@ export const App = () => {
           <EnvironmentSelector />
         </div>
         {hasEnteredWelcome ? (
-          <h1 className="p-8 text-4xl font-bold">Oriel Absin</h1>
+          <animated.div style={contentSpring}>
+            <h1 className="p-8 text-4xl font-bold">Oriel Absin</h1>
+          </animated.div>
         ) : (
           <WelcomeScreen />
         )}
