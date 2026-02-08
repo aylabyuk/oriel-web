@@ -2,20 +2,23 @@ import { cn } from '@/utils/cn';
 
 type RestartButtonProps = {
   onClick: () => void;
+  disabled?: boolean;
 };
 
-export const RestartButton = ({ onClick }: RestartButtonProps) => (
+export const RestartButton = ({ onClick, disabled = false }: RestartButtonProps) => (
   <button
     type="button"
     aria-label="Restart game"
     data-tooltip="Restart game"
     onClick={onClick}
+    disabled={disabled}
     className={cn(
       'relative flex h-9 w-9 cursor-pointer items-center justify-center',
       'rounded-full text-lg shadow-sm backdrop-blur-sm transition-colors',
       'bg-white/60 hover:bg-white/80 dark:bg-black/60 dark:hover:bg-black/80',
       'focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none',
       'dark:focus:ring-neutral-500',
+      disabled && 'pointer-events-none opacity-40',
       'after:pointer-events-none after:absolute after:top-full after:mt-2',
       'after:rounded after:bg-black/80 after:px-2 after:py-1',
       'after:text-xs after:whitespace-nowrap after:text-white after:opacity-0 after:transition-opacity',
