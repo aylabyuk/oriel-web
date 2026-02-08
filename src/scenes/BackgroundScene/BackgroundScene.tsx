@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useAppSelector } from '@/store/hooks';
 import { selectEnvironment } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
@@ -9,6 +10,7 @@ import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
 import { CardDeck } from '@/components/three/CardDeck';
 import { DiscardPile } from '@/components/three/DiscardPile';
 import { PlayerHand } from '@/components/three/PlayerHand';
+import { DirectionOrbit } from '@/components/three/DirectionOrbit';
 import {
   SEATS,
   SEAT_ORDER,
@@ -101,12 +103,24 @@ export const BackgroundScene = ({
                       revealDelay={revealDelay}
                     />
                   ))}
+                  <DirectionOrbit
+                    direction={snapshot.direction}
+                    activeColor={snapshot.discardedCard.color}
+                  />
                 </>
               )}
             </Table>
           </Suspense>
         )}
         <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} />
+        <EffectComposer>
+          <Bloom
+            luminanceThreshold={0.9}
+            luminanceSmoothing={0.4}
+            intensity={1.2}
+            mipmapBlur
+          />
+        </EffectComposer>
       </Canvas>
     </div>
   );
