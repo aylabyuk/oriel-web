@@ -6,7 +6,7 @@ import { CARD_TEXTURES, CARD_BACK_TEXTURE } from '@/constants';
 
 const CARD_WIDTH = 0.7;
 const CARD_HEIGHT = 1.0;
-const CARD_DEPTH = 0.01;
+const CARD_DEPTH = 0.003;
 const CARD_RADIUS = 0.04;
 const FACE_OFFSET = CARD_DEPTH / 2 + 0.001;
 

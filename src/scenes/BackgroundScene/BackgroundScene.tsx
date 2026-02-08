@@ -1,12 +1,11 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Value, Color } from 'uno-engine';
 import { useAppSelector } from '@/store/hooks';
 import { selectEnvironment } from '@/store/slices/theme';
 import { SceneEnvironment } from '@/components/three/SceneEnvironment';
-import { Table } from '@/components/three/Table';
-import { Card3D } from '@/components/three/Card3D';
+import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
+import { CardDeck } from '@/components/three/CardDeck';
 
 type BackgroundSceneProps = {
   showTable?: boolean;
@@ -24,11 +23,9 @@ export const BackgroundScene = ({
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
           <Suspense fallback={null}>
-            <Table />
-            <Card3D
-              value={Value.SEVEN}
-              color={Color.RED}
-            />
+            <Table>
+              <CardDeck position={[-1.2, TABLE_SURFACE_Y, -1]} rotation={[0, 0.15, 0]} />
+            </Table>
           </Suspense>
         )}
         <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} />

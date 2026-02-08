@@ -1,1 +1,1 @@
-export { Table } from '@/components/three/Table/Table';
+export { Table, TABLE_SURFACE_Y } from '@/components/three/Table/Table';

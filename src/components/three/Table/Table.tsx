@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { MeshReflectorMaterial, RoundedBox, useTexture } from '@react-three/drei';
 import { useSpring, animated } from '@react-spring/three';
 import { RepeatWrapping } from 'three';
@@ -8,8 +9,13 @@ const TABLE_WIDTH = 4;
 const TABLE_HEIGHT = 0.1;
 const TABLE_DEPTH = 4;
 const TABLE_RADIUS = 0.05;
+export const TABLE_SURFACE_Y = TABLE_HEIGHT / 2 + 0.001;
 
-export const Table = () => {
+type TableProps = {
+  children?: ReactNode;
+};
+
+export const Table = ({ children }: TableProps) => {
   const [diffMap, roughMap] = useTexture([woodDiffUrl, woodRoughUrl]);
 
   diffMap.wrapS = diffMap.wrapT = RepeatWrapping;
@@ -54,6 +60,8 @@ export const Table = () => {
           metalness={0}
         />
       </RoundedBox>
+
+      {children}
     </animated.group>
   );
 };
