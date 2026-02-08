@@ -9,11 +9,9 @@ describe('App', () => {
     expect(screen.getByText(en.welcome.title)).toBeInTheDocument();
   });
 
-  it('renders the theme toggle', () => {
+  it('renders the environment selector', () => {
     renderWithProviders(<App />);
-    expect(
-      screen.getByRole('button', { name: 'Switch to light mode' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'Environment' })).toBeInTheDocument();
   });
 
   it('renders the main content after entering welcome', () => {

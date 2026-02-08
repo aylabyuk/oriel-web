@@ -1,8 +1,9 @@
 export {
   themeSlice,
-  setThemeMode,
-  toggleThemeMode,
+  setEnvironment,
   setReducedMotion,
-  selectThemeMode,
+  selectEnvironment,
   selectReducedMotion,
 } from '@/store/slices/theme/themeSlice';
+
+export type { EnvironmentPreset } from '@/store/slices/theme/themeSlice';

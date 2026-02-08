@@ -1,7 +1,6 @@
 import {
   themeSlice,
-  setThemeMode,
-  toggleThemeMode,
+  setEnvironment,
   setReducedMotion,
 } from '@/store/slices/theme';
 
@@ -11,21 +10,14 @@ describe('themeSlice', () => {
   it('has the correct initial state', () => {
     const state = reducer(undefined, { type: '@@INIT' });
     expect(state).toEqual({
-      mode: 'dark',
+      environment: 'sunset',
       reducedMotion: false,
     });
   });
 
-  it('sets theme mode', () => {
-    const state = reducer(undefined, setThemeMode('light'));
-    expect(state.mode).toBe('light');
-  });
-
-  it('toggles theme mode', () => {
-    let state = reducer(undefined, toggleThemeMode());
-    expect(state.mode).toBe('light');
-    state = reducer(state, toggleThemeMode());
-    expect(state.mode).toBe('dark');
+  it('sets environment preset', () => {
+    const state = reducer(undefined, setEnvironment('night'));
+    expect(state.environment).toBe('night');
   });
 
   it('sets reduced motion', () => {
@@ -33,10 +25,10 @@ describe('themeSlice', () => {
     expect(state.reducedMotion).toBe(true);
   });
 
-  it('preserves other state when toggling theme mode', () => {
+  it('preserves other state when changing environment', () => {
     const initial = reducer(undefined, setReducedMotion(true));
-    const state = reducer(initial, toggleThemeMode());
-    expect(state.mode).toBe('light');
+    const state = reducer(initial, setEnvironment('forest'));
+    expect(state.environment).toBe('forest');
     expect(state.reducedMotion).toBe(true);
   });
 });

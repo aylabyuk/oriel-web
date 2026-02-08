@@ -1,27 +1,18 @@
-import { Stars, Sky, Environment } from '@react-three/drei';
+import { Environment } from '@react-three/drei';
+import type { EnvironmentPreset } from '@/store/slices/theme';
 
 type SceneEnvironmentProps = {
-  mode: 'light' | 'dark';
+  preset: EnvironmentPreset;
 };
 
-export const SceneEnvironment = ({ mode }: SceneEnvironmentProps) => {
-  const isDark = mode === 'dark';
-
+export const SceneEnvironment = ({ preset }: SceneEnvironmentProps) => {
   return (
-    <>
-      {isDark && (
-        <Stars radius={100} depth={50} count={5000} fade factor={4} />
-      )}
-      {!isDark && (
-        <Sky
-          sunPosition={[1, 0.15, 0]}
-          turbidity={10}
-          rayleigh={3}
-          mieCoefficient={0.005}
-          mieDirectionalG={0.8}
-        />
-      )}
-      <Environment preset={isDark ? 'night' : 'dawn'} background={false} />
-    </>
+    <Environment
+      preset={preset}
+      background
+      backgroundBlurriness={0}
+      backgroundIntensity={1}
+      environmentIntensity={1}
+    />
   );
 };

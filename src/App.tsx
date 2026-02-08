@@ -1,23 +1,21 @@
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
-import { selectThemeMode } from '@/store/slices/theme';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { EnvironmentSelector } from '@/components/ui/EnvironmentSelector';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
-  const mode = useAppSelector(selectThemeMode);
 
   return (
     <div
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
-      data-theme={mode}
+      data-theme="dark"
     >
-      <BackgroundScene mode={mode} showTable={hasEnteredWelcome} />
+      <BackgroundScene showTable={hasEnteredWelcome} />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50">
-          <ThemeToggle />
+          <EnvironmentSelector />
         </div>
         {hasEnteredWelcome ? (
           <h1 className="p-8 text-4xl font-bold">Oriel Absin</h1>

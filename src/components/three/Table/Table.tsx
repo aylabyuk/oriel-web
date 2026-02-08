@@ -1,7 +1,17 @@
-import { MeshReflectorMaterial, RoundedBox } from '@react-three/drei';
+import { MeshReflectorMaterial, RoundedBox, useTexture } from '@react-three/drei';
 import { useSpring, animated } from '@react-spring/three';
+import { RepeatWrapping } from 'three';
+import woodDiffUrl from '@/assets/textures/wood_table_diff.jpg';
+import woodRoughUrl from '@/assets/textures/wood_table_rough.jpg';
 
 export const Table = () => {
+  const [diffMap, roughMap] = useTexture([woodDiffUrl, woodRoughUrl]);
+
+  diffMap.wrapS = diffMap.wrapT = RepeatWrapping;
+  diffMap.repeat.set(2, 2);
+  roughMap.wrapS = roughMap.wrapT = RepeatWrapping;
+  roughMap.repeat.set(2, 2);
+
   const { posZ } = useSpring({
     from: { posZ: 15 },
     to: { posZ: -2 },
@@ -12,17 +22,18 @@ export const Table = () => {
     <animated.group position-x={0} position-y={-1} position-z={posZ}>
       <RoundedBox args={[4, 0.1, 4]} radius={0.05} smoothness={4}>
         <MeshReflectorMaterial
-          color="#cecece"
-          roughness={0.8}
-          metalness={0.1}
-          mirror={0.5}
+          map={diffMap}
+          roughnessMap={roughMap}
+          roughness={0}
+          metalness={0}
+          mirror={0.94}
           blur={[100, 100]}
           mixBlur={1}
-          mixStrength={40}
+          mixStrength={15}
           mixContrast={1}
-          resolution={1024}
-          depthScale={1.2}
-          minDepthThreshold={0.4}
+          resolution={128}
+          depthScale={0.4}
+          minDepthThreshold={0.1}
           maxDepthThreshold={1.4}
         />
       </RoundedBox>

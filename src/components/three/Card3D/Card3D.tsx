@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
-import { MeshStandardMaterial } from 'three';
+import { Shape, ShapeGeometry, ExtrudeGeometry } from 'three';
 import type { Value, Color } from 'uno-engine';
 import { getCardFilename } from '@/utils/cardTexture';
 import { CARD_TEXTURES, CARD_BACK_TEXTURE } from '@/constants';
@@ -8,6 +7,47 @@ import { CARD_TEXTURES, CARD_BACK_TEXTURE } from '@/constants';
 const CARD_WIDTH = 0.7;
 const CARD_HEIGHT = 1.0;
 const CARD_DEPTH = 0.01;
+const CARD_RADIUS = 0.04;
+const FACE_OFFSET = CARD_DEPTH / 2 + 0.001;
+
+function createRoundedRectShape(w: number, h: number, r: number) {
+  const shape = new Shape();
+  const x = -w / 2;
+  const y = -h / 2;
+  shape.moveTo(x + r, y);
+  shape.lineTo(x + w - r, y);
+  shape.quadraticCurveTo(x + w, y, x + w, y + r);
+  shape.lineTo(x + w, y + h - r);
+  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  shape.lineTo(x + r, y + h);
+  shape.quadraticCurveTo(x, y + h, x, y + h - r);
+  shape.lineTo(x, y + r);
+  shape.quadraticCurveTo(x, y, x + r, y);
+  return shape;
+}
+
+const cardShape = createRoundedRectShape(CARD_WIDTH, CARD_HEIGHT, CARD_RADIUS);
+
+const bodyGeo = new ExtrudeGeometry(cardShape, {
+  depth: CARD_DEPTH,
+  bevelEnabled: false,
+});
+bodyGeo.translate(0, 0, -CARD_DEPTH / 2);
+
+const faceGeo = (() => {
+  const geo = new ShapeGeometry(cardShape);
+  const uvAttr = geo.attributes.uv;
+  const posAttr = geo.attributes.position;
+  for (let i = 0; i < uvAttr.count; i++) {
+    uvAttr.setXY(
+      i,
+      (posAttr.getX(i) + CARD_WIDTH / 2) / CARD_WIDTH,
+      (posAttr.getY(i) + CARD_HEIGHT / 2) / CARD_HEIGHT,
+    );
+  }
+  uvAttr.needsUpdate = true;
+  return geo;
+})();
 
 type Card3DProps = {
   value: Value;
@@ -31,24 +71,29 @@ export const Card3D = ({
     faceUp ? [frontUrl, CARD_BACK_TEXTURE] : [CARD_BACK_TEXTURE],
   );
 
-  const materials = useMemo(() => {
-    const edge = new MeshStandardMaterial({ visible: false });
-
-    if (faceUp) {
-      const [frontTex, backTex] = textures;
-      const front = new MeshStandardMaterial({ map: frontTex, transparent: true });
-      const back = new MeshStandardMaterial({ map: backTex, transparent: true });
-      return [edge, edge, edge, edge, front, back];
-    }
-
-    const [backTex] = textures;
-    const back = new MeshStandardMaterial({ map: backTex, transparent: true });
-    return [edge, edge, edge, edge, back, back];
-  }, [textures, faceUp]);
+  const [frontTex, backTex] = faceUp
+    ? textures
+    : [undefined, textures[0]];
 
   return (
-    <mesh position={position} rotation={rotation} material={materials}>
-      <boxGeometry args={[CARD_WIDTH, CARD_HEIGHT, CARD_DEPTH]} />
-    </mesh>
+    <group position={position} rotation={rotation}>
+      <mesh geometry={bodyGeo}>
+        <meshStandardMaterial color="#ffffff" roughness={0.5} />
+      </mesh>
+
+      {frontTex && (
+        <mesh geometry={faceGeo} position={[0, 0, FACE_OFFSET]}>
+          <meshStandardMaterial map={frontTex} transparent />
+        </mesh>
+      )}
+
+      <mesh
+        geometry={faceGeo}
+        position={[0, 0, -FACE_OFFSET]}
+        rotation={[0, Math.PI, 0]}
+      >
+        <meshStandardMaterial map={backTex} transparent />
+      </mesh>
+    </group>
   );
 };
