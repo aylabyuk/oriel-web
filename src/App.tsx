@@ -4,11 +4,14 @@ import { selectHasEnteredWelcome } from '@/store/slices/visitor';
 import { selectReducedMotion } from '@/store/slices/theme';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
 import { EnvironmentSelector } from '@/components/ui/EnvironmentSelector';
+import { RestartButton } from '@/components/ui/RestartButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
+import { useGameController } from '@/hooks/useGameController';
 
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const reducedMotion = useAppSelector(selectReducedMotion);
+  const { startGame, restartGame } = useGameController();
 
   const contentSpring = useSpring({
     opacity: hasEnteredWelcome ? 1 : 0,
@@ -20,9 +23,10 @@ export const App = () => {
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
       data-theme="dark"
     >
-      <BackgroundScene showTable={hasEnteredWelcome} />
+      <BackgroundScene showTable={hasEnteredWelcome} onStartGame={startGame} />
       <div className="relative z-10">
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
+          <RestartButton onClick={restartGame} />
           <EnvironmentSelector />
         </div>
         {hasEnteredWelcome ? (

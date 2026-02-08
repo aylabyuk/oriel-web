@@ -6,8 +6,7 @@ import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
 
 const CARD_DEPTH = 0.003;
-const DEAL_STAGGER_MS = 80;
-const LIFT_HEIGHT = 0.5;
+const DEAL_STAGGER_MS = 150;
 
 /** Seeded pseudo-random for deterministic pile jitter */
 const seededRandom = (seed: number) => {
@@ -66,17 +65,16 @@ export const PlayerHand = ({
       rotZ: deckRotZ,
     },
     to: [
-      // Phase 1: lift card up from deck
-      { posY: deckTopY + LIFT_HEIGHT },
-      // Phase 2: arc to seat position with final rotation
+      // Phase 1: translate to seat x/z in the air
       {
         posX: seat.position[0],
-        posY: surfaceY + targets[i].stackY,
         posZ: seat.position[2],
         rotX: seat.rotation[0],
         rotY: seat.rotation[1],
         rotZ: seat.rotation[2] + targets[i].jitterZ,
       },
+      // Phase 2: drop down to seat surface
+      { posY: surfaceY + targets[i].stackY },
     ],
     delay: dealBaseDelay + targets[i].dealIndex * DEAL_STAGGER_MS,
     config: { tension: 170, friction: 20 },

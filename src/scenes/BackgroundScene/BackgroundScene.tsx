@@ -9,7 +9,6 @@ import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
 import { CardDeck } from '@/components/three/CardDeck';
 import { DiscardPile } from '@/components/three/DiscardPile';
 import { PlayerHand } from '@/components/three/PlayerHand';
-import { useGameController } from '@/hooks/useGameController';
 import {
   SEATS,
   SEAT_ORDER,
@@ -18,7 +17,7 @@ import {
 } from '@/constants';
 
 const CARDS_PER_PLAYER = 7;
-const DEAL_STAGGER_MS = 80;
+const DEAL_STAGGER_MS = 150;
 /** Base delay so dealing starts after the table spring settles */
 const TABLE_SETTLE_MS = 2000;
 /** Small Y offset above table surface to prevent z-fighting */
@@ -37,18 +36,19 @@ const EnvironmentLayer = () => {
 
 type BackgroundSceneProps = {
   showTable?: boolean;
+  onStartGame?: () => void;
 };
 
 export const BackgroundScene = ({
   showTable = false,
+  onStartGame,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
-  const { startGame } = useGameController();
 
   // Initialize game eagerly so the deck rides in with the table
   useEffect(() => {
-    if (showTable) startGame();
-  }, [showTable, startGame]);
+    if (showTable) onStartGame?.();
+  }, [showTable, onStartGame]);
 
   const CARD_DEPTH = 0.003;
   const playerCount = snapshot?.players.length ?? 0;
