@@ -55,6 +55,7 @@ export const PlayerHand = ({
   const deckRotY = Math.PI;
   const deckRotZ = 0;
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount animation
   const [springs] = useSprings(count, (i) => ({
     from: {
       posX: DRAW_PILE_POSITION[0],
@@ -79,7 +80,7 @@ export const PlayerHand = ({
     ],
     delay: dealBaseDelay + targets[i].dealIndex * DEAL_STAGGER_MS,
     config: { tension: 170, friction: 20 },
-  }));
+  }), []);
 
   return (
     <group>

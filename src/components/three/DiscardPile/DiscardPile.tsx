@@ -22,7 +22,8 @@ export const DiscardPile = ({
   const deckRotX = -Math.PI / 2;
   const deckRotY = Math.PI;
 
-  const spring = useSpring({
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount animation
+  const [spring] = useSpring(() => ({
     from: {
       posX: DRAW_PILE_POSITION[0],
       posY: deckTopY,
@@ -33,18 +34,16 @@ export const DiscardPile = ({
     to: [
       // Phase 1: lift from deck
       { posY: deckTopY + LIFT_HEIGHT },
-      // Phase 2: arc to discard position + flip face-up
-      {
-        posX: position[0],
-        posY: position[1],
-        posZ: position[2],
-        rotX: -Math.PI / 2,
-        rotY: 0,
-      },
+      // Phase 2: flip face-up in the air
+      { rotY: 0 },
+      // Phase 3: slide to discard x/z while staying in the air
+      { posX: position[0], posZ: position[2] },
+      // Phase 4: drop down to table surface
+      { posY: position[1] },
     ],
     delay: dealDelay,
     config: { tension: 170, friction: 20 },
-  });
+  }), []);
 
   return (
     <animated.group
