@@ -16,10 +16,10 @@ export type Seat = {
  *       Visitor (south)
  */
 export const SEATS: Record<string, Seat> = {
-  south: { position: [0, 0, 1.5], rotation: [-Math.PI / 2, Math.PI, 0] },
-  west: { position: [-1.5, 0, 0], rotation: [-Math.PI / 2, Math.PI, Math.PI / 2] },
-  north: { position: [0, 0, -1.5], rotation: [-Math.PI / 2, Math.PI, Math.PI] },
-  east: { position: [1.5, 0, 0], rotation: [-Math.PI / 2, Math.PI, -Math.PI / 2] },
+  south: { position: [0, 0, 1.5], rotation: [-Math.PI / 2, Math.PI, Math.PI] },
+  west: { position: [-1.5, 0, 0], rotation: [-Math.PI / 2, Math.PI, -Math.PI / 2] },
+  north: { position: [0, 0, -1.5], rotation: [-Math.PI / 2, Math.PI, 0] },
+  east: { position: [1.5, 0, 0], rotation: [-Math.PI / 2, Math.PI, Math.PI / 2] },
 };
 
 /** Ordered seat keys matching player order: [visitor, Meio, Dong, Oscar] */

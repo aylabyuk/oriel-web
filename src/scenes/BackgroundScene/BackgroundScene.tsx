@@ -56,6 +56,7 @@ export const BackgroundScene = ({
     CARD_BASE_Y + (snapshot?.drawPileCount ?? 0) * CARD_DEPTH;
   const discardDelay =
     TABLE_SETTLE_MS + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
+  const revealDelay = discardDelay;
 
   return (
     <div className="fixed inset-0 z-0">
@@ -97,6 +98,7 @@ export const BackgroundScene = ({
                       surfaceY={CARD_BASE_Y}
                       deckTopY={deckTopY}
                       dealBaseDelay={TABLE_SETTLE_MS}
+                      revealDelay={revealDelay}
                     />
                   ))}
                 </>
