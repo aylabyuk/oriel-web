@@ -10,8 +10,13 @@ const CARD_HALF_HEIGHT = 0.5;
 const STEP3_SETTLE_MS = 600;
 const CARD_SPREAD = 0.25;
 const OPPONENT_CARD_SPREAD = 0.1;
+const STEP4_SETTLE_MS = 600;
 const CAMERA_TILT_X = -0.35;
 const CAMERA_LIFT_Y = 0.10;
+
+/** Total time from revealDelay until all reveal steps have settled */
+export const REVEAL_TOTAL_MS =
+  STEP1_SETTLE_MS + STEP2_SETTLE_MS + STEP3_SETTLE_MS + STEP4_SETTLE_MS;
 
 type UseRevealAnimationArgs = {
   api: SpringRef<{

@@ -1,7 +1,8 @@
 import { animated } from '@react-spring/three';
 import { Card3D } from '@/components/three/Card3D';
 import { useDealAnimation } from './useDealAnimation';
-import { useRevealAnimation } from './useRevealAnimation';
+import { useRevealAnimation, REVEAL_TOTAL_MS } from './useRevealAnimation';
+import { useSortAnimation } from './useSortAnimation';
 import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
 
@@ -49,6 +50,18 @@ export const PlayerHand = ({
     faceUp,
     surfaceY,
     revealDelay,
+  });
+
+  const sortDelay =
+    faceUp && revealDelay != null ? revealDelay + REVEAL_TOTAL_MS : undefined;
+
+  useSortAnimation({
+    api,
+    cards,
+    count,
+    seat,
+    surfaceY,
+    sortDelay,
   });
 
   return (
