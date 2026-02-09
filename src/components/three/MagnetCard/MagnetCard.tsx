@@ -38,7 +38,9 @@ type MagnetCardProps = {
   color?: Color;
   value?: string | number;
   position?: [number, number, number];
-  rotation?: [number, number, number];
+  yaw?: number;
+  tilt?: number;
+  roll?: number;
   faceUp?: boolean;
 };
 
@@ -47,14 +49,18 @@ export const MagnetCard = ({
   color,
   value,
   position = [0, 0, 0],
-  rotation = [0, 0, 0],
+  yaw = 0,
+  tilt = 0,
+  roll = 0,
   faceUp = false,
 }: MagnetCardProps) => {
   const faceColor = unoColorToHex(color);
   const label = `${value ?? '?'}`;
 
   return (
-    <group position={position} rotation={rotation}>
+    <group position={position} rotation={[0, yaw, 0]}>
+    <group rotation={[tilt, 0, 0]}>
+    <group rotation={[0, 0, roll]}>
       {/* Card body */}
       <mesh geometry={bodyGeo}>
         <meshStandardMaterial color="#cccccc" roughness={0.8} />
@@ -108,6 +114,8 @@ export const MagnetCard = ({
         <circleGeometry args={[0.02, 12]} />
         <meshStandardMaterial color={faceUp ? '#22c55e' : '#ef4444'} />
       </mesh>
+    </group>
+    </group>
     </group>
   );
 };

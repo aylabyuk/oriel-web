@@ -19,7 +19,9 @@ export const MagnetPlayerFront = ({ cards, seat }: MagnetPlayerFrontProps) => (
           color={card.color}
           value={card.value}
           position={placement.position}
-          rotation={placement.rotation}
+          yaw={placement.yaw}
+          tilt={placement.tilt}
+          roll={placement.roll}
           faceUp={placement.faceUp}
         />
       );

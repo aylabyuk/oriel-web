@@ -25,7 +25,9 @@ describe('zoneLayout', () => {
     it('returns deterministic rotation for same index', () => {
       const a = getDeckPlacement(3);
       const b = getDeckPlacement(3);
-      expect(a.rotation).toEqual(b.rotation);
+      expect(a.yaw).toEqual(b.yaw);
+      expect(a.tilt).toEqual(b.tilt);
+      expect(a.roll).toEqual(b.roll);
     });
   });
 

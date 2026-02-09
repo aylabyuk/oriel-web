@@ -19,7 +19,9 @@ export const MagnetPlayerHand = ({ cards, seat }: MagnetPlayerHandProps) => (
           color={card.color}
           value={card.value}
           position={placement.position}
-          rotation={placement.rotation}
+          yaw={placement.yaw}
+          tilt={placement.tilt}
+          roll={placement.roll}
           faceUp={placement.faceUp}
         />
       );

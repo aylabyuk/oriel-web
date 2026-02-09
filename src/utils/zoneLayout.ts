@@ -16,7 +16,12 @@ export type CardZone =
 
 export type CardPlacement = {
   position: [number, number, number];
-  rotation: [number, number, number];
+  /** Outer Y rotation — player facing direction */
+  yaw: number;
+  /** Middle X rotation — face orientation (PI/2 = face-down, 0 = upright, -PI/2 = face-up) */
+  tilt: number;
+  /** Inner Z rotation — jitter / scatter */
+  roll: number;
   faceUp: boolean;
 };
 
@@ -65,11 +70,9 @@ export const getDeckPlacement = (index: number): CardPlacement => ({
     TABLE_SURFACE_Y + index * CARD_DEPTH,
     DRAW_PILE_POSITION[2],
   ],
-  rotation: [
-    -Math.PI / 2,
-    Math.PI,
-    (seededRandom(index) - 0.5) * DECK_ROT_JITTER,
-  ],
+  yaw: Math.PI,
+  tilt: Math.PI / 2,
+  roll: (seededRandom(index) - 0.5) * DECK_ROT_JITTER,
   faceUp: false,
 });
 
@@ -80,11 +83,9 @@ export const getDiscardPilePlacement = (index: number): CardPlacement => ({
     TABLE_SURFACE_Y + index * STACK_OFFSET,
     DISCARD_PILE_POSITION[2] + (seededRandom(index * 3 + 1) - 0.5) * SCATTER_XZ,
   ],
-  rotation: [
-    -Math.PI / 2,
-    0,
-    (seededRandom(index * 3 + 2) - 0.5) * SCATTER_ROT,
-  ],
+  yaw: 0,
+  tilt: -Math.PI / 2,
+  roll: (seededRandom(index * 3 + 2) - 0.5) * SCATTER_ROT,
   faceUp: true,
 });
 
@@ -95,7 +96,9 @@ export const getDiscardFloatPlacement = (): CardPlacement => ({
     TABLE_SURFACE_Y + FLOAT_HEIGHT,
     DISCARD_PILE_POSITION[2],
   ],
-  rotation: [-Math.PI / 2, 0, 0],
+  yaw: 0,
+  tilt: -Math.PI / 2,
+  roll: 0,
   faceUp: true,
 });
 
@@ -109,7 +112,9 @@ export const getPlayerFrontPlacement = (
 
   return {
     position: [x, TABLE_SURFACE_Y + index * CARD_DEPTH, z],
-    rotation: [-Math.PI / 2, Math.PI, angle + Math.PI],
+    yaw: angle,
+    tilt: Math.PI / 2,
+    roll: 0,
     faceUp: false,
   };
 };
@@ -124,7 +129,9 @@ export const getPlayerStagingPlacement = (
 
   return {
     position: [x, TABLE_SURFACE_Y + CARD_HALF_HEIGHT + index * CARD_DEPTH, z],
-    rotation: [-Math.PI / 2, Math.PI, angle + Math.PI],
+    yaw: angle,
+    tilt: Math.PI / 2,
+    roll: 0,
     faceUp: false,
   };
 };
@@ -149,7 +156,9 @@ export const getPlayerTurnedPlacement = (
       TABLE_SURFACE_Y + CARD_HALF_HEIGHT,
       z + normalZ * depthIdx * CARD_DEPTH,
     ],
-    rotation: [0, angle, 0],
+    yaw: angle,
+    tilt: 0,
+    roll: 0,
     faceUp: true,
   };
 };
@@ -177,7 +186,9 @@ export const getPlayerHandPlacement = (
       TABLE_SURFACE_Y + CARD_HALF_HEIGHT + (isHuman ? CAMERA_LIFT_Y + depthIdx * CARD_DEPTH : 0),
       z + perpZ * offset + (isHuman ? 0 : normalZ * depthIdx * CARD_DEPTH),
     ],
-    rotation: [isHuman ? CAMERA_TILT_X : 0, angle, 0],
+    yaw: angle,
+    tilt: isHuman ? CAMERA_TILT_X : 0,
+    roll: 0,
     faceUp: true,
   };
 };
@@ -189,7 +200,9 @@ export const getHandPreviewPlacement = (seat: Seat): CardPlacement => {
 
   return {
     position: [x, TABLE_SURFACE_Y + FLOAT_HEIGHT, z],
-    rotation: [-Math.PI / 2, 0, angle],
+    yaw: angle,
+    tilt: -Math.PI / 2,
+    roll: 0,
     faceUp: true,
   };
 };
