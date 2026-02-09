@@ -1,105 +1,97 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { animated } from '@react-spring/three';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Value } from 'uno-engine';
 import type { Color } from 'uno-engine';
 import { Card3D } from '@/components/three/Card3D';
 import { WildColorPicker } from '@/components/three/WildColorPicker';
-import { useDealAnimation } from './useDealAnimation';
-import { useRevealAnimation, REVEAL_TOTAL_MS } from './useRevealAnimation';
-import { useSortAnimation } from './useSortAnimation';
-import { usePlayableLift } from './usePlayableLift';
-import { usePlayAnimation } from './usePlayAnimation';
 import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
+import {
+  CARD_DEPTH,
+  PULL_DISTANCE,
+  CARD_SPREAD,
+  OPPONENT_CARD_SPREAD,
+  CARD_HALF_HEIGHT,
+  CAMERA_TILT_X,
+  CAMERA_LIFT_Y,
+} from './constants';
 
 const GLOW_INTENSITY = 2.0;
+const HOVER_LIFT = 0.15;
+const PLAYABLE_LIFT = 0.08;
 
 const isWild = (card: SerializedCard) =>
   card.value === Value.WILD || card.value === Value.WILD_DRAW_FOUR;
 
+/**
+ * Sort key: group by color, then numbers before specials, then wilds last.
+ */
+const getCardSortKey = (card: SerializedCard): number => {
+  const value = card.value as number;
+  const color = (card.color as number) ?? 99;
+  if (value >= 13) return 10000 + value;
+  const group = value <= 9 ? 0 : 1;
+  const sortValue = value <= 9 ? 9 - value : value;
+  return color * 1000 + group * 100 + sortValue;
+};
+
 type PlayerHandProps = {
   cards: SerializedCard[];
   seat: Seat;
-  seatIndex: number;
-  playerCount: number;
   faceUp: boolean;
   isHuman?: boolean;
   surfaceY: number;
-  deckTopY: number;
-  dealBaseDelay?: number;
-  revealDelay?: number;
   isActive?: boolean;
   glowColor?: string;
   playableCardIds?: string[];
-  discardCount?: number;
-  onReady?: () => void;
   onPlayCard?: (cardId: string, chosenColor?: Color) => void;
 };
 
 export const PlayerHand = ({
   cards,
   seat,
-  seatIndex,
-  playerCount,
   faceUp,
   isHuman = false,
   surfaceY,
-  deckTopY,
-  dealBaseDelay = 0,
-  revealDelay,
   isActive = false,
   glowColor,
   playableCardIds = [],
-  discardCount = 0,
-  onReady,
   onPlayCard,
 }: PlayerHandProps) => {
-  const count = cards.length;
-
-  const { springs, api } = useDealAnimation({
-    count,
-    seat,
-    seatIndex,
-    playerCount,
-    surfaceY,
-    deckTopY,
-    dealBaseDelay,
-  });
-
-  useRevealAnimation({
-    api,
-    count,
-    seat,
-    faceUp: isHuman,
-    surfaceY,
-    revealDelay,
-  });
-
-  const sortDelay =
-    revealDelay != null ? revealDelay + REVEAL_TOTAL_MS : undefined;
-
-  const { sorted } = useSortAnimation({
-    api,
-    cards,
-    count,
-    seat,
-    faceUp: isHuman,
-    surfaceY,
-    sortDelay,
-  });
-
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { animatePlay, playingIndexRef } = usePlayAnimation({
-    api,
-    surfaceY,
-    discardCount,
-  });
+  // Sort cards for visual display
+  const sortedCards = useMemo(() => {
+    const indexed = cards.map((card, i) => ({ card, origIndex: i }));
+    indexed.sort((a, b) => getCardSortKey(a.card) - getCardSortKey(b.card));
+    return indexed;
+  }, [cards]);
+
+  // Compute seat-relative spread positions
+  const seatDist = Math.hypot(seat.position[0], seat.position[2]);
+  const pullDirX = seat.position[0] / seatDist;
+  const pullDirZ = seat.position[2] / seatDist;
+  const pulledX = seat.position[0] + pullDirX * PULL_DISTANCE;
+  const pulledZ = seat.position[2] + pullDirZ * PULL_DISTANCE;
+  const perpX = -pullDirZ;
+  const perpZ = pullDirX;
+
+  const spread = isHuman ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
+  const posY = surfaceY + CARD_HALF_HEIGHT + (isHuman ? CAMERA_LIFT_Y : 0);
+  const rotX = isHuman ? CAMERA_TILT_X : 0;
+  const rotY = Math.atan2(seat.position[0], seat.position[2]);
+  const count = sortedCards.length;
+
+  const slotPos = (slot: number) => {
+    const offset = (slot - (count - 1) / 2) * spread;
+    return {
+      x: pulledX + perpX * offset - pullDirX * slot * CARD_DEPTH,
+      z: pulledZ + perpZ * offset - pullDirZ * slot * CARD_DEPTH,
+    };
+  };
 
   const handlePointerOver = useCallback((e: ThreeEvent<PointerEvent>, i: number) => {
-    if (playingIndexRef.current !== null) return;
     e.stopPropagation();
     document.body.style.cursor = 'pointer';
     if (hoverTimeout.current) {
@@ -107,101 +99,80 @@ export const PlayerHand = ({
       hoverTimeout.current = null;
     }
     setHoveredIndex(i);
-  }, [playingIndexRef]);
+  }, []);
 
   const handlePointerOut = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (playingIndexRef.current !== null) return;
     e.stopPropagation();
     document.body.style.cursor = '';
     hoverTimeout.current = setTimeout(() => {
       setHoveredIndex(null);
       hoverTimeout.current = null;
     }, 100);
-  }, [playingIndexRef]);
+  }, []);
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>, i: number) => {
-    if (playingIndexRef.current !== null) return;
     if (e.nativeEvent.pointerType !== 'touch') return;
     e.stopPropagation();
     setHoveredIndex((prev) => (prev === i ? null : i));
-  }, [playingIndexRef]);
+  }, []);
 
   const handlePointerMissed = useCallback(() => {
-    if (playingIndexRef.current !== null) return;
     setHoveredIndex(null);
-  }, [playingIndexRef]);
+  }, []);
 
-  const handleCardClick = useCallback((e: ThreeEvent<MouseEvent>, i: number) => {
+  const handleCardClick = useCallback((e: ThreeEvent<MouseEvent>, card: SerializedCard) => {
     e.stopPropagation();
-    if (playingIndexRef.current !== null) return;
-    const card = cards[i];
     if (!playableCardIds.includes(card.id)) return;
-    if (isWild(card)) return; // Wilds handled by WildColorPicker
+    if (isWild(card)) return;
     document.body.style.cursor = '';
     setHoveredIndex(null);
-    animatePlay(i, () => onPlayCard?.(card.id));
-  }, [cards, playableCardIds, animatePlay, onPlayCard, playingIndexRef]);
+    onPlayCard?.(card.id);
+  }, [playableCardIds, onPlayCard]);
 
-  const handleColorSelect = useCallback((i: number, cardId: string, color: Color) => {
-    if (playingIndexRef.current !== null) return;
+  const handleColorSelect = useCallback((cardId: string, color: Color) => {
     document.body.style.cursor = '';
     setHoveredIndex(null);
-    animatePlay(i, () => onPlayCard?.(cardId, color));
-  }, [animatePlay, onPlayCard, playingIndexRef]);
-
-  const liftSprings = usePlayableLift({
-    count,
-    cards,
-    playableCardIds,
-    sorted,
-    isActive,
-    hoveredIndex,
-  });
-
-  useEffect(() => {
-    if (sorted) onReady?.();
-  }, [sorted, onReady]);
-
-  const ready = sorted || sortDelay == null;
+    onPlayCard?.(cardId, color);
+  }, [onPlayCard]);
 
   return (
     <group onPointerMissed={handlePointerMissed}>
-      {springs.map((spring, i) => {
-        const card = cards[i];
-        const playable = playableCardIds.includes(card.id);
-        const interactable = playable && playingIndexRef.current === null;
+      {sortedCards.map(({ card }, i) => {
+        const pos = slotPos(i);
+        const playable = isActive && playableCardIds.includes(card.id);
+        const hovered = hoveredIndex === i;
+        const liftY = !playable ? 0 : hovered ? HOVER_LIFT : PLAYABLE_LIFT;
         return (
-          <animated.group
+          <group
             key={card.id}
-            position-x={spring.posX}
-            position-y={spring.posY}
-            position-z={spring.posZ}
-            rotation-x={spring.rotX}
-            rotation-y={spring.rotY}
-            rotation-z={spring.rotZ}
+            position-x={pos.x}
+            position-y={posY + liftY}
+            position-z={pos.z}
+            rotation-x={rotX}
+            rotation-y={rotY}
+            rotation-z={0}
           >
-            <animated.group
-              position-y={liftSprings[i].liftY}
-              onPointerOver={interactable ? (e: ThreeEvent<PointerEvent>) => handlePointerOver(e, i) : undefined}
-              onPointerOut={interactable ? handlePointerOut : undefined}
-              onPointerDown={interactable ? (e: ThreeEvent<PointerEvent>) => handlePointerDown(e, i) : undefined}
-              onClick={interactable ? (e: ThreeEvent<MouseEvent>) => handleCardClick(e, i) : undefined}
+            <group
+              onPointerOver={playable ? (e: ThreeEvent<PointerEvent>) => handlePointerOver(e, i) : undefined}
+              onPointerOut={playable ? handlePointerOut : undefined}
+              onPointerDown={playable ? (e: ThreeEvent<PointerEvent>) => handlePointerDown(e, i) : undefined}
+              onClick={playable ? (e: ThreeEvent<MouseEvent>) => handleCardClick(e, card) : undefined}
             >
               <Card3D
                 value={card.value}
                 color={card.color}
                 faceUp={faceUp}
                 glowColor={glowColor}
-                glowIntensity={ready && isActive && playable ? GLOW_INTENSITY : 0}
+                glowIntensity={playable ? GLOW_INTENSITY : 0}
               />
               {playable && isWild(card) && (
                 <WildColorPicker
-                  visible={hoveredIndex === i}
-                  onColorSelect={(color: Color) => handleColorSelect(i, card.id, color)}
+                  visible={hovered}
+                  onColorSelect={(color: Color) => handleColorSelect(card.id, color)}
                 />
               )}
-            </animated.group>
-          </animated.group>
+            </group>
+          </group>
         );
       })}
     </group>

@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -22,12 +22,6 @@ import {
   unoColorToHex,
 } from '@/constants';
 
-const CARDS_PER_PLAYER = 7;
-const DEAL_STAGGER_MS = 150;
-/** Base delay so dealing starts after the table spring settles */
-const TABLE_SETTLE_MS = 2000;
-/** Approximate duration of the initial discard flip animation */
-const DISCARD_FLIP_MS = 1000;
 /** Small Y offset above table surface to prevent z-fighting */
 const CARD_BASE_Y = TABLE_SURFACE_Y + 0.02;
 
@@ -60,18 +54,8 @@ export const BackgroundScene = ({
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
 
-  const CARD_DEPTH = 0.003;
-  const playerCount = snapshot?.players.length ?? 0;
-  const deckTopY =
-    CARD_BASE_Y + (snapshot?.drawPile.length ?? 0) * CARD_DEPTH;
-  const discardDelay = TABLE_SETTLE_MS;
-  const dealStart = TABLE_SETTLE_MS + DISCARD_FLIP_MS;
-  const revealDelay =
-    dealStart + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
   const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
   const activeColorHex = unoColorToHex(topDiscard?.color);
-  const [readyToPlay, setReadyToPlay] = useState(false);
-  const handleReady = useCallback(() => setReadyToPlay(true), []);
 
   return (
     <div className="fixed inset-0 z-0">
@@ -98,27 +82,18 @@ export const BackgroundScene = ({
                       CARD_BASE_Y,
                       DISCARD_PILE_POSITION[2],
                     ]}
-                    deckTopY={deckTopY}
-                    dealDelay={discardDelay}
                   />
                   {snapshot.players.map((player, i) => (
                     <PlayerHand
                       key={player.name}
                       cards={player.hand}
                       seat={SEATS[SEAT_ORDER[i]]}
-                      seatIndex={i}
-                      playerCount={playerCount}
                       faceUp
                       isHuman={i === 0}
                       surfaceY={CARD_BASE_Y}
-                      deckTopY={deckTopY}
-                      dealBaseDelay={dealStart}
-                      revealDelay={revealDelay}
                       isActive={i === 0 && player.name === snapshot.currentPlayerName}
                       glowColor={i === 0 ? activeColorHex : undefined}
                       playableCardIds={i === 0 ? snapshot.playableCardIds : undefined}
-                      discardCount={i === 0 ? snapshot.discardPile.length : undefined}
-                      onReady={i === 0 ? handleReady : undefined}
                       onPlayCard={i === 0 ? onPlayCard : undefined}
                     />
                   ))}
@@ -134,17 +109,15 @@ export const BackgroundScene = ({
                       extraPull={i === 0 ? 0.5 : undefined}
                       faceCenter={i === 0}
                       tiltX={i === 0 ? CAMERA_TILT_X : undefined}
-                      isActive={readyToPlay && player.name === snapshot.currentPlayerName}
+                      isActive={player.name === snapshot.currentPlayerName}
                       activeColor={activeColorHex}
                       turnId={snapshot.discardPile.length}
                     />
                   ))}
-                  {readyToPlay && (
-                    <DirectionOrbit
-                      direction={snapshot.direction}
-                      activeColor={topDiscard?.color}
-                    />
-                  )}
+                  <DirectionOrbit
+                    direction={snapshot.direction}
+                    activeColor={topDiscard?.color}
+                  />
                 </>
               )}
             </Table>

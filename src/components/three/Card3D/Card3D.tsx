@@ -1,5 +1,4 @@
 import { useTexture } from '@react-three/drei';
-import { useSpring, animated } from '@react-spring/three';
 import { Shape, ShapeGeometry, ExtrudeGeometry } from 'three';
 import type { Value, Color } from 'uno-engine';
 import { getCardFilename } from '@/utils/cardTexture';
@@ -82,19 +81,14 @@ export const Card3D = ({
     ? textures
     : [undefined, textures[0]];
 
-  const { intensity } = useSpring({
-    intensity: glowIntensity,
-    config: { tension: 120, friction: 14 },
-  });
-
   return (
     <group position={position} rotation={rotation}>
       <mesh geometry={bodyGeo}>
-        <animated.meshStandardMaterial
+        <meshStandardMaterial
           color="#ffffff"
           roughness={0.5}
           emissive={glowColor ?? '#000000'}
-          emissiveIntensity={intensity}
+          emissiveIntensity={glowIntensity}
           toneMapped={false}
         />
       </mesh>

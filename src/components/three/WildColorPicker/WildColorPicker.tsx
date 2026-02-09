@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useSprings, animated } from '@react-spring/three';
+import { useState, useCallback } from 'react';
 import { RoundedBox } from '@react-three/drei';
 import { Color } from 'uno-engine';
 import { UNO_COLORS } from '@/constants';
@@ -14,8 +13,6 @@ const CARD_HEIGHT = 1.0;
 const GLOW_INTENSITY = 1.5;
 const HOVER_GLOW_INTENSITY = 2.5;
 const HOVER_SCALE = 1.25;
-const STAGGER_MS = 35;
-const SPRING_CONFIG = { tension: 400, friction: 24 };
 
 const HIT_PADDING = 0.06;
 
@@ -32,30 +29,6 @@ type WildColorPickerProps = {
 export const WildColorPicker = ({ visible, onColorSelect }: WildColorPickerProps) => {
   const [hoveredCube, setHoveredCube] = useState<number | null>(null);
 
-  const [springs, api] = useSprings(
-    COLORS.length,
-    () => ({
-      from: { posX: 0, posY: -0.1, posZ: -0.01, scale: 0 },
-      config: SPRING_CONFIG,
-    }),
-    [],
-  );
-
-  useEffect(() => {
-    api.start((i) => ({
-      to: visible
-        ? {
-            posX: SLOT_X[i],
-            posY: 0,
-            posZ: 0.01,
-            scale: hoveredCube === i ? HOVER_SCALE : 1,
-          }
-        : { posX: 0, posY: -0.1, posZ: -0.01, scale: 0 },
-      delay: visible ? i * STAGGER_MS : 0,
-      config: SPRING_CONFIG,
-    }));
-  }, [api, visible, hoveredCube]);
-
   const handleCubeOver = useCallback((_e: unknown, i: number) => {
     setHoveredCube(i);
   }, []);
@@ -64,6 +37,8 @@ export const WildColorPicker = ({ visible, onColorSelect }: WildColorPickerProps
     setHoveredCube(null);
   }, []);
 
+  if (!visible) return null;
+
   return (
     <group position-y={CARD_HEIGHT * 0.5 + CUBE_SIZE * 0.5 + GAP}>
       {/* Invisible hit area — covers gaps so pointer events bubble to parent */}
@@ -71,13 +46,12 @@ export const WildColorPicker = ({ visible, onColorSelect }: WildColorPickerProps
         <planeGeometry args={[TOTAL_WIDTH + HIT_PADDING * 2, CUBE_SIZE + HIT_PADDING * 2]} />
         <meshBasicMaterial visible={false} />
       </mesh>
-      {springs.map((spring, i) => (
-        <animated.group
+      {COLORS.map((color, i) => (
+        <group
           key={i}
-          position-x={spring.posX}
-          position-y={spring.posY}
-          position-z={spring.posZ}
-          scale={spring.scale}
+          position-x={SLOT_X[i]}
+          position-z={0.01}
+          scale={hoveredCube === i ? HOVER_SCALE : 1}
         >
           <RoundedBox
             args={[CUBE_SIZE, CUBE_SIZE, CUBE_DEPTH]}
@@ -85,17 +59,17 @@ export const WildColorPicker = ({ visible, onColorSelect }: WildColorPickerProps
             smoothness={4}
             onPointerOver={(e: unknown) => handleCubeOver(e, i)}
             onPointerOut={handleCubeOut}
-            onClick={() => onColorSelect?.(COLORS[i])}
+            onClick={() => onColorSelect?.(color)}
           >
             <meshStandardMaterial
-              color={UNO_COLORS[COLORS[i]]}
-              emissive={UNO_COLORS[COLORS[i]]}
+              color={UNO_COLORS[color]}
+              emissive={UNO_COLORS[color]}
               emissiveIntensity={hoveredCube === i ? HOVER_GLOW_INTENSITY : GLOW_INTENSITY}
               toneMapped={false}
               roughness={0.3}
             />
           </RoundedBox>
-        </animated.group>
+        </group>
       ))}
     </group>
   );
