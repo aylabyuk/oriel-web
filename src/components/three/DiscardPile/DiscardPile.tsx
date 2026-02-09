@@ -30,20 +30,25 @@ const InitialDiscard = ({
   const deckRotX = -Math.PI / 2;
   const deckRotY = Math.PI;
 
+  // Positions are relative to the parent <group position={position}>
+  const fromX = DRAW_PILE_POSITION[0] - position[0];
+  const fromZ = DRAW_PILE_POSITION[2] - position[2];
+  const fromY = deckTopY - position[1];
+
   // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time mount animation
   const [spring] = useSpring(() => ({
     from: {
-      posX: DRAW_PILE_POSITION[0],
-      posY: deckTopY,
-      posZ: DRAW_PILE_POSITION[2],
+      posX: fromX,
+      posY: fromY,
+      posZ: fromZ,
       rotX: deckRotX,
       rotY: deckRotY,
     },
     to: [
-      { posY: deckTopY + LIFT_HEIGHT },
+      { posY: fromY + LIFT_HEIGHT },
       { rotY: 0 },
-      { posX: position[0], posZ: position[2] },
-      { posY: position[1] },
+      { posX: 0, posZ: 0 },
+      { posY: 0 },
     ],
     delay: dealDelay,
     config: { tension: 170, friction: 20 },

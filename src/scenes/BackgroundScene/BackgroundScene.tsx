@@ -24,6 +24,8 @@ const CARDS_PER_PLAYER = 7;
 const DEAL_STAGGER_MS = 150;
 /** Base delay so dealing starts after the table spring settles */
 const TABLE_SETTLE_MS = 2000;
+/** Approximate duration of the initial discard flip animation */
+const DISCARD_FLIP_MS = 1000;
 /** Small Y offset above table surface to prevent z-fighting */
 const CARD_BASE_Y = TABLE_SURFACE_Y + 0.02;
 
@@ -58,9 +60,10 @@ export const BackgroundScene = ({
   const playerCount = snapshot?.players.length ?? 0;
   const deckTopY =
     CARD_BASE_Y + (snapshot?.drawPile.length ?? 0) * CARD_DEPTH;
-  const discardDelay =
-    TABLE_SETTLE_MS + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
-  const revealDelay = discardDelay;
+  const discardDelay = TABLE_SETTLE_MS;
+  const dealStart = TABLE_SETTLE_MS + DISCARD_FLIP_MS;
+  const revealDelay =
+    dealStart + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
   const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
   const activeColorHex = unoColorToHex(topDiscard?.color);
   const activeSeatIndex = snapshot
@@ -107,10 +110,11 @@ export const BackgroundScene = ({
                       faceUp={i === 0}
                       surfaceY={CARD_BASE_Y}
                       deckTopY={deckTopY}
-                      dealBaseDelay={TABLE_SETTLE_MS}
+                      dealBaseDelay={dealStart}
                       revealDelay={revealDelay}
                       isActive={player.name === snapshot.currentPlayerName}
                       glowColor={activeColorHex}
+                      playableCardIds={i === 0 ? snapshot.playableCardIds : undefined}
                       onReady={i === 0 ? handleReady : undefined}
                     />
                   ))}
@@ -125,8 +129,8 @@ export const BackgroundScene = ({
             </Table>
           </Suspense>
         )}
-        {readyToPlay && <CameraRig activeSeatIndex={activeSeatIndex} />}
-        <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} enabled={!readyToPlay} />
+        {!import.meta.env.DEV && readyToPlay && <CameraRig activeSeatIndex={activeSeatIndex} />}
+        <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} enabled={import.meta.env.DEV || !readyToPlay} />
         <EffectComposer>
           <Bloom
             luminanceThreshold={0.9}

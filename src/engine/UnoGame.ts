@@ -10,6 +10,7 @@ import {
   serializeCard,
   serializePlayer,
   serializeDirection,
+  getCardId,
 } from '@/engine/serializers';
 
 type HouseRule = { setup: (...args: unknown[]) => void };
@@ -171,15 +172,19 @@ export class UnoGame {
 
   /** Get a full serializable snapshot of the game state. */
   getSnapshot(): GameSnapshot {
+    const DEV_FORCE_HUMAN_ACTIVE = import.meta.env.DEV;
     return {
       phase: this.phase,
-      currentPlayerName: this.engine.currentPlayer.name,
+      currentPlayerName: DEV_FORCE_HUMAN_ACTIVE
+        ? this.humanPlayerName
+        : this.engine.currentPlayer.name,
       players: this.engine.players.map((p) => serializePlayer(p)),
       discardPile: this.discardHistory.map(serializeCard),
       direction: serializeDirection(this.engine.playingDirection),
       drawPile: this.engine.deck.cards.map(serializeCard),
       winner: this.winner,
       score: this.score,
+      playableCardIds: this.getPlayableCards().map((c) => getCardId(c)),
     };
   }
 

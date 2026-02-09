@@ -34,6 +34,7 @@ export type GameSnapshot = {
   drawPile: SerializedCard[];
   winner: string | null;
   score: number | null;
+  playableCardIds: string[];
 };
 
 export type GameEventType =

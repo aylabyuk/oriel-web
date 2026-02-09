@@ -4,6 +4,7 @@ import { Card3D } from '@/components/three/Card3D';
 import { useDealAnimation } from './useDealAnimation';
 import { useRevealAnimation, REVEAL_TOTAL_MS } from './useRevealAnimation';
 import { useSortAnimation } from './useSortAnimation';
+import { usePlayableLift } from './usePlayableLift';
 import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
 
@@ -21,6 +22,7 @@ type PlayerHandProps = {
   revealDelay?: number;
   isActive?: boolean;
   glowColor?: string;
+  playableCardIds?: string[];
   onReady?: () => void;
 };
 
@@ -36,6 +38,7 @@ export const PlayerHand = ({
   revealDelay,
   isActive = false,
   glowColor,
+  playableCardIds = [],
   onReady,
 }: PlayerHandProps) => {
   const count = cards.length;
@@ -72,6 +75,14 @@ export const PlayerHand = ({
     sortDelay,
   });
 
+  const liftSprings = usePlayableLift({
+    count,
+    cards,
+    playableCardIds,
+    sorted,
+    isActive,
+  });
+
   useEffect(() => {
     if (sorted) onReady?.();
   }, [sorted, onReady]);
@@ -82,6 +93,7 @@ export const PlayerHand = ({
     <group>
       {springs.map((spring, i) => {
         const card = cards[i];
+        const playable = playableCardIds.includes(card.id);
         return (
           <animated.group
             key={card.id}
@@ -92,13 +104,15 @@ export const PlayerHand = ({
             rotation-y={spring.rotY}
             rotation-z={spring.rotZ}
           >
-            <Card3D
-              value={card.value}
-              color={card.color}
-              faceUp={faceUp}
-              glowColor={glowColor}
-              glowIntensity={ready && isActive ? GLOW_INTENSITY : 0}
-            />
+            <animated.group position-y={liftSprings[i].liftY}>
+              <Card3D
+                value={card.value}
+                color={card.color}
+                faceUp={faceUp}
+                glowColor={glowColor}
+                glowIntensity={ready && isActive && playable ? GLOW_INTENSITY : 0}
+              />
+            </animated.group>
           </animated.group>
         );
       })}
