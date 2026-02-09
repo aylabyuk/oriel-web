@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -6,8 +6,7 @@ import { useAppSelector } from '@/store/hooks';
 import { selectEnvironment } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
 import { SceneEnvironment } from '@/components/three/SceneEnvironment';
-import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
-import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
+import { Table } from '@/components/three/Table';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
 import {
   MagnetDeck,
@@ -20,7 +19,6 @@ import { useMagnetState } from '@/hooks/useMagnetState';
 import {
   SEATS,
   SEAT_ORDER,
-  unoColorToHex,
 } from '@/constants';
 
 /** Set to true to render the debug magnet card layer alongside visible cards. */
@@ -50,14 +48,15 @@ export const BackgroundScene = ({
   onStartGame,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
-  const magnet = useMagnetState(snapshot);
+  const [tableReady, setTableReady] = useState(false);
+  const handleTableReady = useCallback(() => setTableReady(true), []);
+  const magnet = useMagnetState(snapshot, tableReady);
 
   useEffect(() => {
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
 
   const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
-  const activeColorHex = unoColorToHex(topDiscard?.color);
 
   return (
     <div className="fixed inset-0 z-0">
@@ -66,7 +65,7 @@ export const BackgroundScene = ({
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
           <Suspense fallback={null}>
-            <Table>
+            <Table onReady={handleTableReady}>
               {DEBUG_MAGNETS && (
                 <>
                   <MagnetDeck cards={magnet.deck} />

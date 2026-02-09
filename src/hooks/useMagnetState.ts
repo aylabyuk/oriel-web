@@ -38,7 +38,10 @@ type QueueStep =
  *
  * All steps auto-play on timers including phase transitions.
  */
-export const useMagnetState = (snapshot: GameSnapshot | null): MagnetState => {
+export const useMagnetState = (
+  snapshot: GameSnapshot | null,
+  tableReady = false,
+): MagnetState => {
   const playerCount = snapshot?.players.length ?? 0;
 
   const [state, setState] = useState<MagnetState>({
@@ -82,7 +85,6 @@ export const useMagnetState = (snapshot: GameSnapshot | null): MagnetState => {
     })();
 
     if (queueRef.current.length > 0) {
-      // eslint-disable-next-line react-hooks/immutability -- recursive setTimeout; variable is defined when the callback fires
       timerRef.current = setTimeout(() => processNext(), delay);
     } else {
       // Queue empty — sync with latest snapshot
@@ -164,13 +166,14 @@ export const useMagnetState = (snapshot: GameSnapshot | null): MagnetState => {
 
   useEffect(() => {
     if (state.phase !== 'dealing') return;
+    if (!tableReady) return;
     if (queueRef.current.length === 0) return;
 
     // Use a local timer — NOT timerRef — so cleanup only cancels this
     // kickoff timer without accidentally killing processNext's own timers.
     const id = setTimeout(() => processNext(), DEAL_INTERVAL);
     return () => clearTimeout(id);
-  }, [state.phase, processNext]);
+  }, [state.phase, tableReady, processNext]);
 
   // --- During gameplay: sync with snapshot when in playing phase ---
 
