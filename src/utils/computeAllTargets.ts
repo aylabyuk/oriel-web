@@ -11,12 +11,19 @@ import {
   getPlayerHandPlacement,
 } from '@/utils/zoneLayout';
 
+export type SpringConfig = {
+  tension?: number;
+  friction?: number;
+  duration?: number;
+};
+
 export type CardTarget = {
   cardId: string;
   value: SerializedCard['value'];
   color: SerializedCard['color'];
   placement: CardPlacement;
   immediate?: boolean;
+  springConfig?: SpringConfig;
 };
 
 /** Flatten MagnetState into a single array of per-card animation targets. */
@@ -68,7 +75,8 @@ export const computeAllTargets = (
 
   magnet.playerHands.forEach((cards, playerIndex) => {
     cards.forEach((card, i) => {
-      const placement = magnet.phase === 'playing'
+      const isPlaying = magnet.phase === 'playing';
+      const placement = isPlaying
         ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0)
         : getPlayerTurnedPlacement(i, cards.length, seats[playerIndex]);
       targets.push({

@@ -15,7 +15,9 @@ import {
   MagnetPlayerHand,
 } from '@/components/three/MagnetZones';
 import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
+import { AnimationTimeline } from '@/components/ui/AnimationTimeline';
 import { useMagnetState } from '@/hooks/useMagnetState';
+import { useMagnetTimeline } from '@/hooks/useMagnetTimeline';
 import {
   SEATS,
   SEAT_ORDER,
@@ -26,6 +28,9 @@ const DEBUG_MAGNETS = false;
 
 /** Set to true to render the visible (animated) card layer. */
 const DEBUG_VISIBLE_CARDS = true;
+
+/** Set to true to use timeline scrubber instead of auto-playing animations. */
+const DEBUG_TIMELINE = true;
 
 /** Isolated environment layer — subscribes to Redux inside Canvas so
  *  environment changes don't re-render the rest of BackgroundScene. */
@@ -51,6 +56,9 @@ export const BackgroundScene = ({
   const [tableReady, setTableReady] = useState(false);
   const handleTableReady = useCallback(() => setTableReady(true), []);
   const magnet = useMagnetState(snapshot, tableReady);
+  const timeline = useMagnetTimeline(snapshot);
+
+  const activeMagnet = DEBUG_TIMELINE ? timeline.state : magnet;
 
   useEffect(() => {
     if (showTable) onStartGame?.();
@@ -68,16 +76,16 @@ export const BackgroundScene = ({
             <Table onReady={handleTableReady}>
               {DEBUG_MAGNETS && (
                 <>
-                  <MagnetDeck cards={magnet.deck} />
-                  <MagnetDiscardPile cards={magnet.discardPile} />
-                  {magnet.playerFronts.map((cards, i) => (
+                  <MagnetDeck cards={activeMagnet.deck} />
+                  <MagnetDiscardPile cards={activeMagnet.discardPile} />
+                  {activeMagnet.playerFronts.map((cards, i) => (
                     <MagnetPlayerFront
                       key={`front-${i}`}
                       cards={cards}
                       seat={SEATS[SEAT_ORDER[i]]}
                     />
                   ))}
-                  {magnet.playerHands.map((cards, i) => (
+                  {activeMagnet.playerHands.map((cards, i) => (
                     <MagnetPlayerHand
                       key={`hand-${i}`}
                       cards={cards}
@@ -86,7 +94,12 @@ export const BackgroundScene = ({
                   ))}
                 </>
               )}
-              {DEBUG_VISIBLE_CARDS && <VisibleCardLayer magnet={magnet} />}
+              {DEBUG_VISIBLE_CARDS && (
+                <VisibleCardLayer
+                  magnet={activeMagnet}
+                  forceImmediate={DEBUG_TIMELINE && timeline.scrubbing}
+                />
+              )}
               {snapshot && (
                 <>
                   {/* {snapshot.players.map((player, i) => (
@@ -119,6 +132,16 @@ export const BackgroundScene = ({
           />
         </EffectComposer>
       </Canvas>
+      {DEBUG_TIMELINE && (
+        <AnimationTimeline
+          stepIndex={timeline.stepIndex}
+          totalSteps={timeline.totalSteps}
+          playing={timeline.playing}
+          onSeek={timeline.seek}
+          onToggle={timeline.toggle}
+          onReset={timeline.reset}
+        />
+      )}
     </div>
   );
 };

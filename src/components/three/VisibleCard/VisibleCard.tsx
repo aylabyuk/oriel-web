@@ -4,6 +4,9 @@ import { useFrame } from '@react-three/fiber';
 import { Card3D } from '@/components/three/Card3D';
 import type { Value, Color } from 'uno-engine';
 import type { CardPlacement } from '@/utils/zoneLayout';
+import type { SpringConfig } from '@/utils/computeAllTargets';
+
+const DEFAULT_CONFIG: SpringConfig = { tension: 170, friction: 26 };
 
 type VisibleCardProps = {
   cardId: string;
@@ -11,6 +14,7 @@ type VisibleCardProps = {
   color: Color | undefined;
   to: CardPlacement;
   immediate?: boolean;
+  springConfig?: SpringConfig;
 };
 
 export const VisibleCard = ({
@@ -18,12 +22,13 @@ export const VisibleCard = ({
   color,
   to,
   immediate: snap,
+  springConfig,
 }: VisibleCardProps) => {
   // Imperative spring — initialized once on mount, updated via api.start().
   const [{ position, rotation }, api] = useSpring(() => ({
     position: [...to.position] as [number, number, number],
     rotation: [...to.rotation] as [number, number, number],
-    config: { tension: 170, friction: 26 },
+    config: DEFAULT_CONFIG,
   }));
 
   // Drive the spring every frame (reference repo pattern).
@@ -34,6 +39,7 @@ export const VisibleCard = ({
       position: [to.position[0], to.position[1], to.position[2]],
       rotation: [to.rotation[0], to.rotation[1], to.rotation[2]],
       immediate: snap,
+      config: springConfig ?? DEFAULT_CONFIG,
     });
   });
 

@@ -6,11 +6,12 @@ import type { MagnetState } from '@/hooks/useMagnetState';
 
 type VisibleCardLayerProps = {
   magnet: MagnetState;
+  forceImmediate?: boolean;
 };
 
 const seats = SEAT_ORDER.map((key) => SEATS[key]);
 
-export const VisibleCardLayer = ({ magnet }: VisibleCardLayerProps) => {
+export const VisibleCardLayer = ({ magnet, forceImmediate }: VisibleCardLayerProps) => {
   const targets = useMemo(
     () => computeAllTargets(magnet, seats),
     [magnet],
@@ -25,7 +26,8 @@ export const VisibleCardLayer = ({ magnet }: VisibleCardLayerProps) => {
           value={t.value}
           color={t.color}
           to={t.placement}
-          immediate={t.immediate}
+          immediate={forceImmediate || t.immediate}
+          springConfig={t.springConfig}
         />
       ))}
     </group>

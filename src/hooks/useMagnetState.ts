@@ -26,7 +26,7 @@ export type MagnetPhase =
   | 'initial_discard'
   | 'playing';
 
-type QueueStep =
+export type QueueStep =
   | { type: 'deal'; cardId: string; playerIndex: number }
   | { type: 'reveal_pickup'; playerIndex: number }
   | { type: 'reveal_turn'; playerIndex: number }
@@ -203,7 +203,7 @@ export const useMagnetState = (
 // --- Pure helpers ---
 
 /** Apply a single queue step to the magnet state */
-const applyStep = (
+export const applyStep = (
   prev: MagnetState,
   step: QueueStep,
   cardMap: Map<string, SerializedCard>,
