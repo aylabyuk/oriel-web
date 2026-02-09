@@ -1,24 +1,37 @@
+import { useMemo } from 'react';
 import { animated, useSpring } from '@react-spring/three';
 import { Card3D } from '@/components/three/Card3D';
 import { DRAW_PILE_POSITION } from '@/constants';
 import type { SerializedCard } from '@/types/game';
 
+const CARD_DEPTH = 0.003;
 const LIFT_HEIGHT = 0.5;
 
+/** Seeded pseudo-random for deterministic per-card scatter */
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed * 9301 + 49297) * 49297;
+  return x - Math.floor(x);
+};
+
 type DiscardPileProps = {
-  card: SerializedCard;
+  cards: SerializedCard[];
   position: [number, number, number];
   deckTopY: number;
   dealDelay: number;
 };
 
-export const DiscardPile = ({
+/** Animated first card — the initial flip from the draw pile. */
+const InitialDiscard = ({
   card,
   position,
   deckTopY,
   dealDelay,
-}: DiscardPileProps) => {
-  // Deck rotation: flat, face-down
+}: {
+  card: SerializedCard;
+  position: [number, number, number];
+  deckTopY: number;
+  dealDelay: number;
+}) => {
   const deckRotX = -Math.PI / 2;
   const deckRotY = Math.PI;
 
@@ -32,13 +45,9 @@ export const DiscardPile = ({
       rotY: deckRotY,
     },
     to: [
-      // Phase 1: lift from deck
       { posY: deckTopY + LIFT_HEIGHT },
-      // Phase 2: flip face-up in the air
       { rotY: 0 },
-      // Phase 3: slide to discard x/z while staying in the air
       { posX: position[0], posZ: position[2] },
-      // Phase 4: drop down to table surface
       { posY: position[1] },
     ],
     delay: dealDelay,
@@ -53,11 +62,57 @@ export const DiscardPile = ({
       rotation-x={spring.rotX}
       rotation-y={spring.rotY}
     >
-      <Card3D
-        value={card.value}
-        color={card.color}
-        faceUp
-      />
+      <Card3D value={card.value} color={card.color} faceUp />
     </animated.group>
+  );
+};
+
+export const DiscardPile = ({
+  cards,
+  position,
+  deckTopY,
+  dealDelay,
+}: DiscardPileProps) => {
+  const restCards = cards.slice(1);
+
+  const restPositions = useMemo(
+    () =>
+      restCards.map((_, i) => ({
+        position: [
+          (seededRandom(i * 3) - 0.5) * 0.06,
+          (i + 1) * CARD_DEPTH,
+          (seededRandom(i * 3 + 1) - 0.5) * 0.06,
+        ] as [number, number, number],
+        rotation: [
+          -Math.PI / 2,
+          0,
+          (seededRandom(i * 3 + 2) - 0.5) * 0.15,
+        ] as [number, number, number],
+      })),
+    [restCards.length],
+  );
+
+  return (
+    <group position={position}>
+      {cards.length > 0 && (
+        <InitialDiscard
+          key={cards[0].id}
+          card={cards[0]}
+          position={position}
+          deckTopY={deckTopY}
+          dealDelay={dealDelay}
+        />
+      )}
+      {restCards.map((card, i) => (
+        <Card3D
+          key={card.id}
+          value={card.value}
+          color={card.color}
+          faceUp
+          position={restPositions[i].position}
+          rotation={restPositions[i].rotation}
+        />
+      ))}
+    </group>
   );
 };

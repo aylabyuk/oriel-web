@@ -29,9 +29,9 @@ export type GameSnapshot = {
   phase: GamePhase;
   currentPlayerName: string;
   players: SerializedPlayer[];
-  discardedCard: SerializedCard;
+  discardPile: SerializedCard[];
   direction: PlayDirection;
-  drawPileCount: number;
+  drawPile: SerializedCard[];
   winner: string | null;
   score: number | null;
 };

@@ -26,11 +26,10 @@ export const serializeCard = (card: Card): SerializedCard => ({
 
 export const serializePlayer = (
   player: { name: string; hand: Card[] },
-  revealHand: boolean,
 ): SerializedPlayer => ({
   name: player.name,
   cardCount: player.hand.length,
-  hand: revealHand ? player.hand.map(serializeCard) : [],
+  hand: player.hand.map(serializeCard),
 });
 
 /** GameDirection.CLOCKWISE = 1, COUNTER_CLOCKWISE = 2 (enum not re-exported from uno-engine) */

@@ -57,11 +57,12 @@ export const BackgroundScene = ({
   const CARD_DEPTH = 0.003;
   const playerCount = snapshot?.players.length ?? 0;
   const deckTopY =
-    CARD_BASE_Y + (snapshot?.drawPileCount ?? 0) * CARD_DEPTH;
+    CARD_BASE_Y + (snapshot?.drawPile.length ?? 0) * CARD_DEPTH;
   const discardDelay =
     TABLE_SETTLE_MS + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
   const revealDelay = discardDelay;
-  const activeColorHex = unoColorToHex(snapshot?.discardedCard.color);
+  const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
+  const activeColorHex = unoColorToHex(topDiscard?.color);
   const activeSeatIndex = snapshot
     ? snapshot.players.findIndex((p) => p.name === snapshot.currentPlayerName)
     : 0;
@@ -79,7 +80,7 @@ export const BackgroundScene = ({
               {snapshot && (
                 <>
                   <CardDeck
-                    count={snapshot.drawPileCount}
+                    cards={snapshot.drawPile}
                     position={[
                       DRAW_PILE_POSITION[0],
                       CARD_BASE_Y,
@@ -87,7 +88,7 @@ export const BackgroundScene = ({
                     ]}
                   />
                   <DiscardPile
-                    card={snapshot.discardedCard}
+                    cards={snapshot.discardPile}
                     position={[
                       DISCARD_PILE_POSITION[0],
                       CARD_BASE_Y,
@@ -100,7 +101,6 @@ export const BackgroundScene = ({
                     <PlayerHand
                       key={player.name}
                       cards={player.hand}
-                      cardCount={player.cardCount}
                       seat={SEATS[SEAT_ORDER[i]]}
                       seatIndex={i}
                       playerCount={playerCount}
@@ -117,7 +117,7 @@ export const BackgroundScene = ({
                   {readyToPlay && (
                     <DirectionOrbit
                       direction={snapshot.direction}
-                      activeColor={snapshot.discardedCard.color}
+                      activeColor={topDiscard?.color}
                     />
                   )}
                 </>

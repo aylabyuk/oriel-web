@@ -30,6 +30,7 @@ export class UnoGame {
   private humanPlayerName: string;
   private houseRules: HouseRule[];
   private _hasDrawn = false;
+  private discardHistory: Card[];
 
   constructor(
     playerNames: string[],
@@ -39,6 +40,7 @@ export class UnoGame {
     this.humanPlayerName = humanPlayerName;
     this.houseRules = houseRules;
     this.engine = new Game(playerNames, houseRules);
+    this.discardHistory = [this.engine.discardedCard];
     this.bindEngineEvents();
   }
 
@@ -64,6 +66,7 @@ export class UnoGame {
     this.engine.on(
       'cardplay',
       ({ data }: { data: { card: Card; player: { name: string } } }) => {
+        this.discardHistory.push(data.card);
         const trigger = this.getDialogueTrigger(data.card);
         this.emit({
           type: 'card_played',
@@ -155,6 +158,7 @@ export class UnoGame {
   restart(): void {
     const playerNames = this.engine.players.map((p) => p.name);
     this.engine = new Game(playerNames, this.houseRules);
+    this.discardHistory = [this.engine.discardedCard];
     this.phase = 'playing';
     this.winner = null;
     this.score = null;
@@ -170,12 +174,10 @@ export class UnoGame {
     return {
       phase: this.phase,
       currentPlayerName: this.engine.currentPlayer.name,
-      players: this.engine.players.map((p) =>
-        serializePlayer(p, p.name === this.humanPlayerName),
-      ),
-      discardedCard: serializeCard(this.engine.discardedCard),
+      players: this.engine.players.map((p) => serializePlayer(p)),
+      discardPile: this.discardHistory.map(serializeCard),
       direction: serializeDirection(this.engine.playingDirection),
-      drawPileCount: this.engine.deck.length,
+      drawPile: this.engine.deck.cards.map(serializeCard),
       winner: this.winner,
       score: this.score,
     };

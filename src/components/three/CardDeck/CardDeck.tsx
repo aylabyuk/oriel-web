@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Card3D } from '@/components/three/Card3D';
+import type { SerializedCard } from '@/types/game';
 
 const CARD_DEPTH = 0.003;
 
@@ -16,29 +17,29 @@ const getRotation = (i: number): [number, number, number] => [
 ];
 
 type CardDeckProps = {
-  count: number;
+  cards: SerializedCard[];
   position?: [number, number, number];
   rotation?: [number, number, number];
 };
 
-export const CardDeck = ({ count, position = [0, 0, 0], rotation = [0, 0, 0] }: CardDeckProps) => {
-  const cards = useMemo(
+export const CardDeck = ({ cards, position = [0, 0, 0], rotation = [0, 0, 0] }: CardDeckProps) => {
+  const positions = useMemo(
     () =>
-      Array.from({ length: count }, (_, i) => ({
+      Array.from({ length: cards.length }, (_, i) => ({
         position: [0, i * CARD_DEPTH, 0] as [number, number, number],
         rotation: getRotation(i),
       })),
-    [count],
+    [cards.length],
   );
 
   return (
     <group position={position} rotation={rotation}>
       {cards.map((card, i) => (
         <Card3D
-          key={i}
+          key={card.id}
           faceUp={false}
-          position={card.position}
-          rotation={card.rotation}
+          position={positions[i].position}
+          rotation={positions[i].rotation}
         />
       ))}
     </group>

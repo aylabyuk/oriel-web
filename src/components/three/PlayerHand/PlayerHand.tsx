@@ -11,7 +11,6 @@ const GLOW_INTENSITY = 2.0;
 
 type PlayerHandProps = {
   cards: SerializedCard[];
-  cardCount: number;
   seat: Seat;
   seatIndex: number;
   playerCount: number;
@@ -27,7 +26,6 @@ type PlayerHandProps = {
 
 export const PlayerHand = ({
   cards,
-  cardCount,
   seat,
   seatIndex,
   playerCount,
@@ -40,7 +38,7 @@ export const PlayerHand = ({
   glowColor,
   onReady,
 }: PlayerHandProps) => {
-  const count = faceUp ? cards.length : cardCount;
+  const count = cards.length;
 
   const { springs, api } = useDealAnimation({
     count,
@@ -83,10 +81,10 @@ export const PlayerHand = ({
   return (
     <group>
       {springs.map((spring, i) => {
-        const card = faceUp ? cards[i] : undefined;
+        const card = cards[i];
         return (
           <animated.group
-            key={card?.id ?? i}
+            key={card.id}
             position-x={spring.posX}
             position-y={spring.posY}
             position-z={spring.posZ}
@@ -95,8 +93,8 @@ export const PlayerHand = ({
             rotation-z={spring.rotZ}
           >
             <Card3D
-              value={card?.value}
-              color={card?.color}
+              value={card.value}
+              color={card.color}
               faceUp={faceUp}
               glowColor={glowColor}
               glowIntensity={ready && isActive ? GLOW_INTENSITY : 0}
