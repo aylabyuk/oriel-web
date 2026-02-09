@@ -1,18 +1,20 @@
 import { useMemo, useEffect } from 'react';
 import type { SpringRef } from '@react-spring/three';
 import type { Seat } from '@/constants';
+import {
+  CARD_DEPTH,
+  PULL_DISTANCE,
+  CARD_HALF_HEIGHT,
+  CARD_SPREAD,
+  OPPONENT_CARD_SPREAD,
+  CAMERA_TILT_X,
+  CAMERA_LIFT_Y,
+} from './constants';
 
-const CARD_DEPTH = 0.003;
-const PULL_DISTANCE = 1.2;
 const STEP1_SETTLE_MS = 800;
 const STEP2_SETTLE_MS = 800;
-const CARD_HALF_HEIGHT = 0.5;
 const STEP3_SETTLE_MS = 600;
-const CARD_SPREAD = 0.25;
-const OPPONENT_CARD_SPREAD = 0.1;
 const STEP4_SETTLE_MS = 600;
-const CAMERA_TILT_X = -0.35;
-const CAMERA_LIFT_Y = 0.10;
 
 /** Total time from revealDelay until all reveal steps have settled */
 export const REVEAL_TOTAL_MS =

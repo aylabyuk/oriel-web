@@ -74,7 +74,7 @@ export const BackgroundScene = ({
 
   return (
     <div className="fixed inset-0 z-0">
-      <Canvas camera={{ position: [0, 2, 3], fov: 60 }}>
+      <Canvas camera={{ position: [0, 1.8, 2.6], fov: 60 }}>
         <EnvironmentLayer />
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
@@ -130,7 +130,7 @@ export const BackgroundScene = ({
           </Suspense>
         )}
         {!import.meta.env.DEV && readyToPlay && <CameraRig activeSeatIndex={activeSeatIndex} />}
-        <OrbitControls target={[0, -0.5, 0]} enablePan={false} enableZoom={false} enabled={import.meta.env.DEV || !readyToPlay} />
+        <OrbitControls target={[0, -0.3, 0]} enablePan={false} enableZoom={false} enabled={import.meta.env.DEV || !readyToPlay} />
         <EffectComposer>
           <Bloom
             luminanceThreshold={0.9}

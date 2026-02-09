@@ -2,9 +2,8 @@ import { useLayoutEffect, useMemo } from 'react';
 import { useSprings } from '@react-spring/three';
 import { DRAW_PILE_POSITION } from '@/constants';
 import { seededRandom } from '@/utils/seededRandom';
+import { CARD_DEPTH } from './constants';
 import type { Seat } from '@/constants';
-
-const CARD_DEPTH = 0.003;
 const DEAL_STAGGER_MS = 150;
 
 type UseDealAnimationArgs = {

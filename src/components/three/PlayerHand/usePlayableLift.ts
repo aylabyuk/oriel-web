@@ -5,6 +5,7 @@ import type { SerializedCard } from '@/types/game';
 /** Lift along the card's local Y axis — the parent group's rotX
  *  automatically decomposes this into correct world Y + Z. */
 const PLAYABLE_LIFT = 0.15;
+const HOVER_LIFT = 0.35;
 const LIFT_CONFIG = { mass: 0.2, tension: 600, friction: 24 };
 
 type UsePlayableLiftArgs = {
@@ -13,6 +14,7 @@ type UsePlayableLiftArgs = {
   playableCardIds: string[];
   sorted: boolean;
   isActive: boolean;
+  hoveredIndex: number | null;
 };
 
 export const usePlayableLift = ({
@@ -21,6 +23,7 @@ export const usePlayableLift = ({
   playableCardIds,
   sorted,
   isActive,
+  hoveredIndex,
 }: UsePlayableLiftArgs) => {
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -38,11 +41,12 @@ export const usePlayableLift = ({
     const playableSet = new Set(playableKey.split(',').filter(Boolean));
 
     api.start((i) => {
-      const lifted = isActive && playableSet.has(cardsRef.current[i]?.id);
-      return { to: { liftY: lifted ? PLAYABLE_LIFT : 0 }, config: LIFT_CONFIG };
+      const isPlayable = isActive && playableSet.has(cardsRef.current[i]?.id);
+      const lift = !isPlayable ? 0 : i === hoveredIndex ? HOVER_LIFT : PLAYABLE_LIFT;
+      return { to: { liftY: lift }, config: LIFT_CONFIG };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- cardsRef is stable; playableKey is a content-based key
-  }, [api, playableKey, sorted, isActive]);
+  }, [api, playableKey, sorted, isActive, hoveredIndex]);
 
   return springs;
 };

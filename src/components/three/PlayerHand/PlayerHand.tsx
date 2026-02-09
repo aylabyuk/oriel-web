@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { animated } from '@react-spring/three';
 import { Card3D } from '@/components/three/Card3D';
 import { useDealAnimation } from './useDealAnimation';
@@ -75,12 +75,16 @@ export const PlayerHand = ({
     sortDelay,
   });
 
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const handlePointerOut = useCallback(() => setHoveredIndex(null), []);
+
   const liftSprings = usePlayableLift({
     count,
     cards,
     playableCardIds,
     sorted,
     isActive,
+    hoveredIndex,
   });
 
   useEffect(() => {
@@ -104,7 +108,11 @@ export const PlayerHand = ({
             rotation-y={spring.rotY}
             rotation-z={spring.rotZ}
           >
-            <animated.group position-y={liftSprings[i].liftY}>
+            <animated.group
+              position-y={liftSprings[i].liftY}
+              onPointerOver={playable ? () => setHoveredIndex(i) : undefined}
+              onPointerOut={playable ? handlePointerOut : undefined}
+            >
               <Card3D
                 value={card.value}
                 color={card.color}
