@@ -31,14 +31,14 @@ const CARD_DEPTH = 0.003;
 const CARD_HEIGHT = 1.0;
 const STACK_OFFSET = 0.005;
 const PULL_DISTANCE = 1.2;
-const CARD_SPREAD = 0.25;
+const CARD_SPREAD = 0.35;
 const FRONT_PULL = 0.6;
 const FLOAT_HEIGHT = 0.5;
 const SCATTER_XZ = 0.06;
 const SCATTER_ROT = 0.15;
 const DECK_ROT_JITTER = 0.06;
 const CARD_HALF_HEIGHT = CARD_HEIGHT / 2;
-const OPPONENT_CARD_SPREAD = 0.1;
+const OPPONENT_CARD_SPREAD = 0.15;
 /** Visitor camera tilt — tilts cards toward the camera (from develop branch) */
 const CAMERA_TILT_X = -0.65;
 /** Small lift for visitor cards above surface */

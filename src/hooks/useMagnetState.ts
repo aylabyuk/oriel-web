@@ -143,16 +143,15 @@ export const useMagnetState = (
     queue.push({ type: 'reveal_pickup' });
     queue.push({ type: 'reveal_turn' });
 
-    // TODO: re-add initial_discard + playing phases once reveal is verified
     // 3. INITIAL_DISCARD: flip first discard card
-    // queue.push({ type: 'phase', phase: 'initial_discard' });
-    // if (snapshot.discardPile.length > 0) {
-    //   queue.push({
-    //     type: 'initial_discard',
-    //     cardId: snapshot.discardPile[0].id,
-    //   });
-    // }
-    // queue.push({ type: 'phase', phase: 'playing' });
+    queue.push({ type: 'phase', phase: 'initial_discard' });
+    if (snapshot.discardPile.length > 0) {
+      queue.push({
+        type: 'initial_discard',
+        cardId: snapshot.discardPile[0].id,
+      });
+    }
+    queue.push({ type: 'phase', phase: 'playing' });
 
     queueRef.current = queue;
     // The kickoff effect below will start processing once phase='dealing' commits.

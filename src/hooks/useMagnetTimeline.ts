@@ -77,6 +77,12 @@ export const useMagnetTimeline = (
     queue.push({ type: 'reveal_pickup' });
     queue.push({ type: 'reveal_turn' });
 
+    queue.push({ type: 'phase', phase: 'initial_discard' });
+    if (snapshot.discardPile.length > 0) {
+      queue.push({ type: 'initial_discard', cardId: snapshot.discardPile[0].id });
+    }
+    queue.push({ type: 'phase', phase: 'playing' });
+
     // Pre-compute all states by folding through queue steps.
     // Phase-only steps are merged into the previous state (no visible change).
     const states: MagnetState[] = [initial];
