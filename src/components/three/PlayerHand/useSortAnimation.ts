@@ -122,6 +122,21 @@ export const useSortAnimation = ({
     };
 
     const timeout = setTimeout(async () => {
+      if (!faceUp) {
+        // Opponents: snap to sorted positions instantly (no animation)
+        api.start((i) => {
+          const targetSlot = sortOrder.indexOf(i);
+          const pos = slotPos(targetSlot);
+          return {
+            to: { posX: pos.posX, posZ: pos.posZ },
+            immediate: true,
+          };
+        });
+        doneRef.current = true;
+        setSorted(true);
+        return;
+      }
+
       const currentSlot = Array.from({ length: count }, (_, i) => i);
 
       for (let targetSlot = 0; targetSlot < count; targetSlot++) {

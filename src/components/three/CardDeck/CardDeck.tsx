@@ -1,14 +1,9 @@
 import { useMemo } from 'react';
 import { Card3D } from '@/components/three/Card3D';
+import { seededRandom } from '@/utils/seededRandom';
 import type { SerializedCard } from '@/types/game';
 
 const CARD_DEPTH = 0.003;
-
-/** Seeded pseudo-random for deterministic Z rotations */
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
-};
 
 const getRotation = (i: number): [number, number, number] => [
   -Math.PI / 2,

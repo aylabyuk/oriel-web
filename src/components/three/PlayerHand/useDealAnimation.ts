@@ -1,16 +1,11 @@
 import { useLayoutEffect, useMemo } from 'react';
 import { useSprings } from '@react-spring/three';
 import { DRAW_PILE_POSITION } from '@/constants';
+import { seededRandom } from '@/utils/seededRandom';
 import type { Seat } from '@/constants';
 
 const CARD_DEPTH = 0.003;
 const DEAL_STAGGER_MS = 150;
-
-/** Seeded pseudo-random for deterministic pile jitter */
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
-};
 
 type UseDealAnimationArgs = {
   count: number;

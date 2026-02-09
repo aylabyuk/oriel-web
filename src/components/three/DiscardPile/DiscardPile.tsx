@@ -3,15 +3,10 @@ import { animated, useSpring } from '@react-spring/three';
 import { Card3D } from '@/components/three/Card3D';
 import { DRAW_PILE_POSITION } from '@/constants';
 import type { SerializedCard } from '@/types/game';
+import { seededRandom } from '@/utils/seededRandom';
 
 const CARD_DEPTH = 0.003;
 const LIFT_HEIGHT = 0.5;
-
-/** Seeded pseudo-random for deterministic per-card scatter */
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
-};
 
 type DiscardPileProps = {
   cards: SerializedCard[];
