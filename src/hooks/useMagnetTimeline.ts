@@ -74,12 +74,8 @@ export const useMagnetTimeline = (
       }
     }
     queue.push({ type: 'phase', phase: 'revealing' });
-    for (let p = 0; p < playerCount; p++) {
-      queue.push({ type: 'reveal_pickup', playerIndex: p });
-    }
-    for (let p = 0; p < playerCount; p++) {
-      queue.push({ type: 'reveal_turn', playerIndex: p });
-    }
+    queue.push({ type: 'reveal_pickup' });
+    queue.push({ type: 'reveal_turn' });
 
     // Pre-compute all states by folding through queue steps.
     // Phase-only steps are merged into the previous state (no visible change).

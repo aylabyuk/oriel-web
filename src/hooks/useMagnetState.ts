@@ -5,7 +5,6 @@ import type { GameSnapshot, SerializedCard } from '@/types/game';
 const DEAL_INTERVAL = 200;
 const REVEAL_LIFT_DELAY = 400;
 const REVEAL_TURN_DELAY = 400;
-const REVEAL_SPREAD_DELAY = 500;
 const INITIAL_DISCARD_DELAY = 300;
 
 // --- Types ---
@@ -28,9 +27,8 @@ export type MagnetPhase =
 
 export type QueueStep =
   | { type: 'deal'; cardId: string; playerIndex: number }
-  | { type: 'reveal_pickup'; playerIndex: number }
-  | { type: 'reveal_turn'; playerIndex: number }
-  | { type: 'reveal_settle'; playerIndex: number }
+  | { type: 'reveal_pickup' }
+  | { type: 'reveal_turn' }
   | { type: 'initial_discard'; cardId: string }
   | { type: 'phase'; phase: MagnetPhase };
 
@@ -87,7 +85,6 @@ export const useMagnetState = (
         case 'deal': return DEAL_INTERVAL;
         case 'reveal_pickup': return REVEAL_LIFT_DELAY;
         case 'reveal_turn': return REVEAL_TURN_DELAY;
-        case 'reveal_settle': return REVEAL_SPREAD_DELAY;
         case 'initial_discard': return INITIAL_DISCARD_DELAY;
       }
     })();
@@ -141,14 +138,10 @@ export const useMagnetState = (
       }
     }
 
-    // 2. REVEAL: snap to aligned Euler, then tilt toward player (single-axis X)
+    // 2. REVEAL: all players lift then flip simultaneously
     queue.push({ type: 'phase', phase: 'revealing' });
-    for (let p = 0; p < playerCount; p++) {
-      queue.push({ type: 'reveal_pickup', playerIndex: p });
-    }
-    for (let p = 0; p < playerCount; p++) {
-      queue.push({ type: 'reveal_turn', playerIndex: p });
-    }
+    queue.push({ type: 'reveal_pickup' });
+    queue.push({ type: 'reveal_turn' });
 
     // TODO: re-add initial_discard + playing phases once reveal is verified
     // 3. INITIAL_DISCARD: flip first discard card
@@ -225,30 +218,14 @@ export const applyStep = (
     }
 
     case 'reveal_pickup': {
-      const newFronts = prev.playerFronts.map((f) => [...f]);
-      const newStaging = prev.playerStaging.map((s) => [...s]);
-      const cards = newFronts[step.playerIndex];
-      newFronts[step.playerIndex] = [];
-      newStaging[step.playerIndex] = [...newStaging[step.playerIndex], ...cards];
+      const newFronts = prev.playerFronts.map(() => [] as SerializedCard[]);
+      const newStaging = prev.playerStaging.map((s, i) => [...s, ...prev.playerFronts[i]]);
       return { ...prev, playerFronts: newFronts, playerStaging: newStaging };
     }
 
     case 'reveal_turn': {
-      const newStaging = prev.playerStaging.map((s) => [...s]);
-      const newHands = prev.playerHands.map((h) => [...h]);
-      const cards = newStaging[step.playerIndex];
-      newStaging[step.playerIndex] = [];
-      newHands[step.playerIndex] = [...newHands[step.playerIndex], ...cards];
-      return { ...prev, playerStaging: newStaging, playerHands: newHands };
-    }
-
-    case 'reveal_settle': {
-      const newStaging = prev.playerStaging.map((s) => [...s]);
-      const newHands = prev.playerHands.map((h) => [...h]);
-      const cards = newStaging[step.playerIndex];
-      newStaging[step.playerIndex] = [];
-      cards.sort(sortCards);
-      newHands[step.playerIndex] = [...newHands[step.playerIndex], ...cards];
+      const newStaging = prev.playerStaging.map(() => [] as SerializedCard[]);
+      const newHands = prev.playerHands.map((h, i) => [...h, ...prev.playerStaging[i]]);
       return { ...prev, playerStaging: newStaging, playerHands: newHands };
     }
 
