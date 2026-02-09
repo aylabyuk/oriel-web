@@ -66,13 +66,13 @@ export class UnoGame {
   private bindEngineEvents(): void {
     this.engine.on(
       'cardplay',
-      ({ data }: { data: { card: Card; player: { name: string } } }) => {
-        this.discardHistory.push(data.card);
-        const trigger = this.getDialogueTrigger(data.card);
+      (event: { card: Card; player: { name: string } }) => {
+        this.discardHistory.push(event.card);
+        const trigger = this.getDialogueTrigger(event.card);
         this.emit({
           type: 'card_played',
-          playerName: data.player.name,
-          card: serializeCard(data.card),
+          playerName: event.player.name,
+          card: serializeCard(event.card),
           data: { trigger },
         });
       },
@@ -80,37 +80,37 @@ export class UnoGame {
 
     this.engine.on(
       'draw',
-      ({ data }: { data: { player: { name: string }; cards: Card[] } }) => {
+      (event: { player: { name: string }; cards: Card[] }) => {
         this._hasDrawn = true;
         this.emit({
           type: 'card_drawn',
-          playerName: data.player.name,
-          data: { count: data.cards.length },
+          playerName: event.player.name,
+          data: { count: event.cards.length },
         });
       },
     );
 
     this.engine.on(
       'nextplayer',
-      ({ data }: { data: { player: { name: string } } }) => {
+      (event: { player: { name: string } }) => {
         this._hasDrawn = false;
         this.emit({
           type: 'turn_changed',
-          playerName: data.player.name,
+          playerName: event.player.name,
         });
       },
     );
 
     this.engine.on(
       'end',
-      ({ data }: { data: { winner: { name: string }; score: number } }) => {
+      (event: { winner: { name: string }; score: number }) => {
         this.phase = 'ended';
-        this.winner = data.winner.name;
-        this.score = data.score;
+        this.winner = event.winner.name;
+        this.score = event.score;
         this.emit({
           type: 'game_ended',
-          playerName: data.winner.name,
-          data: { score: data.score },
+          playerName: event.winner.name,
+          data: { score: event.score },
         });
       },
     );

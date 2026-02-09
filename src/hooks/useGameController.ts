@@ -34,22 +34,26 @@ export const useGameController = () => {
         : undefined;
       try {
         game.playCard(card, chosenColor);
-      } catch {
+      } catch (err) {
+        console.warn(`[AI] ${currentName} play failed, drawing instead:`, err);
         try {
           game.draw();
           game.pass();
-        } catch {
-          // Engine rejected draw/pass — game may be stuck
+        } catch (err2) {
+          console.warn(`[AI] ${currentName} draw/pass also failed:`, err2);
         }
       }
     } else {
       try {
         game.draw();
         game.pass();
-      } catch {
-        // Engine rejected draw/pass — game may be stuck
+      } catch (err) {
+        console.warn(`[AI] ${currentName} draw/pass failed:`, err);
       }
     }
+
+    // Ensure snapshot is always propagated to Redux
+    dispatch(setSnapshot(game.getSnapshot()));
 
     // After playing, check if the next player is also AI
     const nextName = game.getCurrentPlayerName();
