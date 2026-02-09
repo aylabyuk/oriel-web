@@ -10,10 +10,24 @@ import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
 import {
+  MagnetDeck,
+  MagnetDiscardPile,
+  MagnetPlayerFront,
+  MagnetPlayerHand,
+} from '@/components/three/MagnetZones';
+import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
+import { useMagnetState } from '@/hooks/useMagnetState';
+import {
   SEATS,
   SEAT_ORDER,
   unoColorToHex,
 } from '@/constants';
+
+/** Set to true to render the debug magnet card layer alongside visible cards. */
+const DEBUG_MAGNETS = false;
+
+/** Set to true to render the visible (animated) card layer. */
+const DEBUG_VISIBLE_CARDS = true;
 
 /** Isolated environment layer — subscribes to Redux inside Canvas so
  *  environment changes don't re-render the rest of BackgroundScene. */
@@ -36,8 +50,8 @@ export const BackgroundScene = ({
   onStartGame,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
+  const { state: magnet, next, waiting } = useMagnetState(snapshot);
 
-  // Initialize game eagerly so the deck rides in with the table
   useEffect(() => {
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
@@ -53,9 +67,30 @@ export const BackgroundScene = ({
         {showTable && (
           <Suspense fallback={null}>
             <Table>
+              {DEBUG_MAGNETS && (
+                <>
+                  <MagnetDeck cards={magnet.deck} />
+                  <MagnetDiscardPile cards={magnet.discardPile} />
+                  {magnet.playerFronts.map((cards, i) => (
+                    <MagnetPlayerFront
+                      key={`front-${i}`}
+                      cards={cards}
+                      seat={SEATS[SEAT_ORDER[i]]}
+                    />
+                  ))}
+                  {magnet.playerHands.map((cards, i) => (
+                    <MagnetPlayerHand
+                      key={`hand-${i}`}
+                      cards={cards}
+                      seat={SEATS[SEAT_ORDER[i]]}
+                    />
+                  ))}
+                </>
+              )}
+              {DEBUG_VISIBLE_CARDS && <VisibleCardLayer magnet={magnet} />}
               {snapshot && (
                 <>
-                  {snapshot.players.map((player, i) => (
+                  {/* {snapshot.players.map((player, i) => (
                     <PlayerLabel
                       key={`label-${player.name}`}
                       name={player.name}
@@ -65,7 +100,7 @@ export const BackgroundScene = ({
                       activeColor={activeColorHex}
                       turnId={snapshot.discardPile.length}
                     />
-                  ))}
+                  ))} */}
                   <DirectionOrbit
                     direction={snapshot.direction}
                     activeColor={topDiscard?.color}
@@ -85,6 +120,14 @@ export const BackgroundScene = ({
           />
         </EffectComposer>
       </Canvas>
+      {waiting && (
+        <button
+          onClick={next}
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded bg-white px-6 py-2 font-mono text-sm font-bold text-black shadow-lg"
+        >
+          Next ({magnet.phase})
+        </button>
+      )}
     </div>
   );
 };

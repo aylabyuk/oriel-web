@@ -217,6 +217,7 @@ expect(mesh.props.position).toEqual([0, 0, 0]);
 ## Ideas & Design Docs
 
 - [UNO Portfolio Concept](ideas/uno-portfolio.md) — Core concept: portfolio site as an UNO card game where visitors unlock resume info through gameplay
+- [Magnet Card Architecture](ideas/magnet-card-architecture.md) — Decoupled card animation system: invisible position targets (Magnet Cards) + animated visuals (Visible Cards) that follow via react-spring
 
 ## Git Conventions
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`

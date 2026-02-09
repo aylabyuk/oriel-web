@@ -31,14 +31,12 @@ export const WelcomeScreen = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    dispatch(submitWelcome());
 
     if (!name.trim()) {
       dispatch(setNameError(t('welcome.nameRequired')));
       nameInputRef.current?.focus();
-      return;
     }
-
-    dispatch(submitWelcome());
   };
 
   return (
