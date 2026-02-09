@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { animated } from '@react-spring/three';
+import type { ThreeEvent } from '@react-three/fiber';
+import { Value } from 'uno-engine';
 import { Card3D } from '@/components/three/Card3D';
+import { WildColorPicker } from '@/components/three/WildColorPicker';
 import { useDealAnimation } from './useDealAnimation';
 import { useRevealAnimation, REVEAL_TOTAL_MS } from './useRevealAnimation';
 import { useSortAnimation } from './useSortAnimation';
@@ -9,6 +12,9 @@ import type { SerializedCard } from '@/types/game';
 import type { Seat } from '@/constants';
 
 const GLOW_INTENSITY = 2.0;
+
+const isWild = (card: SerializedCard) =>
+  card.value === Value.WILD || card.value === Value.WILD_DRAW_FOUR;
 
 type PlayerHandProps = {
   cards: SerializedCard[];
@@ -76,7 +82,36 @@ export const PlayerHand = ({
   });
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const handlePointerOut = useCallback(() => setHoveredIndex(null), []);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePointerOver = useCallback((e: ThreeEvent<PointerEvent>, i: number) => {
+    e.stopPropagation();
+    document.body.style.cursor = 'pointer';
+    if (hoverTimeout.current) {
+      clearTimeout(hoverTimeout.current);
+      hoverTimeout.current = null;
+    }
+    setHoveredIndex(i);
+  }, []);
+
+  const handlePointerOut = useCallback((e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    document.body.style.cursor = '';
+    hoverTimeout.current = setTimeout(() => {
+      setHoveredIndex(null);
+      hoverTimeout.current = null;
+    }, 100);
+  }, []);
+
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>, i: number) => {
+    if (e.nativeEvent.pointerType !== 'touch') return;
+    e.stopPropagation();
+    setHoveredIndex((prev) => (prev === i ? null : i));
+  }, []);
+
+  const handlePointerMissed = useCallback(() => {
+    setHoveredIndex(null);
+  }, []);
 
   const liftSprings = usePlayableLift({
     count,
@@ -94,7 +129,7 @@ export const PlayerHand = ({
   const ready = sorted || sortDelay == null;
 
   return (
-    <group>
+    <group onPointerMissed={handlePointerMissed}>
       {springs.map((spring, i) => {
         const card = cards[i];
         const playable = playableCardIds.includes(card.id);
@@ -110,8 +145,9 @@ export const PlayerHand = ({
           >
             <animated.group
               position-y={liftSprings[i].liftY}
-              onPointerOver={playable ? () => setHoveredIndex(i) : undefined}
+              onPointerOver={playable ? (e: ThreeEvent<PointerEvent>) => handlePointerOver(e, i) : undefined}
               onPointerOut={playable ? handlePointerOut : undefined}
+              onPointerDown={playable ? (e: ThreeEvent<PointerEvent>) => handlePointerDown(e, i) : undefined}
             >
               <Card3D
                 value={card.value}
@@ -120,6 +156,9 @@ export const PlayerHand = ({
                 glowColor={glowColor}
                 glowIntensity={ready && isActive && playable ? GLOW_INTENSITY : 0}
               />
+              {playable && isWild(card) && (
+                <WildColorPicker visible={hoveredIndex === i} />
+              )}
             </animated.group>
           </animated.group>
         );
