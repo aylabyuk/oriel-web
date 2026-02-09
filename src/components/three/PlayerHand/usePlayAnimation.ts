@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import type { SpringRef } from '@react-spring/three';
 import { DISCARD_PILE_POSITION } from '@/constants';
+import { STACK_OFFSET } from '@/components/three/DiscardPile/DiscardPile';
 
 const PLAY_LIFT_Y = 0.8;
 const PLAY_CONFIG = { tension: 200, friction: 22 };
@@ -18,9 +19,10 @@ type SpringValues = {
 type UsePlayAnimationArgs = {
   api: SpringRef<SpringValues>;
   surfaceY: number;
+  discardCount: number;
 };
 
-export const usePlayAnimation = ({ api, surfaceY }: UsePlayAnimationArgs) => {
+export const usePlayAnimation = ({ api, surfaceY, discardCount }: UsePlayAnimationArgs) => {
   const playingIndexRef = useRef<number | null>(null);
 
   const animatePlay = useCallback(
@@ -56,12 +58,13 @@ export const usePlayAnimation = ({ api, surfaceY }: UsePlayAnimationArgs) => {
         }),
       );
 
-      // Phase 3: Lay on discard pile
+      // Phase 3: Lay on top of discard pile
+      const targetY = surfaceY + discardCount * STACK_OFFSET;
       await Promise.all(
         api.start((i) => {
           if (i !== cardIndex) return {};
           return {
-            to: { posY: surfaceY },
+            to: { posY: targetY },
             config: LAY_CONFIG,
           };
         }),
@@ -70,7 +73,7 @@ export const usePlayAnimation = ({ api, surfaceY }: UsePlayAnimationArgs) => {
       playingIndexRef.current = null;
       onComplete();
     },
-    [api, surfaceY],
+    [api, surfaceY, discardCount],
   );
 
   return { animatePlay, playingIndexRef };

@@ -5,7 +5,7 @@ import { DRAW_PILE_POSITION } from '@/constants';
 import type { SerializedCard } from '@/types/game';
 import { seededRandom } from '@/utils/seededRandom';
 
-const CARD_DEPTH = 0.003;
+export const STACK_OFFSET = 0.005;
 const LIFT_HEIGHT = 0.5;
 
 type DiscardPileProps = {
@@ -80,7 +80,7 @@ export const DiscardPile = ({
       restCards.map((_, i) => ({
         position: [
           (seededRandom(i * 3) - 0.5) * 0.06,
-          (i + 1) * CARD_DEPTH,
+          (i + 1) * STACK_OFFSET,
           (seededRandom(i * 3 + 1) - 0.5) * 0.06,
         ] as [number, number, number],
         rotation: [

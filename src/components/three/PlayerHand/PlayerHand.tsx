@@ -24,6 +24,7 @@ type PlayerHandProps = {
   seatIndex: number;
   playerCount: number;
   faceUp: boolean;
+  isHuman?: boolean;
   surfaceY: number;
   deckTopY: number;
   dealBaseDelay?: number;
@@ -31,6 +32,7 @@ type PlayerHandProps = {
   isActive?: boolean;
   glowColor?: string;
   playableCardIds?: string[];
+  discardCount?: number;
   onReady?: () => void;
   onPlayCard?: (cardId: string, chosenColor?: Color) => void;
 };
@@ -41,6 +43,7 @@ export const PlayerHand = ({
   seatIndex,
   playerCount,
   faceUp,
+  isHuman = false,
   surfaceY,
   deckTopY,
   dealBaseDelay = 0,
@@ -48,6 +51,7 @@ export const PlayerHand = ({
   isActive = false,
   glowColor,
   playableCardIds = [],
+  discardCount = 0,
   onReady,
   onPlayCard,
 }: PlayerHandProps) => {
@@ -67,7 +71,7 @@ export const PlayerHand = ({
     api,
     count,
     seat,
-    faceUp,
+    faceUp: isHuman,
     surfaceY,
     revealDelay,
   });
@@ -80,7 +84,7 @@ export const PlayerHand = ({
     cards,
     count,
     seat,
-    faceUp,
+    faceUp: isHuman,
     surfaceY,
     sortDelay,
   });
@@ -91,6 +95,7 @@ export const PlayerHand = ({
   const { animatePlay, playingIndexRef } = usePlayAnimation({
     api,
     surfaceY,
+    discardCount,
   });
 
   const handlePointerOver = useCallback((e: ThreeEvent<PointerEvent>, i: number) => {

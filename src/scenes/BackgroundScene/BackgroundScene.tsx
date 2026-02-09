@@ -10,8 +10,9 @@ import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
 import { CardDeck } from '@/components/three/CardDeck';
 import { DiscardPile } from '@/components/three/DiscardPile';
 import { PlayerHand } from '@/components/three/PlayerHand';
+import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
-import { CameraRig } from '@/components/three/CameraRig';
+import { CARD_HALF_HEIGHT, CAMERA_LIFT_Y, CAMERA_TILT_X } from '@/components/three/PlayerHand/constants';
 import type { Color } from 'uno-engine';
 import {
   SEATS,
@@ -69,15 +70,12 @@ export const BackgroundScene = ({
     dealStart + CARDS_PER_PLAYER * playerCount * DEAL_STAGGER_MS;
   const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
   const activeColorHex = unoColorToHex(topDiscard?.color);
-  const activeSeatIndex = snapshot
-    ? snapshot.players.findIndex((p) => p.name === snapshot.currentPlayerName)
-    : 0;
   const [readyToPlay, setReadyToPlay] = useState(false);
   const handleReady = useCallback(() => setReadyToPlay(true), []);
 
   return (
     <div className="fixed inset-0 z-0">
-      <Canvas camera={{ position: [0, 1.8, 2.6], fov: 60 }}>
+      <Canvas camera={{ position: [0, 1.8, 2.6], fov: 80 }}>
         <EnvironmentLayer />
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
@@ -110,16 +108,32 @@ export const BackgroundScene = ({
                       seat={SEATS[SEAT_ORDER[i]]}
                       seatIndex={i}
                       playerCount={playerCount}
-                      faceUp={i === 0}
+                      faceUp
+                      isHuman={i === 0}
                       surfaceY={CARD_BASE_Y}
                       deckTopY={deckTopY}
                       dealBaseDelay={dealStart}
                       revealDelay={revealDelay}
-                      isActive={player.name === snapshot.currentPlayerName}
-                      glowColor={activeColorHex}
+                      isActive={i === 0 && player.name === snapshot.currentPlayerName}
+                      glowColor={i === 0 ? activeColorHex : undefined}
                       playableCardIds={i === 0 ? snapshot.playableCardIds : undefined}
+                      discardCount={i === 0 ? snapshot.discardPile.length : undefined}
                       onReady={i === 0 ? handleReady : undefined}
                       onPlayCard={i === 0 ? onPlayCard : undefined}
+                    />
+                  ))}
+                  {snapshot.players.map((player, i) => (
+                    <PlayerLabel
+                      key={`label-${player.name}`}
+                      name={player.name}
+                      seat={SEATS[SEAT_ORDER[i]]}
+                      surfaceY={CARD_BASE_Y}
+                      offsetY={i === 0
+                        ? CAMERA_LIFT_Y - CARD_HALF_HEIGHT
+                        : undefined}
+                      extraPull={i === 0 ? 0.5 : undefined}
+                      faceCenter={i === 0}
+                      tiltX={i === 0 ? CAMERA_TILT_X : undefined}
                     />
                   ))}
                   {readyToPlay && (
@@ -133,8 +147,7 @@ export const BackgroundScene = ({
             </Table>
           </Suspense>
         )}
-        {!import.meta.env.DEV && readyToPlay && <CameraRig activeSeatIndex={activeSeatIndex} />}
-        <OrbitControls target={[0, -0.3, 0]} enablePan={false} enableZoom={false} enabled={import.meta.env.DEV || !readyToPlay} />
+        <OrbitControls target={[0, -0.3, 0]} enablePan={true} enableZoom={true} enabled={true} />
         <EffectComposer>
           <Bloom
             luminanceThreshold={0.9}
