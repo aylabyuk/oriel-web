@@ -7,23 +7,13 @@ import { selectEnvironment } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
 import { SceneEnvironment } from '@/components/three/SceneEnvironment';
 import { Table, TABLE_SURFACE_Y } from '@/components/three/Table';
-import { CardDeck } from '@/components/three/CardDeck';
-import { DiscardPile } from '@/components/three/DiscardPile';
-import { PlayerHand } from '@/components/three/PlayerHand';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
-import { CARD_HALF_HEIGHT, CAMERA_LIFT_Y, CAMERA_TILT_X } from '@/components/three/PlayerHand/constants';
-import type { Color } from 'uno-engine';
 import {
   SEATS,
   SEAT_ORDER,
-  DRAW_PILE_POSITION,
-  DISCARD_PILE_POSITION,
   unoColorToHex,
 } from '@/constants';
-
-/** Small Y offset above table surface to prevent z-fighting */
-const CARD_BASE_Y = TABLE_SURFACE_Y + 0.02;
 
 /** Isolated environment layer — subscribes to Redux inside Canvas so
  *  environment changes don't re-render the rest of BackgroundScene. */
@@ -39,13 +29,11 @@ const EnvironmentLayer = () => {
 type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
-  onPlayCard?: (cardId: string, chosenColor?: Color) => void;
 };
 
 export const BackgroundScene = ({
   showTable = false,
   onStartGame,
-  onPlayCard,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
 
@@ -67,48 +55,12 @@ export const BackgroundScene = ({
             <Table>
               {snapshot && (
                 <>
-                  <CardDeck
-                    cards={snapshot.drawPile}
-                    position={[
-                      DRAW_PILE_POSITION[0],
-                      CARD_BASE_Y,
-                      DRAW_PILE_POSITION[2],
-                    ]}
-                  />
-                  <DiscardPile
-                    cards={snapshot.discardPile}
-                    position={[
-                      DISCARD_PILE_POSITION[0],
-                      CARD_BASE_Y,
-                      DISCARD_PILE_POSITION[2],
-                    ]}
-                  />
-                  {snapshot.players.map((player, i) => (
-                    <PlayerHand
-                      key={player.name}
-                      cards={player.hand}
-                      seat={SEATS[SEAT_ORDER[i]]}
-                      faceUp
-                      isHuman={i === 0}
-                      surfaceY={CARD_BASE_Y}
-                      isActive={i === 0 && player.name === snapshot.currentPlayerName}
-                      glowColor={i === 0 ? activeColorHex : undefined}
-                      playableCardIds={i === 0 ? snapshot.playableCardIds : undefined}
-                      onPlayCard={i === 0 ? onPlayCard : undefined}
-                    />
-                  ))}
                   {snapshot.players.map((player, i) => (
                     <PlayerLabel
                       key={`label-${player.name}`}
                       name={player.name}
                       seat={SEATS[SEAT_ORDER[i]]}
-                      surfaceY={CARD_BASE_Y}
-                      offsetY={i === 0
-                        ? CAMERA_LIFT_Y - CARD_HALF_HEIGHT
-                        : undefined}
-                      extraPull={i === 0 ? 0.5 : undefined}
-                      faceCenter={i === 0}
-                      tiltX={i === 0 ? CAMERA_TILT_X : undefined}
+                      surfaceY={TABLE_SURFACE_Y}
                       isActive={player.name === snapshot.currentPlayerName}
                       activeColor={activeColorHex}
                       turnId={snapshot.discardPile.length}

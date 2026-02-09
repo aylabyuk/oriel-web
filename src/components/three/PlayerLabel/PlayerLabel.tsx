@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Html } from '@react-three/drei';
 import type { Seat } from '@/constants';
-import { PULL_DISTANCE } from '@/components/three/PlayerHand/constants';
+const PULL_DISTANCE = 1.2;
 
 const AVATAR_COLORS: Record<string, string> = {
   Meio: '#e74c3c',

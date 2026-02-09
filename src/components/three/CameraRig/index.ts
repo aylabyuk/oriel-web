@@ -1,1 +1,0 @@
-export { CameraRig } from './CameraRig';

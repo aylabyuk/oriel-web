@@ -1,6 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { useSpring, animated } from '@react-spring/web';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   setName,
@@ -11,7 +10,6 @@ import {
   selectVisitorCompany,
   selectNameError,
 } from '@/store/slices/visitor';
-import { selectReducedMotion } from '@/store/slices/theme';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
@@ -22,27 +20,10 @@ export const WelcomeScreen = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const reducedMotion = useAppSelector(selectReducedMotion);
-  const [isExiting, setIsExiting] = useState(false);
 
   const name = useAppSelector(selectVisitorName);
   const company = useAppSelector(selectVisitorCompany);
   const nameError = useAppSelector(selectNameError);
-
-  const headerSpring = useSpring({
-    from: { opacity: 0, y: -40 },
-    to: isExiting ? { opacity: 0, y: -40 } : { opacity: 1, y: 0 },
-    immediate: reducedMotion,
-    onRest: () => {
-      if (isExiting) dispatch(submitWelcome());
-    },
-  });
-
-  const formSpring = useSpring({
-    from: { opacity: 0, y: 40 },
-    to: isExiting ? { opacity: 0, y: 40 } : { opacity: 1, y: 0 },
-    immediate: reducedMotion,
-  });
 
   useEffect(() => {
     nameInputRef.current?.focus();
@@ -53,21 +34,17 @@ export const WelcomeScreen = () => {
 
     if (!name.trim()) {
       dispatch(setNameError(t('welcome.nameRequired')));
-      dispatch(submitWelcome());
       nameInputRef.current?.focus();
       return;
     }
 
-    setIsExiting(true);
+    dispatch(submitWelcome());
   };
 
   return (
     <section className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
-        <animated.div
-          style={headerSpring}
-          className="mb-32 space-y-7 text-center"
-        >
+        <div className="mb-32 space-y-7 text-center">
           <Avatar
             src={MY_AVATAR_URL}
             alt="Oriel Absin"
@@ -80,10 +57,9 @@ export const WelcomeScreen = () => {
           <p className="text-neutral-500 dark:text-neutral-400">
             {t('welcome.subtitle')}
           </p>
-        </animated.div>
+        </div>
 
-        <animated.form
-          style={formSpring}
+        <form
           onSubmit={handleSubmit}
           className="space-y-6"
           noValidate
@@ -108,7 +84,7 @@ export const WelcomeScreen = () => {
           <Button type="submit" className="w-full">
             {t('welcome.startButton')}
           </Button>
-        </animated.form>
+        </form>
       </div>
     </section>
   );

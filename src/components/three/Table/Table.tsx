@@ -1,6 +1,5 @@
 import { type ReactNode, useMemo } from 'react';
 import { MeshReflectorMaterial, RoundedBox, useTexture } from '@react-three/drei';
-import { useSpring, animated } from '@react-spring/three';
 import { RepeatWrapping, type Texture } from 'three';
 import woodDiffUrl from '@/assets/textures/wood_table_diff.jpg';
 import woodRoughUrl from '@/assets/textures/wood_table_rough.jpg';
@@ -19,23 +18,15 @@ export const TABLE_SURFACE_Y = TABLE_HEIGHT / 2 + 0.001;
 
 type TableProps = {
   children?: ReactNode;
-  onReady?: () => void;
 };
 
-export const Table = ({ children, onReady }: TableProps) => {
+export const Table = ({ children }: TableProps) => {
   const [rawDiff, rawRough] = useTexture([woodDiffUrl, woodRoughUrl]);
   const diffMap = useMemo(() => configureTexture(rawDiff), [rawDiff]);
   const roughMap = useMemo(() => configureTexture(rawRough), [rawRough]);
 
-  const { posZ } = useSpring({
-    from: { posZ: 15 },
-    to: { posZ: -2 },
-    config: { tension: 80, friction: 20 },
-    onRest: onReady,
-  });
-
   return (
-    <animated.group position-x={0} position-y={-1} position-z={posZ}>
+    <group position={[0, -1, -2]}>
       {/* Reflector surface — inset to fit inside rounded edges */}
       <mesh rotation-x={-Math.PI / 2} position-y={TABLE_HEIGHT / 2 + 0.001}>
         <planeGeometry args={[TABLE_WIDTH - TABLE_RADIUS * 2, TABLE_DEPTH - TABLE_RADIUS * 2]} />
@@ -67,6 +58,6 @@ export const Table = ({ children, onReady }: TableProps) => {
       </RoundedBox>
 
       {children}
-    </animated.group>
+    </group>
   );
 };
