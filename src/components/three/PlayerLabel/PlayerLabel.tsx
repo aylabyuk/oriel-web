@@ -10,6 +10,17 @@ const AVATAR_COLORS: Record<string, string> = {
 };
 
 const DEFAULT_COLOR = '#9b59b6';
+const TURN_DURATION_S = 10;
+
+const TIMER_CSS = `
+@property --timer-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes timer-trace {
+  to { --timer-angle: 360deg; }
+}`;
 
 type PlayerLabelProps = {
   name: string;
@@ -19,6 +30,9 @@ type PlayerLabelProps = {
   extraPull?: number;
   faceCenter?: boolean;
   tiltX?: number;
+  isActive?: boolean;
+  activeColor?: string;
+  turnId?: number;
 };
 
 export const PlayerLabel = ({
@@ -29,6 +43,9 @@ export const PlayerLabel = ({
   extraPull = 0,
   faceCenter = false,
   tiltX = 0,
+  isActive = false,
+  activeColor,
+  turnId = 0,
 }: PlayerLabelProps) => {
   const { position, rotationY } = useMemo(() => {
     const seatDist = Math.hypot(seat.position[0], seat.position[2]);
@@ -49,20 +66,33 @@ export const PlayerLabel = ({
 
   const avatarColor = AVATAR_COLORS[name] ?? DEFAULT_COLOR;
   const initial = name.charAt(0).toUpperCase();
+  const showTimer = isActive && activeColor;
 
   return (
     <group position={position} rotation-x={tiltX} rotation-y={rotationY}>
       <Html center transform occlude scale={0.35}>
-        <div className="flex items-center gap-1.5 rounded-full bg-neutral-900 px-2.5 py-1 select-none pointer-events-none">
-          <div
-            className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: avatarColor }}
-          >
-            {initial}
+        <style dangerouslySetInnerHTML={{ __html: TIMER_CSS }} />
+        <div
+          key={showTimer ? `active-${turnId}` : 'inactive'}
+          className="rounded-full p-[5px] select-none pointer-events-none transition-transform duration-300"
+          style={showTimer ? {
+            background: `conic-gradient(from -90deg, ${activeColor} var(--timer-angle), #404040 var(--timer-angle))`,
+            animation: `timer-trace ${TURN_DURATION_S}s linear forwards`,
+            boxShadow: `0 0 12px 4px ${activeColor}80`,
+            transform: 'scale(1.15)',
+          } : undefined}
+        >
+          <div className="flex items-center gap-1.5 rounded-full bg-neutral-900 px-2.5 py-1">
+            <div
+              className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {initial}
+            </div>
+            <span className="whitespace-nowrap text-sm font-medium text-white">
+              {name}
+            </span>
           </div>
-          <span className="whitespace-nowrap text-sm font-medium text-white">
-            {name}
-          </span>
         </div>
       </Html>
     </group>

@@ -134,6 +134,9 @@ export const BackgroundScene = ({
                       extraPull={i === 0 ? 0.5 : undefined}
                       faceCenter={i === 0}
                       tiltX={i === 0 ? CAMERA_TILT_X : undefined}
+                      isActive={readyToPlay && player.name === snapshot.currentPlayerName}
+                      activeColor={activeColorHex}
+                      turnId={snapshot.discardPile.length}
                     />
                   ))}
                   {readyToPlay && (
