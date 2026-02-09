@@ -43,7 +43,7 @@ export const VisibleCard = ({
       rotation={rotation as unknown as [number, number, number]}
     >
       <Suspense fallback={null}>
-        <Card3D value={value} color={color} faceUp={to.faceUp} />
+        <Card3D value={value} color={color} faceUp />
       </Suspense>
     </animated.group>
   );

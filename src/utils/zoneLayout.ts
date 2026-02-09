@@ -10,6 +10,7 @@ export type CardZone =
   | 'DISCARD_PILE'
   | 'DISCARD_FLOAT'
   | 'PLAYER_FRONT'
+  | 'PLAYER_STAGING'
   | 'PLAYER_HAND'
   | 'HAND_PREVIEW';
 
@@ -110,6 +111,46 @@ export const getPlayerFrontPlacement = (
     position: [x, TABLE_SURFACE_Y + index * CARD_DEPTH, z],
     rotation: [-Math.PI / 2, Math.PI, angle + Math.PI],
     faceUp: false,
+  };
+};
+
+/** Player staging: lifted from front position, same rotation (face-down, flat) */
+export const getPlayerStagingPlacement = (
+  index: number,
+  seat: Seat,
+): CardPlacement => {
+  const { x, z } = pullTowardCenter(seat, FRONT_PULL);
+  const angle = seatAngle(seat);
+
+  return {
+    position: [x, TABLE_SURFACE_Y + CARD_HALF_HEIGHT + index * CARD_DEPTH, z],
+    rotation: [-Math.PI / 2, Math.PI, angle + Math.PI],
+    faceUp: false,
+  };
+};
+
+/** Player turned: stacked upright at front position, facing each player */
+export const getPlayerTurnedPlacement = (
+  index: number,
+  totalCards: number,
+  seat: Seat,
+): CardPlacement => {
+  const { x, z } = pullTowardCenter(seat, FRONT_PULL);
+  const angle = seatAngle(seat);
+
+  // Stack along face normal to avoid z-fighting
+  const depthIdx = totalCards - 1 - index;
+  const normalX = Math.sin(angle);
+  const normalZ = Math.cos(angle);
+
+  return {
+    position: [
+      x + normalX * depthIdx * CARD_DEPTH,
+      TABLE_SURFACE_Y + CARD_HALF_HEIGHT,
+      z + normalZ * depthIdx * CARD_DEPTH,
+    ],
+    rotation: [0, angle, 0],
+    faceUp: true,
   };
 };
 

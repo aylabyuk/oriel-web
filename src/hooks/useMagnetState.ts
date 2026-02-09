@@ -3,7 +3,9 @@ import type { GameSnapshot, SerializedCard } from '@/types/game';
 
 // --- Timing constants (ms) ---
 const DEAL_INTERVAL = 200;
-const REVEAL_INTERVAL = 400;
+const REVEAL_LIFT_DELAY = 400;
+const REVEAL_TURN_DELAY = 400;
+const REVEAL_SPREAD_DELAY = 500;
 const INITIAL_DISCARD_DELAY = 300;
 
 // --- Types ---
@@ -12,6 +14,7 @@ export type MagnetState = {
   deck: SerializedCard[];
   discardPile: SerializedCard[];
   playerFronts: SerializedCard[][];
+  playerStaging: SerializedCard[][];
   playerHands: SerializedCard[][];
   phase: MagnetPhase;
 };
@@ -25,7 +28,9 @@ export type MagnetPhase =
 
 type QueueStep =
   | { type: 'deal'; cardId: string; playerIndex: number }
-  | { type: 'reveal'; playerIndex: number }
+  | { type: 'reveal_pickup'; playerIndex: number }
+  | { type: 'reveal_turn'; playerIndex: number }
+  | { type: 'reveal_settle'; playerIndex: number }
   | { type: 'initial_discard'; cardId: string }
   | { type: 'phase'; phase: MagnetPhase };
 
@@ -48,6 +53,7 @@ export const useMagnetState = (
     deck: [],
     discardPile: [],
     playerFronts: [],
+    playerStaging: [],
     playerHands: [],
     phase: 'idle',
   });
@@ -79,7 +85,9 @@ export const useMagnetState = (
     const delay = (() => {
       switch (step.type) {
         case 'deal': return DEAL_INTERVAL;
-        case 'reveal': return REVEAL_INTERVAL;
+        case 'reveal_pickup': return REVEAL_LIFT_DELAY;
+        case 'reveal_turn': return REVEAL_TURN_DELAY;
+        case 'reveal_settle': return REVEAL_SPREAD_DELAY;
         case 'initial_discard': return INITIAL_DISCARD_DELAY;
       }
     })();
@@ -87,13 +95,8 @@ export const useMagnetState = (
     if (queueRef.current.length > 0) {
       timerRef.current = setTimeout(() => processNext(), delay);
     } else {
-      // Queue empty — sync with latest snapshot
-      timerRef.current = setTimeout(() => {
-        const snap = latestSnapshotRef.current;
-        if (snap) {
-          setState(snapshotToMagnetState(snap));
-        }
-      }, delay);
+      // TODO: re-enable snapshot sync once full reveal sequence is in place
+      // Queue empty — currently just stop (cards stay in staging)
     }
   }, []);
 
@@ -119,6 +122,7 @@ export const useMagnetState = (
       deck: allCards,
       discardPile: [],
       playerFronts: Array.from({ length: playerCount }, () => []),
+      playerStaging: Array.from({ length: playerCount }, () => []),
       playerHands: Array.from({ length: playerCount }, () => []),
       phase: 'dealing',
     });
@@ -137,22 +141,25 @@ export const useMagnetState = (
       }
     }
 
-    // 2. REVEAL: move each player's front to hand
+    // 2. REVEAL: snap to aligned Euler, then tilt toward player (single-axis X)
     queue.push({ type: 'phase', phase: 'revealing' });
     for (let p = 0; p < playerCount; p++) {
-      queue.push({ type: 'reveal', playerIndex: p });
+      queue.push({ type: 'reveal_pickup', playerIndex: p });
+    }
+    for (let p = 0; p < playerCount; p++) {
+      queue.push({ type: 'reveal_turn', playerIndex: p });
     }
 
+    // TODO: re-add initial_discard + playing phases once reveal is verified
     // 3. INITIAL_DISCARD: flip first discard card
-    queue.push({ type: 'phase', phase: 'initial_discard' });
-    if (snapshot.discardPile.length > 0) {
-      queue.push({
-        type: 'initial_discard',
-        cardId: snapshot.discardPile[0].id,
-      });
-    }
-
-    queue.push({ type: 'phase', phase: 'playing' });
+    // queue.push({ type: 'phase', phase: 'initial_discard' });
+    // if (snapshot.discardPile.length > 0) {
+    //   queue.push({
+    //     type: 'initial_discard',
+    //     cardId: snapshot.discardPile[0].id,
+    //   });
+    // }
+    // queue.push({ type: 'phase', phase: 'playing' });
 
     queueRef.current = queue;
     // The kickoff effect below will start processing once phase='dealing' commits.
@@ -217,14 +224,32 @@ const applyStep = (
       };
     }
 
-    case 'reveal': {
+    case 'reveal_pickup': {
       const newFronts = prev.playerFronts.map((f) => [...f]);
-      const newHands = prev.playerHands.map((h) => [...h]);
+      const newStaging = prev.playerStaging.map((s) => [...s]);
       const cards = newFronts[step.playerIndex];
       newFronts[step.playerIndex] = [];
+      newStaging[step.playerIndex] = [...newStaging[step.playerIndex], ...cards];
+      return { ...prev, playerFronts: newFronts, playerStaging: newStaging };
+    }
+
+    case 'reveal_turn': {
+      const newStaging = prev.playerStaging.map((s) => [...s]);
+      const newHands = prev.playerHands.map((h) => [...h]);
+      const cards = newStaging[step.playerIndex];
+      newStaging[step.playerIndex] = [];
+      newHands[step.playerIndex] = [...newHands[step.playerIndex], ...cards];
+      return { ...prev, playerStaging: newStaging, playerHands: newHands };
+    }
+
+    case 'reveal_settle': {
+      const newStaging = prev.playerStaging.map((s) => [...s]);
+      const newHands = prev.playerHands.map((h) => [...h]);
+      const cards = newStaging[step.playerIndex];
+      newStaging[step.playerIndex] = [];
       cards.sort(sortCards);
       newHands[step.playerIndex] = [...newHands[step.playerIndex], ...cards];
-      return { ...prev, playerFronts: newFronts, playerHands: newHands };
+      return { ...prev, playerStaging: newStaging, playerHands: newHands };
     }
 
     case 'initial_discard': {
@@ -253,6 +278,7 @@ const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   deck: snapshot.drawPile,
   discardPile: snapshot.discardPile,
   playerFronts: snapshot.players.map(() => []),
+  playerStaging: snapshot.players.map(() => []),
   playerHands: snapshot.players.map((p) => [...p.hand].sort(sortCards)),
   phase: 'playing',
 });

@@ -6,6 +6,8 @@ import {
   getDeckPlacement,
   getDiscardPilePlacement,
   getPlayerFrontPlacement,
+  getPlayerStagingPlacement,
+  getPlayerTurnedPlacement,
   getPlayerHandPlacement,
 } from '@/utils/zoneLayout';
 
@@ -53,16 +55,27 @@ export const computeAllTargets = (
     });
   });
 
-  const revealSnap = magnet.phase === 'revealing';
-
-  magnet.playerHands.forEach((cards, playerIndex) => {
+  magnet.playerStaging.forEach((cards, playerIndex) => {
     cards.forEach((card, i) => {
       targets.push({
         cardId: card.id,
         value: card.value,
         color: card.color,
-        placement: getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0),
-        immediate: revealSnap,
+        placement: getPlayerStagingPlacement(i, seats[playerIndex]),
+      });
+    });
+  });
+
+  magnet.playerHands.forEach((cards, playerIndex) => {
+    cards.forEach((card, i) => {
+      const placement = magnet.phase === 'playing'
+        ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0)
+        : getPlayerTurnedPlacement(i, cards.length, seats[playerIndex]);
+      targets.push({
+        cardId: card.id,
+        value: card.value,
+        color: card.color,
+        placement,
       });
     });
   });
