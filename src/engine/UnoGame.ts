@@ -172,12 +172,9 @@ export class UnoGame {
 
   /** Get a full serializable snapshot of the game state. */
   getSnapshot(): GameSnapshot {
-    const DEV_FORCE_HUMAN_ACTIVE = import.meta.env.DEV;
     return {
       phase: this.phase,
-      currentPlayerName: DEV_FORCE_HUMAN_ACTIVE
-        ? this.humanPlayerName
-        : this.engine.currentPlayer.name,
+      currentPlayerName: this.engine.currentPlayer.name,
       players: this.engine.players.map((p) => serializePlayer(p)),
       discardPile: this.discardHistory.map(serializeCard),
       direction: serializeDirection(this.engine.playingDirection),
@@ -200,12 +197,22 @@ export class UnoGame {
 
   /** Get cards the human player can legally play on the current discard. */
   getPlayableCards(): Card[] {
-    const player = this.engine.getPlayer(this.humanPlayerName);
+    return this.getPlayableCardsForPlayer(this.humanPlayerName);
+  }
+
+  /** Get cards a specific player can legally play on the current discard. */
+  getPlayableCardsForPlayer(playerName: string): Card[] {
+    const player = this.engine.getPlayer(playerName);
     const discard = this.engine.discardedCard;
     return player.hand.filter((card) => {
       if (card.isWildCard()) return true;
       return card.matches(discard);
     });
+  }
+
+  /** Find a Card instance in a player's hand by its serialized ID. */
+  findCardInHand(playerName: string, cardId: string): Card | undefined {
+    return this.getPlayerHand(playerName).find((c) => getCardId(c) === cardId);
   }
 
   /** Get a player's hand (Card instances from the engine). */

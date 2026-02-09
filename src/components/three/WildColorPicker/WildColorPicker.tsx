@@ -26,9 +26,10 @@ const SLOT_X = COLORS.map((_, i) => START_X + i * (CUBE_SIZE + GAP));
 
 type WildColorPickerProps = {
   visible: boolean;
+  onColorSelect?: (color: Color) => void;
 };
 
-export const WildColorPicker = ({ visible }: WildColorPickerProps) => {
+export const WildColorPicker = ({ visible, onColorSelect }: WildColorPickerProps) => {
   const [hoveredCube, setHoveredCube] = useState<number | null>(null);
 
   const [springs, api] = useSprings(
@@ -84,6 +85,7 @@ export const WildColorPicker = ({ visible }: WildColorPickerProps) => {
             smoothness={4}
             onPointerOver={(e: unknown) => handleCubeOver(e, i)}
             onPointerOut={handleCubeOut}
+            onClick={() => onColorSelect?.(COLORS[i])}
           >
             <meshStandardMaterial
               color={UNO_COLORS[COLORS[i]]}

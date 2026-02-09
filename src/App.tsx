@@ -11,7 +11,7 @@ import { useGameController } from '@/hooks/useGameController';
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const reducedMotion = useAppSelector(selectReducedMotion);
-  const { startGame } = useGameController();
+  const { startGame, playCard } = useGameController();
 
   const contentSpring = useSpring({
     opacity: hasEnteredWelcome ? 1 : 0,
@@ -23,7 +23,7 @@ export const App = () => {
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
       data-theme="dark"
     >
-      <BackgroundScene showTable={hasEnteredWelcome} onStartGame={startGame} />
+      <BackgroundScene showTable={hasEnteredWelcome} onStartGame={startGame} onPlayCard={playCard} />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <RestartButton onClick={() => {}} disabled />

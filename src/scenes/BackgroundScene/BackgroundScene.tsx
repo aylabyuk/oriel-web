@@ -12,6 +12,7 @@ import { DiscardPile } from '@/components/three/DiscardPile';
 import { PlayerHand } from '@/components/three/PlayerHand';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
 import { CameraRig } from '@/components/three/CameraRig';
+import type { Color } from 'uno-engine';
 import {
   SEATS,
   SEAT_ORDER,
@@ -43,11 +44,13 @@ const EnvironmentLayer = () => {
 type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
+  onPlayCard?: (cardId: string, chosenColor?: Color) => void;
 };
 
 export const BackgroundScene = ({
   showTable = false,
   onStartGame,
+  onPlayCard,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
 
@@ -116,6 +119,7 @@ export const BackgroundScene = ({
                       glowColor={activeColorHex}
                       playableCardIds={i === 0 ? snapshot.playableCardIds : undefined}
                       onReady={i === 0 ? handleReady : undefined}
+                      onPlayCard={i === 0 ? onPlayCard : undefined}
                     />
                   ))}
                   {readyToPlay && (
