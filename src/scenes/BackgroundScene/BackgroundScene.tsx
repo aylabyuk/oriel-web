@@ -24,7 +24,7 @@ import {
 } from '@/constants';
 
 /** Set to true to render the debug magnet card layer alongside visible cards. */
-const DEBUG_MAGNETS = true;
+const DEBUG_MAGNETS = false;
 
 /** Set to true to render the visible (animated) card layer. */
 const DEBUG_VISIBLE_CARDS = true;

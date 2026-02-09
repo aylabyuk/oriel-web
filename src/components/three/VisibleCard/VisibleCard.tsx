@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Card3D } from '@/components/three/Card3D';
 import type { Value, Color } from 'uno-engine';
 import type { CardPlacement } from '@/utils/zoneLayout';
@@ -15,6 +16,8 @@ export const VisibleCard = ({
   to,
 }: VisibleCardProps) => (
   <group position={to.position} rotation={to.rotation}>
-    <Card3D value={value} color={color} faceUp={to.faceUp} />
+    <Suspense fallback={null}>
+      <Card3D value={value} color={color} faceUp={to.faceUp} />
+    </Suspense>
   </group>
 );

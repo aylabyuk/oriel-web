@@ -63,17 +63,23 @@ export const useMagnetState = (snapshot: GameSnapshot | null): MagnetState => {
     if (!step) return;
 
     queueRef.current.shift();
+    setState((prev) => applyStep(prev, step, allCardsRef.current));
+
+    // Phase steps are instant — apply and immediately continue so React
+    // batches the phase change with the first real step (no intermediate render).
+    if (step.type === 'phase') {
+      // eslint-disable-next-line react-hooks/immutability -- synchronous recursion; processNext is assigned when this executes
+      processNext();
+      return;
+    }
 
     const delay = (() => {
       switch (step.type) {
-        case 'phase': return 0;
         case 'deal': return DEAL_INTERVAL;
         case 'reveal': return REVEAL_INTERVAL;
         case 'initial_discard': return INITIAL_DISCARD_DELAY;
       }
     })();
-
-    setState((prev) => applyStep(prev, step, allCardsRef.current));
 
     if (queueRef.current.length > 0) {
       // eslint-disable-next-line react-hooks/immutability -- recursive setTimeout; variable is defined when the callback fires
@@ -150,21 +156,20 @@ export const useMagnetState = (snapshot: GameSnapshot | null): MagnetState => {
     // The kickoff effect below will start processing once phase='dealing' commits.
   }, [snapshot, playerCount]);
 
-  // --- Queue kickoff: start processing when entering a new active phase ---
+  // --- Queue kickoff: start processing when dealing begins ---
   // Decoupled from the init effect so StrictMode's cleanup/re-fire cycle
   // cannot permanently kill the timer (the last effect invocation wins).
+  // Only triggers for 'dealing'; subsequent phases are reached via
+  // processNext's synchronous recursion through phase steps.
 
   useEffect(() => {
-    if (state.phase === 'idle' || state.phase === 'playing') return;
+    if (state.phase !== 'dealing') return;
     if (queueRef.current.length === 0) return;
 
-    timerRef.current = setTimeout(() => processNext(), DEAL_INTERVAL);
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
+    // Use a local timer — NOT timerRef — so cleanup only cancels this
+    // kickoff timer without accidentally killing processNext's own timers.
+    const id = setTimeout(() => processNext(), DEAL_INTERVAL);
+    return () => clearTimeout(id);
   }, [state.phase, processNext]);
 
   // --- During gameplay: sync with snapshot when in playing phase ---

@@ -4,6 +4,11 @@ import type { Value, Color } from 'uno-engine';
 import { getCardFilename } from '@/utils/cardTexture';
 import { CARD_TEXTURES, CARD_BACK_TEXTURE } from '@/constants';
 
+// Preload every card texture so useTexture never suspends at render time.
+for (const url of Object.values(CARD_TEXTURES)) {
+  useTexture.preload(url);
+}
+
 const CARD_WIDTH = 0.7;
 const CARD_HEIGHT = 1.0;
 const CARD_DEPTH = 0.003;
