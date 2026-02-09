@@ -222,6 +222,7 @@ const applyStep = (
       const newHands = prev.playerHands.map((h) => [...h]);
       const cards = newFronts[step.playerIndex];
       newFronts[step.playerIndex] = [];
+      cards.sort(sortCards);
       newHands[step.playerIndex] = [...newHands[step.playerIndex], ...cards];
       return { ...prev, playerFronts: newFronts, playerHands: newHands };
     }
@@ -238,11 +239,20 @@ const applyStep = (
   }
 };
 
+/** Sort cards: by color (red, blue, green, yellow), then value ascending, wilds last */
+const sortCards = (a: SerializedCard, b: SerializedCard): number => {
+  const aWild = a.color == null ? 1 : 0;
+  const bWild = b.color == null ? 1 : 0;
+  if (aWild !== bWild) return aWild - bWild;
+  if (a.color !== b.color) return (a.color ?? 0) - (b.color ?? 0);
+  return a.value - b.value;
+};
+
 /** Convert a snapshot directly to magnet state (for playing phase) */
 const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   deck: snapshot.drawPile,
   discardPile: snapshot.discardPile,
   playerFronts: snapshot.players.map(() => []),
-  playerHands: snapshot.players.map((p) => p.hand),
+  playerHands: snapshot.players.map((p) => [...p.hand].sort(sortCards)),
   phase: 'playing',
 });

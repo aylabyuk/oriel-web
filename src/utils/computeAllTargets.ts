@@ -14,6 +14,7 @@ export type CardTarget = {
   value: SerializedCard['value'];
   color: SerializedCard['color'];
   placement: CardPlacement;
+  immediate?: boolean;
 };
 
 /** Flatten MagnetState into a single array of per-card animation targets. */
@@ -52,13 +53,16 @@ export const computeAllTargets = (
     });
   });
 
+  const revealSnap = magnet.phase === 'revealing';
+
   magnet.playerHands.forEach((cards, playerIndex) => {
     cards.forEach((card, i) => {
       targets.push({
         cardId: card.id,
         value: card.value,
         color: card.color,
-        placement: getPlayerHandPlacement(i, cards.length, seats[playerIndex]),
+        placement: getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0),
+        immediate: revealSnap,
       });
     });
   });

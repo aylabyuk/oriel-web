@@ -22,6 +22,7 @@ export type CardPlacement = {
 // --- Constants (from develop branch) ---
 
 const CARD_DEPTH = 0.003;
+const CARD_HEIGHT = 1.0;
 const STACK_OFFSET = 0.005;
 const PULL_DISTANCE = 1.2;
 const CARD_SPREAD = 0.25;
@@ -30,6 +31,12 @@ const FLOAT_HEIGHT = 0.5;
 const SCATTER_XZ = 0.06;
 const SCATTER_ROT = 0.15;
 const DECK_ROT_JITTER = 0.06;
+const CARD_HALF_HEIGHT = CARD_HEIGHT / 2;
+const OPPONENT_CARD_SPREAD = 0.1;
+/** Visitor camera tilt — tilts cards toward the camera (from develop branch) */
+const CAMERA_TILT_X = -0.65;
+/** Small lift for visitor cards above surface */
+const CAMERA_LIFT_Y = 0.1;
 
 // --- Helpers ---
 
@@ -101,28 +108,35 @@ export const getPlayerFrontPlacement = (
 
   return {
     position: [x, TABLE_SURFACE_Y + index * CARD_DEPTH, z],
-    rotation: [-Math.PI / 2, Math.PI, angle],
+    rotation: [-Math.PI / 2, Math.PI, angle + Math.PI],
     faceUp: false,
   };
 };
 
-/** Player hand: spread face-up along seat's perpendicular axis */
+/** Player hand: standing face-up, facing each player's direction */
 export const getPlayerHandPlacement = (
   index: number,
   totalCards: number,
   seat: Seat,
+  isHuman = false,
 ): CardPlacement => {
   const { x, z, perpX, perpZ } = pullTowardCenter(seat, PULL_DISTANCE);
   const angle = seatAngle(seat);
-  const offset = (index - (totalCards - 1) / 2) * CARD_SPREAD;
+  const spread = isHuman ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
+  const offset = (index - (totalCards - 1) / 2) * spread;
+
+  // For upright cards, stack along the face normal (toward player) to avoid z-fighting.
+  const depthIdx = totalCards - 1 - index;
+  const normalX = Math.sin(angle);
+  const normalZ = Math.cos(angle);
 
   return {
     position: [
-      x + perpX * offset,
-      TABLE_SURFACE_Y + 0.01 + (totalCards - 1 - index) * CARD_DEPTH,
-      z + perpZ * offset,
+      x + perpX * offset + (isHuman ? 0 : normalX * depthIdx * CARD_DEPTH),
+      TABLE_SURFACE_Y + CARD_HALF_HEIGHT + (isHuman ? CAMERA_LIFT_Y + depthIdx * CARD_DEPTH : 0),
+      z + perpZ * offset + (isHuman ? 0 : normalZ * depthIdx * CARD_DEPTH),
     ],
-    rotation: [-Math.PI / 2, 0, angle],
+    rotation: [isHuman ? CAMERA_TILT_X : 0, angle, 0],
     faceUp: true,
   };
 };

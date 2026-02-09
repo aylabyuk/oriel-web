@@ -25,6 +25,7 @@ export const VisibleCardLayer = ({ magnet }: VisibleCardLayerProps) => {
           value={t.value}
           color={t.color}
           to={t.placement}
+          immediate={t.immediate}
         />
       ))}
     </group>

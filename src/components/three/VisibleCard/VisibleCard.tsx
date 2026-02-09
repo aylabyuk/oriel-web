@@ -10,12 +10,14 @@ type VisibleCardProps = {
   value: Value;
   color: Color | undefined;
   to: CardPlacement;
+  immediate?: boolean;
 };
 
 export const VisibleCard = ({
   value,
   color,
   to,
+  immediate: snap,
 }: VisibleCardProps) => {
   // Imperative spring — initialized once on mount, updated via api.start().
   const [{ position, rotation }, api] = useSpring(() => ({
@@ -31,6 +33,7 @@ export const VisibleCard = ({
     api.start({
       position: [to.position[0], to.position[1], to.position[2]],
       rotation: [to.rotation[0], to.rotation[1], to.rotation[2]],
+      immediate: snap,
     });
   });
 
