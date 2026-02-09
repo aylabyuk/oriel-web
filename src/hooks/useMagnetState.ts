@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import type { GameSnapshot, SerializedCard } from '@/types/game';
 
 // --- Timing constants (ms) ---
-const DEAL_INTERVAL = 80;
+const DEAL_INTERVAL = 200;
 const REVEAL_INTERVAL = 400;
 const INITIAL_DISCARD_DELAY = 300;
 
@@ -29,14 +29,6 @@ type QueueStep =
   | { type: 'initial_discard'; cardId: string }
   | { type: 'phase'; phase: MagnetPhase };
 
-export type UseMagnetStateReturn = {
-  state: MagnetState;
-  /** Advance to the next phase (only works when paused between phases). */
-  next: () => void;
-  /** True when the hook is waiting for a manual next() call. */
-  waiting: boolean;
-};
-
 /**
  * Manages card zone assignments over time for the Magnet Card system.
  *
@@ -44,10 +36,9 @@ export type UseMagnetStateReturn = {
  * On first snapshot: queues dealing -> reveal -> initial discard sequence.
  * During gameplay: mirrors snapshot directly (float/preview phases added later).
  *
- * Steps within a phase auto-play on timers. Phase transitions pause and wait
- * for a manual `next()` call, allowing step-by-step debugging.
+ * All steps auto-play on timers including phase transitions.
  */
-export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateReturn => {
+export const useMagnetState = (snapshot: GameSnapshot | null): MagnetState => {
   const playerCount = snapshot?.players.length ?? 0;
 
   const [state, setState] = useState<MagnetState>({
@@ -57,8 +48,6 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
     playerHands: [],
     phase: 'idle',
   });
-
-  const [waiting, setWaiting] = useState(false);
 
   const initializedRef = useRef(false);
   const queueRef = useRef<QueueStep[]>([]);
@@ -73,16 +62,11 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
     const step = queueRef.current[0];
     if (!step) return;
 
-    // Pause before phase transitions — wait for manual next()
-    if (step.type === 'phase') {
-      setWaiting(true);
-      return;
-    }
-
     queueRef.current.shift();
 
     const delay = (() => {
       switch (step.type) {
+        case 'phase': return 0;
         case 'deal': return DEAL_INTERVAL;
         case 'reveal': return REVEAL_INTERVAL;
         case 'initial_discard': return INITIAL_DISCARD_DELAY;
@@ -92,6 +76,7 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
     setState((prev) => applyStep(prev, step, allCardsRef.current));
 
     if (queueRef.current.length > 0) {
+      // eslint-disable-next-line react-hooks/immutability -- recursive setTimeout; variable is defined when the callback fires
       timerRef.current = setTimeout(() => processNext(), delay);
     } else {
       // Queue empty — sync with latest snapshot
@@ -103,24 +88,6 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
       }, delay);
     }
   }, []);
-
-  // --- Manual phase advance ---
-
-  const next = useCallback(() => {
-    if (!waiting) return;
-
-    const step = queueRef.current[0];
-    if (!step || step.type !== 'phase') return;
-
-    queueRef.current.shift();
-    setState((prev) => applyStep(prev, step, allCardsRef.current));
-    setWaiting(false);
-
-    // Continue processing the steps within this new phase
-    if (queueRef.current.length > 0) {
-      timerRef.current = setTimeout(() => processNext(), 0);
-    }
-  }, [waiting, processNext]);
 
   // --- Initialize on first snapshot ---
 
@@ -145,14 +112,11 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
       discardPile: [],
       playerFronts: Array.from({ length: playerCount }, () => []),
       playerHands: Array.from({ length: playerCount }, () => []),
-      phase: 'idle',
+      phase: 'dealing',
     });
 
     // Build the queue
     const queue: QueueStep[] = [];
-
-    // Phase: dealing
-    queue.push({ type: 'phase', phase: 'dealing' });
 
     // 1. DEALING: round-robin cards from deck to player fronts
     const cardsPerPlayer = snapshot.players[0]?.hand.length ?? 7;
@@ -183,10 +147,25 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
     queue.push({ type: 'phase', phase: 'playing' });
 
     queueRef.current = queue;
+    // The kickoff effect below will start processing once phase='dealing' commits.
+  }, [snapshot, playerCount]);
 
-    // Start paused — first item is a phase step, so processNext will pause
-    timerRef.current = setTimeout(() => processNext(), 0);
-  }, [snapshot, playerCount, processNext]);
+  // --- Queue kickoff: start processing when entering a new active phase ---
+  // Decoupled from the init effect so StrictMode's cleanup/re-fire cycle
+  // cannot permanently kill the timer (the last effect invocation wins).
+
+  useEffect(() => {
+    if (state.phase === 'idle' || state.phase === 'playing') return;
+    if (queueRef.current.length === 0) return;
+
+    timerRef.current = setTimeout(() => processNext(), DEAL_INTERVAL);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [state.phase, processNext]);
 
   // --- During gameplay: sync with snapshot when in playing phase ---
 
@@ -203,22 +182,7 @@ export const useMagnetState = (snapshot: GameSnapshot | null): UseMagnetStateRet
     };
   }, []);
 
-  // Debug: log card counts per zone on every state change
-  useEffect(() => {
-    const fronts = state.playerFronts.reduce((sum, f) => sum + f.length, 0);
-    const hands = state.playerHands.reduce((sum, h) => sum + h.length, 0);
-    const total = state.deck.length + state.discardPile.length + fronts + hands;
-    console.table({
-      phase: state.phase,
-      deck: state.deck.length,
-      discard: state.discardPile.length,
-      ...Object.fromEntries(state.playerHands.map((h, i) => [`hand_${i}`, h.length])),
-      ...Object.fromEntries(state.playerFronts.map((f, i) => [`front_${i}`, f.length])),
-      total,
-    });
-  }, [state]);
-
-  return { state, next, waiting };
+  return state;
 };
 
 // --- Pure helpers ---

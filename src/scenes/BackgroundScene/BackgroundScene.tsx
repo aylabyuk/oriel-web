@@ -24,7 +24,7 @@ import {
 } from '@/constants';
 
 /** Set to true to render the debug magnet card layer alongside visible cards. */
-const DEBUG_MAGNETS = false;
+const DEBUG_MAGNETS = true;
 
 /** Set to true to render the visible (animated) card layer. */
 const DEBUG_VISIBLE_CARDS = true;
@@ -50,7 +50,7 @@ export const BackgroundScene = ({
   onStartGame,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
-  const { state: magnet, next, waiting } = useMagnetState(snapshot);
+  const magnet = useMagnetState(snapshot);
 
   useEffect(() => {
     if (showTable) onStartGame?.();
@@ -120,14 +120,6 @@ export const BackgroundScene = ({
           />
         </EffectComposer>
       </Canvas>
-      {waiting && (
-        <button
-          onClick={next}
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded bg-white px-6 py-2 font-mono text-sm font-bold text-black shadow-lg"
-        >
-          Next ({magnet.phase})
-        </button>
-      )}
     </div>
   );
 };
