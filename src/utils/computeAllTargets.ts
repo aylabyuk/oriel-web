@@ -8,6 +8,9 @@ import {
   getDiscardLiftPlacement,
   getDiscardMovePlacement,
   getDiscardFloatPlacement,
+  getPlayLiftPlacement,
+  getPlayMovePlacement,
+  getPlayRotatePlacement,
   getPlayerFrontPlacement,
   getPlayerStagingPlacement,
   getPlayerTurnedPlacement,
@@ -63,6 +66,9 @@ export const computeAllTargets = (
         case 'discard_lift': return getDiscardLiftPlacement();
         case 'discard_move': return getDiscardMovePlacement();
         case 'discard_flip': return { ...getDiscardMovePlacement(), tilt: -Math.PI / 2, faceUp: true };
+        case 'play_lift': return getPlayLiftPlacement(seats[magnet.playingPlayerIndex], magnet.playingPlayerIndex === 0);
+        case 'play_move': return getPlayMovePlacement(seats[magnet.playingPlayerIndex], magnet.playingPlayerIndex === 0);
+        case 'play_rotate': return getPlayRotatePlacement();
         default: return getDiscardFloatPlacement();
       }
     })();

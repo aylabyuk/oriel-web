@@ -14,6 +14,7 @@ const EMPTY_STATE: MagnetState = {
   playerHands: [],
   phase: 'idle',
   spreadProgress: 0,
+  playingPlayerIndex: -1,
 };
 
 export type MagnetTimeline = {
@@ -66,6 +67,7 @@ export const useMagnetTimeline = (
       playerHands: Array.from({ length: playerCount }, () => []),
       phase: 'dealing',
       spreadProgress: 0,
+      playingPlayerIndex: -1,
     };
 
     // Build queue (mirrors useMagnetState logic)

@@ -34,6 +34,7 @@ const PULL_DISTANCE = 1.2;
 const CARD_SPREAD = 0.35;
 const FRONT_PULL = 0.6;
 const FLOAT_HEIGHT = 0.5;
+const PLAY_LIFT_HEIGHT = 1.2;
 const SCATTER_XZ = 0.06;
 const SCATTER_ROT = 0.15;
 const DECK_ROT_JITTER = 0.06;
@@ -219,6 +220,45 @@ export const getPlayerHandPlacement = (
     faceUp: true,
   };
 };
+
+/** Play lift: card rises from hand, preserving hand orientation */
+export const getPlayLiftPlacement = (seat: Seat, isHuman = false): CardPlacement => {
+  const { x, z } = pullTowardCenter(seat, PULL_DISTANCE);
+  const angle = seatAngle(seat);
+  return {
+    position: [x, TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT, z],
+    yaw: angle,
+    tilt: isHuman ? CAMERA_TILT_X : 0,
+    roll: 0,
+    faceUp: true,
+  };
+};
+
+/** Play move: card travels laterally to above discard pile, preserving hand orientation */
+export const getPlayMovePlacement = (seat: Seat, isHuman = false): CardPlacement => ({
+  position: [
+    DISCARD_PILE_POSITION[0],
+    TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT,
+    DISCARD_PILE_POSITION[2],
+  ],
+  yaw: seatAngle(seat),
+  tilt: isHuman ? CAMERA_TILT_X : 0,
+  roll: 0,
+  faceUp: true,
+});
+
+/** Play rotate: card corrects to face-up flat above discard pile before dropping */
+export const getPlayRotatePlacement = (): CardPlacement => ({
+  position: [
+    DISCARD_PILE_POSITION[0],
+    TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT,
+    DISCARD_PILE_POSITION[2],
+  ],
+  yaw: 0,
+  tilt: -Math.PI / 2,
+  roll: 0,
+  faceUp: true,
+});
 
 /** Hand preview: elevated above hand center, used during DRAW phase */
 export const getHandPreviewPlacement = (seat: Seat): CardPlacement => {

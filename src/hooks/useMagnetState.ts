@@ -10,6 +10,10 @@ const DISCARD_LIFT_DELAY = 200;
 const DISCARD_FLIP_DELAY = 250;
 const DISCARD_MOVE_DELAY = 250;
 const DISCARD_DROP_DELAY = 150;
+const PLAY_LIFT_DELAY = 250;
+const PLAY_MOVE_DELAY = 300;
+const PLAY_ROTATE_DELAY = 200;
+const PLAY_DROP_DELAY = 150;
 
 // --- Types ---
 
@@ -23,6 +27,8 @@ export type MagnetState = {
   phase: MagnetPhase;
   /** Number of cards per player that have fanned out to their spread position */
   spreadProgress: number;
+  /** Index of the player whose card is being animated to the discard pile (-1 = none) */
+  playingPlayerIndex: number;
 };
 
 export type MagnetPhase =
@@ -33,6 +39,9 @@ export type MagnetPhase =
   | 'discard_lift'
   | 'discard_flip'
   | 'discard_move'
+  | 'play_lift'
+  | 'play_move'
+  | 'play_rotate'
   | 'playing';
 
 export type QueueStep =
@@ -44,6 +53,10 @@ export type QueueStep =
   | { type: 'discard_flip' }
   | { type: 'discard_move' }
   | { type: 'discard_drop' }
+  | { type: 'play_lift'; cardId: string; playerIndex: number }
+  | { type: 'play_move' }
+  | { type: 'play_rotate' }
+  | { type: 'play_drop' }
   | { type: 'phase'; phase: MagnetPhase };
 
 /**
@@ -70,6 +83,7 @@ export const useMagnetState = (
     playerHands: [],
     phase: 'idle',
     spreadProgress: 0,
+    playingPlayerIndex: -1,
   });
 
   const initializedRef = useRef(false);
@@ -78,6 +92,7 @@ export const useMagnetState = (
   const allCardsRef = useRef<Map<string, SerializedCard>>(new Map());
   const latestSnapshotRef = useRef<GameSnapshot | null>(null);
   latestSnapshotRef.current = snapshot;
+  const animatingRef = useRef(false);
 
   // --- Queue processor ---
 
@@ -106,14 +121,20 @@ export const useMagnetState = (
         case 'discard_flip': return DISCARD_FLIP_DELAY;
         case 'discard_move': return DISCARD_MOVE_DELAY;
         case 'discard_drop': return DISCARD_DROP_DELAY;
+        case 'play_lift': return PLAY_LIFT_DELAY;
+        case 'play_move': return PLAY_MOVE_DELAY;
+        case 'play_rotate': return PLAY_ROTATE_DELAY;
+        case 'play_drop': return PLAY_DROP_DELAY;
       }
     })();
 
     if (queueRef.current.length > 0) {
       timerRef.current = setTimeout(() => processNext(), delay);
-    } else {
-      // TODO: re-enable snapshot sync once full reveal sequence is in place
-      // Queue empty — currently just stop (cards stay in staging)
+    } else if (animatingRef.current) {
+      // Play animation finished — sync to latest snapshot
+      animatingRef.current = false;
+      const snap = latestSnapshotRef.current;
+      if (snap) setState(snapshotToMagnetState(snap));
     }
   }, []);
 
@@ -144,6 +165,7 @@ export const useMagnetState = (
       playerHands: Array.from({ length: playerCount }, () => []),
       phase: 'dealing',
       spreadProgress: 0,
+      playingPlayerIndex: -1,
     });
 
     // Build the queue
@@ -209,8 +231,38 @@ export const useMagnetState = (
 
   useEffect(() => {
     if (!snapshot || state.phase !== 'playing') return;
+    if (animatingRef.current) return; // animation in progress, will sync on completion
+
+    // Detect if a card was played: new discard pile is longer than current
+    const newTopCard = snapshot.discardPile[snapshot.discardPile.length - 1];
+    const prevDiscardLen = state.discardPile.length;
+    const cardPlayed = newTopCard && snapshot.discardPile.length > prevDiscardLen;
+
+    if (cardPlayed) {
+      // Find which player lost a card
+      const playerIndex = state.playerHands.findIndex((hand) =>
+        hand.some((c) => c.id === newTopCard.id),
+      );
+      if (playerIndex >= 0) {
+        animatingRef.current = true;
+        const steps: QueueStep[] = [
+          { type: 'phase', phase: 'play_lift' },
+          { type: 'play_lift', cardId: newTopCard.id, playerIndex },
+          { type: 'phase', phase: 'play_move' },
+          { type: 'play_move' },
+          { type: 'phase', phase: 'play_rotate' },
+          { type: 'play_rotate' },
+          { type: 'play_drop' },
+          { type: 'phase', phase: 'playing' },
+        ];
+        queueRef.current = steps;
+        processNext();
+        return;
+      }
+    }
+
     setState(snapshotToMagnetState(snapshot));
-  }, [snapshot, state.phase]);
+  }, [snapshot, state.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Cleanup ---
 
@@ -286,6 +338,35 @@ export const applyStep = (
         discardPile: [...prev.discardPile, ...prev.discardFloat],
         discardFloat: [],
       };
+
+    case 'play_lift': {
+      const card = cardMap.get(step.cardId);
+      if (!card) return prev;
+      const newHands = prev.playerHands.map((h, i) =>
+        i === step.playerIndex ? h.filter((c) => c.id !== step.cardId) : h,
+      );
+      return {
+        ...prev,
+        playerHands: newHands,
+        discardFloat: [card],
+        playingPlayerIndex: step.playerIndex,
+        spreadProgress: Math.max(0, ...newHands.map((h) => h.length)),
+      };
+    }
+
+    case 'play_move':
+      return { ...prev };
+
+    case 'play_rotate':
+      return { ...prev };
+
+    case 'play_drop':
+      return {
+        ...prev,
+        discardPile: [...prev.discardPile, ...prev.discardFloat],
+        discardFloat: [],
+        playingPlayerIndex: -1,
+      };
   }
 };
 
@@ -308,4 +389,5 @@ const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   playerHands: snapshot.players.map((p) => [...p.hand].sort(sortCards)),
   phase: 'playing',
   spreadProgress: Math.max(0, ...snapshot.players.map((p) => p.hand.length)),
+  playingPlayerIndex: -1,
 });

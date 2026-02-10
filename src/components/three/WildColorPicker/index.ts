@@ -1,1 +1,0 @@
-export { WildColorPicker } from './WildColorPicker';

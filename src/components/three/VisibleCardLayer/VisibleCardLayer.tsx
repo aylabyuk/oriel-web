@@ -8,11 +8,12 @@ type VisibleCardLayerProps = {
   magnet: MagnetState;
   forceImmediate?: boolean;
   playableCardIds?: string[];
+  onCardClick?: (cardId: string) => void;
 };
 
 const seats = SEAT_ORDER.map((key) => SEATS[key]);
 
-export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds }: VisibleCardLayerProps) => {
+export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCardClick }: VisibleCardLayerProps) => {
   const targets = useMemo(
     () => computeAllTargets(magnet, seats, playableCardIds),
     [magnet, playableCardIds],
@@ -30,6 +31,7 @@ export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds }: Vi
           immediate={forceImmediate || t.immediate}
           springConfig={t.springConfig}
           playable={t.playable}
+          onCardClick={onCardClick}
         />
       ))}
     </group>

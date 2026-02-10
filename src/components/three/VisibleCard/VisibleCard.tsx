@@ -21,6 +21,7 @@ type VisibleCardProps = {
   immediate?: boolean;
   springConfig?: SpringConfig;
   playable?: boolean;
+  onCardClick?: (cardId: string) => void;
 };
 
 /**
@@ -33,21 +34,20 @@ const shortestYaw = (target: number, current: number): number => {
 };
 
 export const VisibleCard = ({
+  cardId,
   value,
   color,
   to,
   immediate: snap,
   springConfig,
   playable,
+  onCardClick,
 }: VisibleCardProps) => {
   const outerRef = useRef<Group>(null!);
   const tiltRef = useRef<Group>(null!);
   const liftRef = useRef<Group>(null!);
   const rollRef = useRef<Group>(null!);
 
-  // Spring yaw/tilt/roll independently — each axis interpolates without
-  // cross-axis interference, so the staging→turned flip is always a clean
-  // tilt rotation (PI/2 → 0) regardless of player seat angle.
   const [springs, api] = useSpring(() => ({
     px: to.position[0],
     py: to.position[1],
@@ -72,11 +72,6 @@ export const VisibleCard = ({
       config: springConfig ?? DEFAULT_CONFIG,
     });
 
-    // Apply spring values imperatively via nested rotation groups:
-    //   outer:  position + Ry(yaw)   — player facing direction
-    //   middle: Rx(tilt)             — face orientation
-    //   lift:   position-y inside tilt — lifts along tilted surface normal
-    //   inner:  Rz(roll)             — jitter / scatter
     outerRef.current.position.set(springs.px.get(), springs.py.get(), springs.pz.get());
     outerRef.current.rotation.y = springs.yaw.get();
     tiltRef.current.rotation.x = springs.tilt.get();
@@ -87,6 +82,7 @@ export const VisibleCard = ({
   return (
     <group
       ref={outerRef}
+      onClick={(e) => { e.stopPropagation(); if (playable && onCardClick) { document.body.style.cursor = 'auto'; onCardClick(cardId); } }}
       onPointerOver={(e) => { e.stopPropagation(); if (playable) document.body.style.cursor = 'pointer'; }}
       onPointerOut={(e) => { e.stopPropagation(); if (playable) document.body.style.cursor = 'auto'; }}
     >

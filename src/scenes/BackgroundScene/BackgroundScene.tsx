@@ -15,9 +15,7 @@ import {
 } from '@/components/three/MagnetZones';
 import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
-import { AnimationTimeline } from '@/components/ui/AnimationTimeline';
 import { useMagnetState } from '@/hooks/useMagnetState';
-import { useMagnetTimeline } from '@/hooks/useMagnetTimeline';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import {
   SEATS,
@@ -28,37 +26,42 @@ import {
 /** Set to true to render the debug magnet card layer alongside visible cards. */
 const DEBUG_MAGNETS = false;
 
-/** Set to true to render the visible (animated) card layer. */
-const DEBUG_VISIBLE_CARDS = true;
-
-/** Set to true to use timeline scrubber instead of auto-playing animations. */
-const DEBUG_TIMELINE = true;
-
-
 type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
+  onPlayCard?: (cardId: string, chosenColor?: import('uno-engine').Color) => void;
 };
 
 export const BackgroundScene = ({
   showTable = false,
   onStartGame,
+  onPlayCard,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const [tableReady, setTableReady] = useState(false);
   const handleTableReady = useCallback(() => setTableReady(true), []);
   const magnet = useMagnetState(snapshot, tableReady);
-  const timeline = useMagnetTimeline(snapshot);
-
-  const activeMagnet = DEBUG_TIMELINE ? timeline.state : magnet;
 
   useEffect(() => {
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
 
   const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
-  const isVisitorTurn = activeMagnet.phase === 'playing'
+  const isVisitorTurn = magnet.phase === 'playing'
     && snapshot?.currentPlayerName === snapshot?.players[0]?.name;
+
+  const handleCardClick = useCallback((cardId: string) => {
+    if (!snapshot || !onPlayCard) return;
+    const card = snapshot.players[0]?.hand.find((c) => c.id === cardId);
+    if (!card) return;
+    const isWild = card.color == null;
+    if (isWild) {
+      // TODO: wild color picker
+      onPlayCard(cardId);
+    } else {
+      onPlayCard(cardId);
+    }
+  }, [snapshot, onPlayCard]);
 
   return (
     <div className="fixed inset-0 z-0">
@@ -71,16 +74,16 @@ export const BackgroundScene = ({
             <Table onReady={handleTableReady}>
               {DEBUG_MAGNETS && (
                 <>
-                  <MagnetDeck cards={activeMagnet.deck} />
-                  <MagnetDiscardPile cards={activeMagnet.discardPile} />
-                  {activeMagnet.playerFronts.map((cards, i) => (
+                  <MagnetDeck cards={magnet.deck} />
+                  <MagnetDiscardPile cards={magnet.discardPile} />
+                  {magnet.playerFronts.map((cards, i) => (
                     <MagnetPlayerFront
                       key={`front-${i}`}
                       cards={cards}
                       seat={SEATS[SEAT_ORDER[i]]}
                     />
                   ))}
-                  {activeMagnet.playerHands.map((cards, i) => (
+                  {magnet.playerHands.map((cards, i) => (
                     <MagnetPlayerHand
                       key={`hand-${i}`}
                       cards={cards}
@@ -89,14 +92,12 @@ export const BackgroundScene = ({
                   ))}
                 </>
               )}
-              {DEBUG_VISIBLE_CARDS && (
-                <VisibleCardLayer
-                  magnet={activeMagnet}
-                  forceImmediate={DEBUG_TIMELINE && timeline.scrubbing}
-                  playableCardIds={isVisitorTurn ? snapshot?.playableCardIds : undefined}
-                />
-              )}
-              {snapshot && activeMagnet.phase === 'playing' && (
+              <VisibleCardLayer
+                magnet={magnet}
+                playableCardIds={isVisitorTurn ? snapshot?.playableCardIds : undefined}
+                onCardClick={isVisitorTurn ? handleCardClick : undefined}
+              />
+              {snapshot && magnet.phase === 'playing' && (
                 <>
                   {snapshot.players.map((player, i) => {
                     const isVisitor = i === 0;
@@ -135,16 +136,6 @@ export const BackgroundScene = ({
           />
         </EffectComposer>
       </Canvas>
-      {DEBUG_TIMELINE && (
-        <AnimationTimeline
-          stepIndex={timeline.stepIndex}
-          totalSteps={timeline.totalSteps}
-          playing={timeline.playing}
-          onSeek={timeline.seek}
-          onToggle={timeline.toggle}
-          onReset={timeline.reset}
-        />
-      )}
     </div>
   );
 };
