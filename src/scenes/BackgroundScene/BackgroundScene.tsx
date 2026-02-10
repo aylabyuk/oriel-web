@@ -39,8 +39,10 @@ type BackgroundSceneProps = {
   onDrawCard?: () => void;
   onAnimationIdle?: () => void;
   onWildCardPlayed?: (cardId: string) => void;
+  onDrawCardClicked?: (cardId: string) => void;
   onSceneReady?: () => void;
   deckEnabled?: boolean;
+  playableOverride?: string[];
 };
 
 export const BackgroundScene = ({
@@ -50,8 +52,10 @@ export const BackgroundScene = ({
   onDrawCard,
   onAnimationIdle,
   onWildCardPlayed,
+  onDrawCardClicked,
   onSceneReady,
   deckEnabled = true,
+  playableOverride,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const [tableReady, setTableReady] = useState(false);
@@ -126,8 +130,8 @@ export const BackgroundScene = ({
               )}
               <VisibleCardLayer
                 magnet={magnet}
-                playableCardIds={isVisitorTurn ? snapshot?.playableCardIds : undefined}
-                onCardClick={isVisitorTurn ? handleCardClick : undefined}
+                playableCardIds={isVisitorTurn ? (playableOverride ?? snapshot?.playableCardIds) : undefined}
+                onCardClick={isVisitorTurn ? (playableOverride ? onDrawCardClicked : handleCardClick) : undefined}
                 onDeckClick={isVisitorTurn && deckEnabled ? onDrawCard : undefined}
                 onDeckReady={handleCardsReady}
               />

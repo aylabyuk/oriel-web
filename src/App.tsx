@@ -57,6 +57,8 @@ export const App = () => {
     setDrawChoice(null);
   }, [drawChoice, playCard]);
 
+  const handleDrawCardClicked = useCallback((_cardId: string) => handleDrawPlay(), [handleDrawPlay]);
+
   const handleDrawSkip = useCallback(() => {
     setDrawChoice(null);
     passAfterDraw();
@@ -76,6 +78,8 @@ export const App = () => {
         onWildCardPlayed={handleWildCardPlayed}
         onSceneReady={handleSceneReady}
         deckEnabled={!drawPending && drawChoice === null}
+        playableOverride={drawChoice ? [drawChoice.cardId] : undefined}
+        onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
       />
       <DrawChoiceModal open={drawChoice !== null} onPlay={handleDrawPlay} onSkip={handleDrawSkip} />
       <WildColorPicker open={pendingWildCardId != null} onColorSelect={handleWildColorSelect} onDismiss={handleWildDismiss} />
