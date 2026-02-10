@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import type { Seat } from '@/constants';
 const PULL_DISTANCE = 1.2;
@@ -26,10 +26,24 @@ const LABEL_CSS = `
   60%  { opacity: 1; transform: translateY(4px); }
   80%  { transform: translateY(-2px); }
   100% { opacity: 1; transform: translateY(0); }
+@keyframes toast-up {
+  0%   { opacity: 0; transform: translateY(8px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes toast-down {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(8px); }
 }`;
+
+export type Toast = { message: string; key: number };
 
 type PlayerLabelProps = {
   name: string;
+  cardCount?: number;
   seat: Seat;
   surfaceY: number;
   offsetY?: number;
@@ -38,10 +52,12 @@ type PlayerLabelProps = {
   tiltX?: number;
   isActive?: boolean;
   activeColor?: string;
+  toast?: Toast | null;
 };
 
 export const PlayerLabel = ({
   name,
+  cardCount,
   seat,
   surfaceY,
   offsetY = 1.6,
@@ -50,6 +66,7 @@ export const PlayerLabel = ({
   tiltX = 0,
   isActive = false,
   activeColor,
+  toast,
 }: PlayerLabelProps) => {
   const { position, rotationY } = useMemo(() => {
     const seatDist = Math.hypot(seat.position[0], seat.position[2]);
@@ -68,6 +85,10 @@ export const PlayerLabel = ({
     };
   }, [seat.position, surfaceY, offsetY, extraPull, faceCenter]);
 
+  // Only play entrance animation on initial mount — not on subsequent re-renders
+  const enteredRef = useRef(false);
+  useEffect(() => { enteredRef.current = true; }, []);
+
   const avatarColor = AVATAR_COLORS[name] ?? DEFAULT_COLOR;
   const initial = name.charAt(0).toUpperCase();
   const showTimer = isActive && activeColor;
@@ -76,7 +97,7 @@ export const PlayerLabel = ({
     <group position={position} rotation-x={tiltX} rotation-y={rotationY}>
       <Html center transform occlude scale={0.35}>
         <style dangerouslySetInnerHTML={{ __html: LABEL_CSS }} />
-        <div style={{ animation: 'label-drop 0.4s ease-out both' }}>
+        <div style={{ position: 'relative', ...(!enteredRef.current ? { animation: 'label-drop 0.4s ease-out both' } : undefined) }}>
         <div
           key={showTimer ? 'active' : 'inactive'}
           className="rounded-full p-[5px] select-none transition-transform duration-300"
@@ -97,8 +118,31 @@ export const PlayerLabel = ({
             <span className="whitespace-nowrap text-sm font-medium text-white">
               {name}
             </span>
+            {cardCount != null && (
+              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white/15 text-[10px] font-bold leading-none text-white/80">
+                {cardCount}
+              </div>
+            )}
           </div>
         </div>
+        {toast && (
+          <div
+            key={toast.key}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              ...(faceCenter
+                ? { top: '100%', marginTop: '6px' }
+                : { bottom: '100%', marginBottom: '6px' }),
+              animation: `${faceCenter ? 'toast-down' : 'toast-up'} 2s ease-out forwards`,
+              pointerEvents: 'none' as const,
+            }}
+            className="whitespace-nowrap rounded-full bg-neutral-900/90 px-2.5 py-0.5 text-xs font-bold text-white shadow-lg"
+          >
+            {toast.message}
+          </div>
+        )}
         </div>
       </Html>
     </group>

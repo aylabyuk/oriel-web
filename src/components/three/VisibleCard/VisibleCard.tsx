@@ -15,6 +15,14 @@ const PLAYABLE_LIFT = 0.12;
 const PLAYABLE_GLOW_COLOR = '#ffffff';
 const PLAYABLE_GLOW = 0.6;
 
+/** Deck bob: gentle sine-wave hover */
+const DECK_BOB_AMPLITUDE = 0.025;
+const DECK_BOB_SPEED = 3;
+/** Deck glow: pulsing emissive */
+const DECK_GLOW_MIN = 0.15;
+const DECK_GLOW_RANGE = 1;
+const DECK_GLOW_SPEED = 2.5;
+
 type VisibleCardProps = {
   cardId: string;
   value: Value;
@@ -23,6 +31,7 @@ type VisibleCardProps = {
   immediate?: boolean;
   springConfig?: SpringConfig;
   playable?: boolean;
+  deckClickable?: boolean;
   onCardClick?: (cardId: string) => void;
 };
 
@@ -43,8 +52,10 @@ export const VisibleCard = ({
   immediate: snap,
   springConfig,
   playable,
+  deckClickable,
   onCardClick,
 }: VisibleCardProps) => {
+  const isInteractive = playable || deckClickable;
   const outerRef = useRef<Group>(null!);
   const tiltRef = useRef<Group>(null!);
   const liftRef = useRef<Group>(null!);
@@ -63,7 +74,7 @@ export const VisibleCard = ({
     config: DEFAULT_CONFIG,
   }));
 
-  useFrame(() => {
+  useFrame((state) => {
     api.start({
       px: to.position[0],
       py: to.position[1],
@@ -80,20 +91,30 @@ export const VisibleCard = ({
     outerRef.current.position.set(springs.px.get(), springs.py.get(), springs.pz.get());
     outerRef.current.rotation.y = springs.yaw.get();
     tiltRef.current.rotation.x = springs.tilt.get();
-    liftRef.current.position.y = springs.lift.get();
     rollRef.current.rotation.z = springs.roll.get();
 
-    if (bodyMeshRef.current) {
-      (bodyMeshRef.current.material as MeshStandardMaterial).emissiveIntensity = springs.glow.get();
+    // Deck: pulsing glow + gentle bob; Hand: spring-driven lift + glow
+    const t = state.clock.elapsedTime;
+    if (deckClickable) {
+      liftRef.current.position.y = DECK_BOB_AMPLITUDE * Math.sin(t * DECK_BOB_SPEED);
+      if (bodyMeshRef.current) {
+        (bodyMeshRef.current.material as MeshStandardMaterial).emissiveIntensity =
+          DECK_GLOW_MIN + DECK_GLOW_RANGE * (0.5 + 0.5 * Math.sin(t * DECK_GLOW_SPEED));
+      }
+    } else {
+      liftRef.current.position.y = springs.lift.get();
+      if (bodyMeshRef.current) {
+        (bodyMeshRef.current.material as MeshStandardMaterial).emissiveIntensity = springs.glow.get();
+      }
     }
   });
 
   return (
     <group
       ref={outerRef}
-      onClick={(e) => { e.stopPropagation(); if (playable && onCardClick) { document.body.style.cursor = 'auto'; onCardClick(cardId); } }}
-      onPointerOver={(e) => { e.stopPropagation(); if (playable) document.body.style.cursor = 'pointer'; }}
-      onPointerOut={(e) => { e.stopPropagation(); if (playable) document.body.style.cursor = 'auto'; }}
+      onClick={(e) => { e.stopPropagation(); if (isInteractive && onCardClick) { document.body.style.cursor = 'auto'; onCardClick(cardId); } }}
+      onPointerOver={(e) => { e.stopPropagation(); if (isInteractive) document.body.style.cursor = 'pointer'; }}
+      onPointerOut={(e) => { e.stopPropagation(); if (isInteractive) document.body.style.cursor = 'auto'; }}
     >
       <group ref={tiltRef}>
         <group ref={liftRef}>

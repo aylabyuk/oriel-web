@@ -13,8 +13,10 @@ import {
   MagnetPlayerFront,
   MagnetPlayerHand,
 } from '@/components/three/MagnetZones';
+import { Value } from 'uno-engine';
 import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
+import type { Toast } from '@/components/three/PlayerLabel/PlayerLabel';
 import { useMagnetState } from '@/hooks/useMagnetState';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import {
@@ -25,6 +27,15 @@ import {
 
 /** Set to true to render the debug magnet card layer alongside visible cards. */
 const DEBUG_MAGNETS = false;
+
+const getEffectMessage = (value: Value): string | null => {
+  switch (value) {
+    case Value.SKIP: return 'Skipped!';
+    case Value.DRAW_TWO: return '+2';
+    case Value.WILD_DRAW_FOUR: return '+4';
+    default: return null;
+  }
+};
 
 /** Phases where gameplay UI (labels, direction orbit) should remain visible */
 const GAME_ACTIVE_PHASES = new Set([
@@ -66,20 +77,50 @@ export const BackgroundScene = ({
     onSceneReady?.();
   }, [onSceneReady]);
   const magnet = useMagnetState(snapshot, tableReady);
+  const [toasts, setToasts] = useState<(Toast | null)[]>([]);
 
   useEffect(() => {
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
 
   // Fire callback when animations settle back to 'playing' phase
+  // + detect special card effects (skip / +2 / +4) after play animations
   const prevPhaseRef = useRef(magnet.phase);
   useEffect(() => {
     const prev = prevPhaseRef.current;
     prevPhaseRef.current = magnet.phase;
     if (magnet.phase === 'playing' && prev !== 'playing') {
+      if (prev?.startsWith('play') && snapshot) {
+        const topCard = magnet.discardPile[magnet.discardPile.length - 1];
+        if (topCard) {
+          const message = getEffectMessage(topCard.value);
+          if (message) {
+            const N = snapshot.players.length;
+            const currentIdx = snapshot.players.findIndex(
+              (p) => p.name === magnet.currentPlayerName,
+            );
+            if (currentIdx >= 0) {
+              const dirStep = magnet.direction === 'clockwise' ? -1 : 1;
+              const affectedIdx = ((currentIdx - dirStep) % N + N) % N;
+              setToasts((prev) => {
+                const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
+                next[affectedIdx] = { message, key: Date.now() };
+                return next;
+              });
+            }
+          }
+        }
+      }
       onAnimationIdle?.();
     }
-  }, [magnet.phase, onAnimationIdle]);
+  }, [magnet.phase, magnet.discardPile, magnet.currentPlayerName, magnet.direction, snapshot, onAnimationIdle]);
+
+  // Auto-clear toasts after CSS animation finishes
+  useEffect(() => {
+    if (!toasts.some(Boolean)) return;
+    const timer = setTimeout(() => setToasts((prev) => prev.map(() => null)), 2000);
+    return () => clearTimeout(timer);
+  }, [toasts]);
 
   // Use magnet state's discard pile for visual props — deferred during animations
   // so the orbit color/direction only update after the card lands.
@@ -145,6 +186,7 @@ export const BackgroundScene = ({
                       <PlayerLabel
                         key={`label-${player.name}`}
                         name={player.name}
+                        cardCount={magnet.playerHands[i]?.length}
                         seat={SEATS[SEAT_ORDER[i]]}
                         surfaceY={TABLE_SURFACE_Y}
                         isActive={magnet.phase === 'playing' && player.name === magnet.currentPlayerName && player.name === snapshot.currentPlayerName}
@@ -153,6 +195,7 @@ export const BackgroundScene = ({
                         offsetY={isVisitor ? -0.1 : undefined}
                         extraPull={isVisitor ? 0.4 : undefined}
                         tiltX={isVisitor ? -0.65 : undefined}
+                        toast={toasts[i] ?? null}
                       />
                     );
                   })}

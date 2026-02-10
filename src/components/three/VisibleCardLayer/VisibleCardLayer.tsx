@@ -57,7 +57,8 @@ export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCa
           to={t.placement}
           immediate={forceImmediate || t.immediate}
           springConfig={t.springConfig}
-          playable={t.playable || t.deckClickable}
+          playable={t.playable}
+          deckClickable={t.deckClickable}
           onCardClick={t.deckClickable ? handleDeckClick : onCardClick}
         />
       ))}
