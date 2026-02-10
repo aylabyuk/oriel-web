@@ -57,6 +57,8 @@ export const BackgroundScene = ({
   }, [showTable, onStartGame]);
 
   const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
+  const isVisitorTurn = activeMagnet.phase === 'playing'
+    && snapshot?.currentPlayerName === snapshot?.players[0]?.name;
 
   return (
     <div className="fixed inset-0 z-0">
@@ -91,6 +93,7 @@ export const BackgroundScene = ({
                 <VisibleCardLayer
                   magnet={activeMagnet}
                   forceImmediate={DEBUG_TIMELINE && timeline.scrubbing}
+                  playableCardIds={isVisitorTurn ? snapshot?.playableCardIds : undefined}
                 />
               )}
               {snapshot && activeMagnet.phase === 'playing' && (

@@ -27,13 +27,16 @@ export type CardTarget = {
   placement: CardPlacement;
   immediate?: boolean;
   springConfig?: SpringConfig;
+  playable?: boolean;
 };
 
 /** Flatten MagnetState into a single array of per-card animation targets. */
 export const computeAllTargets = (
   magnet: MagnetState,
   seats: Seat[],
+  playableCardIds?: string[],
 ): CardTarget[] => {
+  const playableSet = playableCardIds ? new Set(playableCardIds) : undefined;
   const targets: CardTarget[] = [];
 
   magnet.deck.forEach((card, i) => {
@@ -104,6 +107,7 @@ export const computeAllTargets = (
         value: card.value,
         color: card.color,
         placement,
+        playable: playerIndex === 0 && playableSet?.has(card.id),
       });
     });
   });

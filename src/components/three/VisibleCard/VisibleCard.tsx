@@ -9,6 +9,10 @@ import type { SpringConfig } from '@/utils/computeAllTargets';
 
 const DEFAULT_CONFIG: SpringConfig = { tension: 300, friction: 35 };
 
+const PLAYABLE_LIFT = 0.15;
+const PLAYABLE_GLOW_COLOR = '#ffffff';
+const PLAYABLE_GLOW = 0.6;
+
 type VisibleCardProps = {
   cardId: string;
   value: Value;
@@ -16,6 +20,7 @@ type VisibleCardProps = {
   to: CardPlacement;
   immediate?: boolean;
   springConfig?: SpringConfig;
+  playable?: boolean;
 };
 
 /**
@@ -33,9 +38,11 @@ export const VisibleCard = ({
   to,
   immediate: snap,
   springConfig,
+  playable,
 }: VisibleCardProps) => {
   const outerRef = useRef<Group>(null!);
   const tiltRef = useRef<Group>(null!);
+  const liftRef = useRef<Group>(null!);
   const rollRef = useRef<Group>(null!);
 
   // Spring yaw/tilt/roll independently — each axis interpolates without
@@ -48,6 +55,7 @@ export const VisibleCard = ({
     yaw: to.yaw,
     tilt: to.tilt,
     roll: to.roll,
+    lift: 0,
     config: DEFAULT_CONFIG,
   }));
 
@@ -59,6 +67,7 @@ export const VisibleCard = ({
       yaw: shortestYaw(to.yaw, springs.yaw.get()),
       tilt: to.tilt,
       roll: to.roll,
+      lift: playable ? PLAYABLE_LIFT : 0,
       immediate: snap,
       config: springConfig ?? DEFAULT_CONFIG,
     });
@@ -66,20 +75,34 @@ export const VisibleCard = ({
     // Apply spring values imperatively via nested rotation groups:
     //   outer:  position + Ry(yaw)   — player facing direction
     //   middle: Rx(tilt)             — face orientation
+    //   lift:   position-y inside tilt — lifts along tilted surface normal
     //   inner:  Rz(roll)             — jitter / scatter
     outerRef.current.position.set(springs.px.get(), springs.py.get(), springs.pz.get());
     outerRef.current.rotation.y = springs.yaw.get();
     tiltRef.current.rotation.x = springs.tilt.get();
+    liftRef.current.position.y = springs.lift.get();
     rollRef.current.rotation.z = springs.roll.get();
   });
 
   return (
-    <group ref={outerRef}>
+    <group
+      ref={outerRef}
+      onPointerOver={(e) => { e.stopPropagation(); if (playable) document.body.style.cursor = 'pointer'; }}
+      onPointerOut={(e) => { e.stopPropagation(); if (playable) document.body.style.cursor = 'auto'; }}
+    >
       <group ref={tiltRef}>
-        <group ref={rollRef}>
-          <Suspense fallback={null}>
-            <Card3D value={value} color={color} faceUp />
-          </Suspense>
+        <group ref={liftRef}>
+          <group ref={rollRef}>
+            <Suspense fallback={null}>
+              <Card3D
+                value={value}
+                color={color}
+                faceUp
+                glowColor={PLAYABLE_GLOW_COLOR}
+                glowIntensity={playable ? PLAYABLE_GLOW : 0}
+              />
+            </Suspense>
+          </group>
         </group>
       </group>
     </group>

@@ -12,7 +12,7 @@ export const App = () => {
   return (
     <div
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
-      data-theme="light"
+      data-theme="dark"
     >
       <BackgroundScene showTable={hasEnteredWelcome} onStartGame={startGame} />
       <div className="relative z-10">
