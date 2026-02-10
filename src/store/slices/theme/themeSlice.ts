@@ -14,7 +14,7 @@ type ThemeState = {
 };
 
 const initialState: ThemeState = {
-  environment: 'sunset',
+  environment: 'park',
   reducedMotion: false,
 };
 

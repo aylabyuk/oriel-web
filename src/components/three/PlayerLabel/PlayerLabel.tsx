@@ -33,6 +33,9 @@ type PlayerLabelProps = {
   isActive?: boolean;
   activeColor?: string;
   turnId?: number;
+  autoSort?: boolean;
+  onToggleSort?: () => void;
+  onUno?: () => void;
 };
 
 export const PlayerLabel = ({
@@ -46,6 +49,9 @@ export const PlayerLabel = ({
   isActive = false,
   activeColor,
   turnId = 0,
+  autoSort = false,
+  onToggleSort,
+  onUno,
 }: PlayerLabelProps) => {
   const { position, rotationY } = useMemo(() => {
     const seatDist = Math.hypot(seat.position[0], seat.position[2]);
@@ -72,27 +78,48 @@ export const PlayerLabel = ({
     <group position={position} rotation-x={tiltX} rotation-y={rotationY}>
       <Html center transform occlude scale={0.35}>
         <style dangerouslySetInnerHTML={{ __html: TIMER_CSS }} />
-        <div
-          key={showTimer ? `active-${turnId}` : 'inactive'}
-          className="rounded-full p-[5px] select-none pointer-events-none transition-transform duration-300"
-          style={showTimer ? {
-            background: `conic-gradient(from -90deg, ${activeColor} var(--timer-angle), #404040 var(--timer-angle))`,
-            animation: `timer-trace ${TURN_DURATION_S}s linear forwards`,
-            boxShadow: `0 0 12px 4px ${activeColor}80`,
-            transform: 'scale(1.15)',
-          } : undefined}
-        >
-          <div className="flex items-center gap-1.5 rounded-full bg-neutral-900 px-2.5 py-1">
-            <div
-              className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-              style={{ backgroundColor: avatarColor }}
-            >
-              {initial}
+        <div className="flex items-center gap-2 select-none">
+          <div
+            key={showTimer ? `active-${turnId}` : 'inactive'}
+            className="rounded-full p-[5px] pointer-events-none transition-transform duration-300"
+            style={showTimer ? {
+              background: `conic-gradient(from -90deg, ${activeColor} var(--timer-angle), #404040 var(--timer-angle))`,
+              animation: `timer-trace ${TURN_DURATION_S}s linear forwards`,
+              boxShadow: `0 0 12px 4px ${activeColor}80`,
+              transform: 'scale(1.15)',
+            } : undefined}
+          >
+            <div className="flex items-center gap-1.5 rounded-full bg-neutral-900 px-2.5 py-1">
+              <div
+                className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: avatarColor }}
+              >
+                {initial}
+              </div>
+              <span className="whitespace-nowrap text-sm font-medium text-white">
+                {name}
+              </span>
             </div>
-            <span className="whitespace-nowrap text-sm font-medium text-white">
-              {name}
-            </span>
           </div>
+          {onToggleSort && (
+            <button
+              onClick={onToggleSort}
+              className={`flex size-8 cursor-pointer items-center justify-center rounded-full transition-colors ${autoSort ? 'bg-white/20 text-white' : 'bg-neutral-900 text-white/70 hover:bg-neutral-800 hover:text-white'}`}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 2v12m0 0L1.5 11.5M4 14l2.5-2.5M12 14V2m0 0L9.5 4.5M12 2l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                {!autoSort && <line x1="1" y1="15" x2="15" y2="1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />}
+              </svg>
+            </button>
+          )}
+          {onUno && (
+            <button
+              onClick={onUno}
+              className="flex size-8 cursor-pointer items-center justify-center rounded-full bg-red-600 text-[10px] font-black leading-none text-white transition-colors hover:bg-red-500"
+            >
+              UNO
+            </button>
+          )}
         </div>
       </Html>
     </group>

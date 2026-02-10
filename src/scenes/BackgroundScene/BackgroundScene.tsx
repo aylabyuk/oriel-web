@@ -15,12 +15,15 @@ import {
   MagnetPlayerHand,
 } from '@/components/three/MagnetZones';
 import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
+import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import { AnimationTimeline } from '@/components/ui/AnimationTimeline';
 import { useMagnetState } from '@/hooks/useMagnetState';
 import { useMagnetTimeline } from '@/hooks/useMagnetTimeline';
+import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import {
   SEATS,
   SEAT_ORDER,
+  unoColorToHex,
 } from '@/constants';
 
 /** Set to true to render the debug magnet card layer alongside visible cards. */
@@ -55,6 +58,9 @@ export const BackgroundScene = ({
   const snapshot = useAppSelector(selectSnapshot);
   const [tableReady, setTableReady] = useState(false);
   const handleTableReady = useCallback(() => setTableReady(true), []);
+  const [autoSort, setAutoSort] = useState(false);
+  const handleToggleSort = useCallback(() => setAutoSort((v) => !v), []);
+  const handleUno = useCallback(() => { /* TODO: UNO shout logic */ }, []);
   const magnet = useMagnetState(snapshot, tableReady);
   const timeline = useMagnetTimeline(snapshot);
 
@@ -102,17 +108,27 @@ export const BackgroundScene = ({
               )}
               {snapshot && (
                 <>
-                  {/* {snapshot.players.map((player, i) => (
-                    <PlayerLabel
-                      key={`label-${player.name}`}
-                      name={player.name}
-                      seat={SEATS[SEAT_ORDER[i]]}
-                      surfaceY={TABLE_SURFACE_Y}
-                      isActive={player.name === snapshot.currentPlayerName}
-                      activeColor={activeColorHex}
-                      turnId={snapshot.discardPile.length}
-                    />
-                  ))} */}
+                  {snapshot.players.map((player, i) => {
+                    const isVisitor = i === 0;
+                    return (
+                      <PlayerLabel
+                        key={`label-${player.name}`}
+                        name={player.name}
+                        seat={SEATS[SEAT_ORDER[i]]}
+                        surfaceY={TABLE_SURFACE_Y}
+                        isActive={player.name === snapshot.currentPlayerName}
+                        activeColor={unoColorToHex(topDiscard?.color)}
+                        turnId={snapshot.discardPile.length}
+                        faceCenter={isVisitor}
+                        offsetY={isVisitor ? -0.1 : undefined}
+                        extraPull={isVisitor ? 0.4 : undefined}
+                        tiltX={isVisitor ? -0.65 : undefined}
+                        autoSort={isVisitor ? autoSort : undefined}
+                        onToggleSort={isVisitor ? handleToggleSort : undefined}
+                        onUno={isVisitor ? handleUno : undefined}
+                      />
+                    );
+                  })}
                   <DirectionOrbit
                     direction={snapshot.direction}
                     activeColor={topDiscard?.color}
