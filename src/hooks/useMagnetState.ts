@@ -17,8 +17,8 @@ const PLAY_ROTATE_DELAY = 200;
 const PLAY_DROP_DELAY = 150;
 const DRAW_LIFT_DELAY = 200;
 const DRAW_MOVE_DELAY = 300;
-const DRAW_GAP_DELAY = 400;
-const DRAW_DROP_DELAY = 250;
+const DRAW_GAP_DELAY = 600;
+const DRAW_DROP_DELAY = 300;
 
 // --- Types ---
 

@@ -40,10 +40,10 @@ const SCATTER_ROT = 0.15;
 const DECK_ROT_JITTER = 0.06;
 const CARD_HALF_HEIGHT = CARD_HEIGHT / 2;
 const OPPONENT_CARD_SPREAD = 0.15;
-/** Extra perpendicular offset per side when neighbors give way.
- *  Half the card width (0.7 / 2 = 0.35) plus breathing room. */
+/** Extra perpendicular offset per side when neighbors give way. */
 const CARD_WIDTH = 0.7;
-const GAP_EXTRA = CARD_WIDTH / 2 + 0.1;
+const GAP_EXTRA_VISITOR = CARD_WIDTH / 2 + 0.1;
+const GAP_EXTRA_OPPONENT = CARD_WIDTH + 0.1;
 /** Visitor camera tilt — tilts cards toward the camera (from develop branch) */
 const CAMERA_TILT_X = -0.65;
 /** Small lift for visitor cards above surface */
@@ -210,16 +210,15 @@ export const getPlayerHandPlacement = (
   const offset = (index - (totalCards - 1) / 2) * spread;
 
   // Neighbors spread apart when a card is selected for play
+  const gapExtra = isHuman ? GAP_EXTRA_VISITOR : GAP_EXTRA_OPPONENT;
   let gapOffset = 0;
   if (gapAtIndex !== undefined && index !== gapAtIndex) {
-    const extra = GAP_EXTRA;
-    gapOffset = index < gapAtIndex ? -extra : extra;
+    gapOffset = index < gapAtIndex ? -gapExtra : gapExtra;
   }
 
   // Neighbors spread apart to make room for an incoming drawn card
   if (insertGapAtIndex !== undefined) {
-    const extra = GAP_EXTRA;
-    gapOffset += index < insertGapAtIndex ? -extra : extra;
+    gapOffset += index < insertGapAtIndex ? -gapExtra : gapExtra;
   }
 
   // For upright cards, stack along the face normal (toward player) to avoid z-fighting.
