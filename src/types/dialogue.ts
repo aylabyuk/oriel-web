@@ -35,3 +35,9 @@ export type DialogueBubble = {
   /** Unique key for CSS animation resets */
   key: number;
 };
+
+export type DialogueHistoryEntry = {
+  personality: AiPersonality;
+  message: string;
+  timestamp: number;
+};

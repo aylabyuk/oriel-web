@@ -20,8 +20,8 @@ import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import type { Toast } from '@/components/three/PlayerLabel/PlayerLabel';
 import { useMagnetState } from '@/hooks/useMagnetState';
-import { useDialogue } from '@/hooks/useDialogue';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
+import type { DialogueBubble } from '@/types/dialogue';
 import {
   SEATS,
   SEAT_ORDER,
@@ -76,6 +76,7 @@ type BackgroundSceneProps = {
   onChallengeReady?: () => void;
   deckEnabled?: boolean;
   playableOverride?: string[];
+  dialogues?: (DialogueBubble | null)[];
 };
 
 export const BackgroundScene = ({
@@ -90,6 +91,7 @@ export const BackgroundScene = ({
   onChallengeReady,
   deckEnabled = true,
   playableOverride,
+  dialogues,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const mode = useAppSelector(selectMode);
@@ -101,7 +103,6 @@ export const BackgroundScene = ({
     onSceneReady?.();
   }, [onSceneReady]);
   const magnet = useMagnetState(snapshot, tableReady);
-  const dialogues = useDialogue();
   const [toasts, setToasts] = useState<(Toast | null)[]>([]);
 
   useEffect(() => {
@@ -308,7 +309,7 @@ export const BackgroundScene = ({
                         extraPull={isVisitor ? 0.4 : 0.35}
                         tiltX={isVisitor ? -0.65 : undefined}
                         toast={toasts[i] ?? null}
-                        dialogue={dialogues[i] ?? null}
+                        dialogue={dialogues?.[i] ?? null}
                         dialogueAlign={DIALOGUE_ALIGN[player.name]}
                       />
                     );

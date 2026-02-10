@@ -11,10 +11,10 @@ const AI_OPPONENTS = ['Meio', 'Dong', 'Oscar'] as const;
 const AI_NAMES = new Set<string>(AI_OPPONENTS);
 
 /** Delay for the card-play animation to finish before next AI move */
-const AI_ANIMATION_WAIT = 1500;
+const AI_ANIMATION_WAIT = 1800;
 /** Random additional "thinking" delay range (ms) */
-const AI_THINK_MIN = 500;
-const AI_THINK_MAX = 1500;
+const AI_THINK_MIN = 1000;
+const AI_THINK_MAX = 3000;
 
 /** Delay range before AI tries to catch visitor forgetting UNO (ms) */
 const AI_CATCH_MIN = 1500;

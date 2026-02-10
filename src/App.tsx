@@ -12,7 +12,10 @@ import { ChallengeModal } from '@/components/ui/ChallengeModal';
 import { GameEndOverlay } from '@/components/ui/GameEndOverlay';
 import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
+import { ChatToggle } from '@/components/ui/ChatToggle';
+import { ChatHistoryPanel } from '@/components/ui/ChatHistoryPanel';
 import { useGameController } from '@/hooks/useGameController';
+import { useDialogue } from '@/hooks/useDialogue';
 import type { Color } from 'uno-engine';
 
 export const App = () => {
@@ -20,6 +23,9 @@ export const App = () => {
   const mode = useAppSelector(selectMode);
   const snapshot = useAppSelector(selectSnapshot);
   const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer, devForceEnd, devTrimHand } = useGameController();
+  const { dialogues, history } = useDialogue();
+  const [chatOpen, setChatOpen] = useState(false);
+  const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
@@ -171,6 +177,7 @@ export const App = () => {
         deckEnabled={!drawPending && drawChoice === null && !challengeReady}
         playableOverride={drawChoice ? [drawChoice.cardId] : drawnWildCardId ? [drawnWildCardId] : undefined}
         onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
+        dialogues={dialogues}
       />
       <DrawChoiceModal open={drawChoice !== null} onPlay={handleDrawPlay} onSkip={handleDrawSkip} />
       <WildColorPicker open={pendingWildCardId != null} onColorSelect={handleWildColorSelect} onDismiss={handleWildDismiss} />
@@ -197,6 +204,8 @@ export const App = () => {
           <ThemeToggle />
           <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
         </div>
+        <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+        <ChatHistoryPanel open={chatOpen} history={history} />
         {welcomeDismissed ? (
           <div>
             <span className="p-4 text-xs font-medium text-neutral-400">orielvinci.com</span>

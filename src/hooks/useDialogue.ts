@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectEvents, selectSnapshot } from '@/store/slices/game';
 import { createDialogueSelector, findAffectedPlayer } from '@/utils/dialogueSelector';
-import type { AiPersonality, DialogueBubble, DialogueCategory } from '@/types/dialogue';
+import type { AiPersonality, DialogueBubble, DialogueCategory, DialogueHistoryEntry } from '@/types/dialogue';
 import type { GameEvent, GameSnapshot } from '@/types/game';
 
 const AI_NAMES: AiPersonality[] = ['Meio', 'Dong', 'Oscar'];
@@ -176,6 +176,7 @@ const scheduleDialogues = (
   baseDelay: number,
   timersRef: React.RefObject<ReturnType<typeof setTimeout>[]>,
   setDialogues: React.Dispatch<React.SetStateAction<(DialogueBubble | null)[]>>,
+  setHistory: React.Dispatch<React.SetStateAction<DialogueHistoryEntry[]>>,
 ) => {
   for (let i = 0; i < selected.length; i++) {
     const { personality, text } = selected[i];
@@ -188,6 +189,7 @@ const scheduleDialogues = (
         next[idx] = { message: text, key: Date.now() };
         return next;
       });
+      setHistory((prev) => [...prev, { personality, message: text, timestamp: Date.now() }]);
     }, delay);
 
     const hideTimer = setTimeout(() => {
@@ -209,6 +211,7 @@ export const useDialogue = () => {
   const selectorRef = useRef(createDialogueSelector());
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [dialogues, setDialogues] = useState<(DialogueBubble | null)[]>([null, null, null, null]);
+  const [history, setHistory] = useState<DialogueHistoryEntry[]>([]);
   const gameStartedRef = useRef(false);
   const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -234,6 +237,7 @@ export const useDialogue = () => {
     processedRef.current = 0;
     gameStartedRef.current = false;
     setDialogues([null, null, null, null]);
+    setHistory([]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
 
   // Game started dialogue — fires once when snapshot first appears
@@ -256,7 +260,7 @@ export const useDialogue = () => {
     }
 
     // Longer initial delay so the game has time to settle visually
-    scheduleDialogues(selected, 1500, timersRef, setDialogues);
+    scheduleDialogues(selected, 1500, timersRef, setDialogues, setHistory);
   }, [snapshot]);
 
   // Visitor slow timer — when it's the visitor's turn, start a countdown
@@ -281,7 +285,7 @@ export const useDialogue = () => {
         if (text) selected.push({ personality: c.personality, text });
       }
 
-      scheduleDialogues(selected, 0, timersRef, setDialogues);
+      scheduleDialogues(selected, 0, timersRef, setDialogues, setHistory);
     }, VISITOR_SLOW_THRESHOLD);
 
     return () => clearVisitorSlowTimer();
@@ -318,7 +322,7 @@ export const useDialogue = () => {
         }
       }
 
-      scheduleDialogues(selected, REACTION_DELAY_BASE, timersRef, setDialogues);
+      scheduleDialogues(selected, REACTION_DELAY_BASE, timersRef, setDialogues, setHistory);
     }
   }, [events, snapshot]);
 
@@ -330,5 +334,5 @@ export const useDialogue = () => {
     };
   }, [clearTimers, clearVisitorSlowTimer]);
 
-  return dialogues;
+  return { dialogues, history };
 };
