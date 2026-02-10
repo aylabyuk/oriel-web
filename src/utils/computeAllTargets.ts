@@ -5,6 +5,9 @@ import type { Seat } from '@/constants/seats';
 import {
   getDeckPlacement,
   getDiscardPilePlacement,
+  getDiscardLiftPlacement,
+  getDiscardMovePlacement,
+  getDiscardFloatPlacement,
   getPlayerFrontPlacement,
   getPlayerStagingPlacement,
   getPlayerTurnedPlacement,
@@ -48,6 +51,23 @@ export const computeAllTargets = (
       value: card.value,
       color: card.color,
       placement: getDiscardPilePlacement(i),
+    });
+  });
+
+  magnet.discardFloat.forEach((card) => {
+    const placement = (() => {
+      switch (magnet.phase) {
+        case 'discard_lift': return getDiscardLiftPlacement();
+        case 'discard_move': return getDiscardMovePlacement();
+        case 'discard_flip': return { ...getDiscardMovePlacement(), tilt: -Math.PI / 2, faceUp: true };
+        default: return getDiscardFloatPlacement();
+      }
+    })();
+    targets.push({
+      cardId: card.id,
+      value: card.value,
+      color: card.color,
+      placement,
     });
   });
 

@@ -89,6 +89,33 @@ export const getDiscardPilePlacement = (index: number): CardPlacement => ({
   faceUp: true,
 });
 
+/** Discard lift: elevated above deck, face-down (step 1 of initial discard) */
+export const getDiscardLiftPlacement = (): CardPlacement => ({
+  position: [
+    DRAW_PILE_POSITION[0],
+    TABLE_SURFACE_Y + FLOAT_HEIGHT,
+    DRAW_PILE_POSITION[2],
+  ],
+  yaw: Math.PI,
+  tilt: Math.PI / 2,
+  roll: 0,
+  faceUp: false,
+});
+
+/** Discard move: elevated above discard pile, face-down (step 2 of initial discard).
+ *  yaw=0 so the subsequent flip through tilt=0 has the card facing the camera. */
+export const getDiscardMovePlacement = (): CardPlacement => ({
+  position: [
+    DISCARD_PILE_POSITION[0],
+    TABLE_SURFACE_Y + FLOAT_HEIGHT,
+    DISCARD_PILE_POSITION[2],
+  ],
+  yaw: 0,
+  tilt: Math.PI / 2,
+  roll: 0,
+  faceUp: false,
+});
+
 /** Discard float: elevated above discard pile, used during PLAY phase */
 export const getDiscardFloatPlacement = (): CardPlacement => ({
   position: [

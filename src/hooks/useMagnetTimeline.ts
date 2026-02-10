@@ -8,6 +8,7 @@ const PLAY_INTERVAL = 300;
 const EMPTY_STATE: MagnetState = {
   deck: [],
   discardPile: [],
+  discardFloat: [],
   playerFronts: [],
   playerStaging: [],
   playerHands: [],
@@ -58,6 +59,7 @@ export const useMagnetTimeline = (
     const initial: MagnetState = {
       deck: allCards,
       discardPile: [],
+      discardFloat: [],
       playerFronts: Array.from({ length: playerCount }, () => []),
       playerStaging: Array.from({ length: playerCount }, () => []),
       playerHands: Array.from({ length: playerCount }, () => []),
@@ -77,9 +79,15 @@ export const useMagnetTimeline = (
     queue.push({ type: 'reveal_pickup' });
     queue.push({ type: 'reveal_turn' });
 
-    queue.push({ type: 'phase', phase: 'initial_discard' });
     if (snapshot.discardPile.length > 0) {
-      queue.push({ type: 'initial_discard', cardId: snapshot.discardPile[0].id });
+      const discardCardId = snapshot.discardPile[0].id;
+      queue.push({ type: 'phase', phase: 'discard_lift' });
+      queue.push({ type: 'discard_lift', cardId: discardCardId });
+      queue.push({ type: 'phase', phase: 'discard_move' });
+      queue.push({ type: 'discard_move' });
+      queue.push({ type: 'phase', phase: 'discard_flip' });
+      queue.push({ type: 'discard_flip' });
+      queue.push({ type: 'discard_drop' });
     }
     queue.push({ type: 'phase', phase: 'playing' });
 

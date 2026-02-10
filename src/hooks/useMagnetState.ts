@@ -5,13 +5,17 @@ import type { GameSnapshot, SerializedCard } from '@/types/game';
 const DEAL_INTERVAL = 200;
 const REVEAL_LIFT_DELAY = 400;
 const REVEAL_TURN_DELAY = 400;
-const INITIAL_DISCARD_DELAY = 300;
+const DISCARD_LIFT_DELAY = 400;
+const DISCARD_FLIP_DELAY = 500;
+const DISCARD_MOVE_DELAY = 500;
+const DISCARD_DROP_DELAY = 300;
 
 // --- Types ---
 
 export type MagnetState = {
   deck: SerializedCard[];
   discardPile: SerializedCard[];
+  discardFloat: SerializedCard[];
   playerFronts: SerializedCard[][];
   playerStaging: SerializedCard[][];
   playerHands: SerializedCard[][];
@@ -22,14 +26,19 @@ export type MagnetPhase =
   | 'idle'
   | 'dealing'
   | 'revealing'
-  | 'initial_discard'
+  | 'discard_lift'
+  | 'discard_flip'
+  | 'discard_move'
   | 'playing';
 
 export type QueueStep =
   | { type: 'deal'; cardId: string; playerIndex: number }
   | { type: 'reveal_pickup' }
   | { type: 'reveal_turn' }
-  | { type: 'initial_discard'; cardId: string }
+  | { type: 'discard_lift'; cardId: string }
+  | { type: 'discard_flip' }
+  | { type: 'discard_move' }
+  | { type: 'discard_drop' }
   | { type: 'phase'; phase: MagnetPhase };
 
 /**
@@ -50,6 +59,7 @@ export const useMagnetState = (
   const [state, setState] = useState<MagnetState>({
     deck: [],
     discardPile: [],
+    discardFloat: [],
     playerFronts: [],
     playerStaging: [],
     playerHands: [],
@@ -85,7 +95,10 @@ export const useMagnetState = (
         case 'deal': return DEAL_INTERVAL;
         case 'reveal_pickup': return REVEAL_LIFT_DELAY;
         case 'reveal_turn': return REVEAL_TURN_DELAY;
-        case 'initial_discard': return INITIAL_DISCARD_DELAY;
+        case 'discard_lift': return DISCARD_LIFT_DELAY;
+        case 'discard_flip': return DISCARD_FLIP_DELAY;
+        case 'discard_move': return DISCARD_MOVE_DELAY;
+        case 'discard_drop': return DISCARD_DROP_DELAY;
       }
     })();
 
@@ -118,6 +131,7 @@ export const useMagnetState = (
     setState({
       deck: allCards,
       discardPile: [],
+      discardFloat: [],
       playerFronts: Array.from({ length: playerCount }, () => []),
       playerStaging: Array.from({ length: playerCount }, () => []),
       playerHands: Array.from({ length: playerCount }, () => []),
@@ -143,13 +157,16 @@ export const useMagnetState = (
     queue.push({ type: 'reveal_pickup' });
     queue.push({ type: 'reveal_turn' });
 
-    // 3. INITIAL_DISCARD: flip first discard card
-    queue.push({ type: 'phase', phase: 'initial_discard' });
+    // 3. INITIAL DISCARD: lift → flip → move → drop
     if (snapshot.discardPile.length > 0) {
-      queue.push({
-        type: 'initial_discard',
-        cardId: snapshot.discardPile[0].id,
-      });
+      const discardCardId = snapshot.discardPile[0].id;
+      queue.push({ type: 'phase', phase: 'discard_lift' });
+      queue.push({ type: 'discard_lift', cardId: discardCardId });
+      queue.push({ type: 'phase', phase: 'discard_move' });
+      queue.push({ type: 'discard_move' });
+      queue.push({ type: 'phase', phase: 'discard_flip' });
+      queue.push({ type: 'discard_flip' });
+      queue.push({ type: 'discard_drop' });
     }
     queue.push({ type: 'phase', phase: 'playing' });
 
@@ -228,15 +245,28 @@ export const applyStep = (
       return { ...prev, playerStaging: newStaging, playerHands: newHands };
     }
 
-    case 'initial_discard': {
+    case 'discard_lift': {
       const card = cardMap.get(step.cardId);
       if (!card) return prev;
       return {
         ...prev,
         deck: prev.deck.filter((c) => c.id !== step.cardId),
-        discardPile: [...prev.discardPile, card],
+        discardFloat: [card],
       };
     }
+
+    case 'discard_flip':
+    case 'discard_move':
+      // No zone change — phase change (via preceding phase step) drives
+      // placement in computeAllTargets; return new ref to trigger re-render.
+      return { ...prev };
+
+    case 'discard_drop':
+      return {
+        ...prev,
+        discardPile: [...prev.discardPile, ...prev.discardFloat],
+        discardFloat: [],
+      };
   }
 };
 
@@ -253,6 +283,7 @@ const sortCards = (a: SerializedCard, b: SerializedCard): number => {
 const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   deck: snapshot.drawPile,
   discardPile: snapshot.discardPile,
+  discardFloat: [],
   playerFronts: snapshot.players.map(() => []),
   playerStaging: snapshot.players.map(() => []),
   playerHands: snapshot.players.map((p) => [...p.hand].sort(sortCards)),
