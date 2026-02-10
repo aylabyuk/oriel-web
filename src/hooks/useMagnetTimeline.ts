@@ -13,6 +13,7 @@ const EMPTY_STATE: MagnetState = {
   playerStaging: [],
   playerHands: [],
   phase: 'idle',
+  spreadProgress: 0,
 };
 
 export type MagnetTimeline = {
@@ -64,6 +65,7 @@ export const useMagnetTimeline = (
       playerStaging: Array.from({ length: playerCount }, () => []),
       playerHands: Array.from({ length: playerCount }, () => []),
       phase: 'dealing',
+      spreadProgress: 0,
     };
 
     // Build queue (mirrors useMagnetState logic)
@@ -78,6 +80,11 @@ export const useMagnetTimeline = (
     queue.push({ type: 'phase', phase: 'revealing' });
     queue.push({ type: 'reveal_pickup' });
     queue.push({ type: 'reveal_turn' });
+
+    queue.push({ type: 'phase', phase: 'spreading' });
+    for (let i = 0; i < cardsPerPlayer; i++) {
+      queue.push({ type: 'spread_card' });
+    }
 
     if (snapshot.discardPile.length > 0) {
       const discardCardId = snapshot.discardPile[0].id;

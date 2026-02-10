@@ -7,7 +7,7 @@ import type { Value, Color } from 'uno-engine';
 import type { CardPlacement } from '@/utils/zoneLayout';
 import type { SpringConfig } from '@/utils/computeAllTargets';
 
-const DEFAULT_CONFIG: SpringConfig = { tension: 170, friction: 26 };
+const DEFAULT_CONFIG: SpringConfig = { tension: 300, friction: 35 };
 
 type VisibleCardProps = {
   cardId: string;

@@ -95,8 +95,8 @@ export const computeAllTargets = (
 
   magnet.playerHands.forEach((cards, playerIndex) => {
     cards.forEach((card, i) => {
-      const isPlaying = magnet.phase === 'playing';
-      const placement = isPlaying
+      const isSpread = i < magnet.spreadProgress;
+      const placement = isSpread
         ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0)
         : getPlayerTurnedPlacement(i, cards.length, seats[playerIndex]);
       targets.push({

@@ -2,13 +2,14 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import type { GameSnapshot, SerializedCard } from '@/types/game';
 
 // --- Timing constants (ms) ---
-const DEAL_INTERVAL = 200;
-const REVEAL_LIFT_DELAY = 400;
-const REVEAL_TURN_DELAY = 400;
-const DISCARD_LIFT_DELAY = 400;
-const DISCARD_FLIP_DELAY = 500;
-const DISCARD_MOVE_DELAY = 500;
-const DISCARD_DROP_DELAY = 300;
+const DEAL_INTERVAL = 40;
+const REVEAL_LIFT_DELAY = 200;
+const REVEAL_TURN_DELAY = 200;
+const SPREAD_CARD_DELAY = 15;
+const DISCARD_LIFT_DELAY = 200;
+const DISCARD_FLIP_DELAY = 250;
+const DISCARD_MOVE_DELAY = 250;
+const DISCARD_DROP_DELAY = 150;
 
 // --- Types ---
 
@@ -20,12 +21,15 @@ export type MagnetState = {
   playerStaging: SerializedCard[][];
   playerHands: SerializedCard[][];
   phase: MagnetPhase;
+  /** Number of cards per player that have fanned out to their spread position */
+  spreadProgress: number;
 };
 
 export type MagnetPhase =
   | 'idle'
   | 'dealing'
   | 'revealing'
+  | 'spreading'
   | 'discard_lift'
   | 'discard_flip'
   | 'discard_move'
@@ -35,6 +39,7 @@ export type QueueStep =
   | { type: 'deal'; cardId: string; playerIndex: number }
   | { type: 'reveal_pickup' }
   | { type: 'reveal_turn' }
+  | { type: 'spread_card' }
   | { type: 'discard_lift'; cardId: string }
   | { type: 'discard_flip' }
   | { type: 'discard_move' }
@@ -64,6 +69,7 @@ export const useMagnetState = (
     playerStaging: [],
     playerHands: [],
     phase: 'idle',
+    spreadProgress: 0,
   });
 
   const initializedRef = useRef(false);
@@ -95,6 +101,7 @@ export const useMagnetState = (
         case 'deal': return DEAL_INTERVAL;
         case 'reveal_pickup': return REVEAL_LIFT_DELAY;
         case 'reveal_turn': return REVEAL_TURN_DELAY;
+        case 'spread_card': return SPREAD_CARD_DELAY;
         case 'discard_lift': return DISCARD_LIFT_DELAY;
         case 'discard_flip': return DISCARD_FLIP_DELAY;
         case 'discard_move': return DISCARD_MOVE_DELAY;
@@ -136,6 +143,7 @@ export const useMagnetState = (
       playerStaging: Array.from({ length: playerCount }, () => []),
       playerHands: Array.from({ length: playerCount }, () => []),
       phase: 'dealing',
+      spreadProgress: 0,
     });
 
     // Build the queue
@@ -157,7 +165,13 @@ export const useMagnetState = (
     queue.push({ type: 'reveal_pickup' });
     queue.push({ type: 'reveal_turn' });
 
-    // 3. INITIAL DISCARD: lift → flip → move → drop
+    // 3. SPREAD: stagger cards into fan positions
+    queue.push({ type: 'phase', phase: 'spreading' });
+    for (let i = 0; i < cardsPerPlayer; i++) {
+      queue.push({ type: 'spread_card' });
+    }
+
+    // 4. INITIAL DISCARD: lift → move → flip → drop
     if (snapshot.discardPile.length > 0) {
       const discardCardId = snapshot.discardPile[0].id;
       queue.push({ type: 'phase', phase: 'discard_lift' });
@@ -245,6 +259,9 @@ export const applyStep = (
       return { ...prev, playerStaging: newStaging, playerHands: newHands };
     }
 
+    case 'spread_card':
+      return { ...prev, spreadProgress: prev.spreadProgress + 1 };
+
     case 'discard_lift': {
       const card = cardMap.get(step.cardId);
       if (!card) return prev;
@@ -288,4 +305,5 @@ const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   playerStaging: snapshot.players.map(() => []),
   playerHands: snapshot.players.map((p) => [...p.hand].sort(sortCards)),
   phase: 'playing',
+  spreadProgress: Math.max(0, ...snapshot.players.map((p) => p.hand.length)),
 });
