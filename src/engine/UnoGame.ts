@@ -197,6 +197,18 @@ export class UnoGame {
       serializePlayer(this.engine.getPlayer(name)),
     );
 
+    // After a reshuffle the engine recycles discards back into the draw
+    // pile.  Purge any cards that are no longer truly discarded so the
+    // snapshot never reports a card in two zones at once.
+    const liveIds = new Set<string>();
+    for (const p of this.engine.players) {
+      for (const c of p.hand) liveIds.add(getCardId(c));
+    }
+    for (const c of this.engine.deck.cards) liveIds.add(getCardId(c));
+    this.discardHistory = this.discardHistory.filter(
+      (c) => !liveIds.has(getCardId(c)),
+    );
+
     return {
       phase: this.phase,
       currentPlayerName: this.engine.currentPlayer.name,

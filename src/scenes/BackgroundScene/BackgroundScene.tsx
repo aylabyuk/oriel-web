@@ -123,9 +123,8 @@ export const BackgroundScene = ({
                         name={player.name}
                         seat={SEATS[SEAT_ORDER[i]]}
                         surfaceY={TABLE_SURFACE_Y}
-                        isActive={player.name === magnet.currentPlayerName}
+                        isActive={magnet.phase === 'playing' && player.name === magnet.currentPlayerName}
                         activeColor={unoColorToHex(topDiscard?.color)}
-                        turnId={snapshot.discardPile.length}
                         faceCenter={isVisitor}
                         offsetY={isVisitor ? -0.1 : undefined}
                         extraPull={isVisitor ? 0.4 : undefined}

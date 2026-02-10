@@ -136,6 +136,5 @@ export const computeAllTargets = (
       });
     });
   });
-
   return targets;
 };

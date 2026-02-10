@@ -38,7 +38,6 @@ type PlayerLabelProps = {
   tiltX?: number;
   isActive?: boolean;
   activeColor?: string;
-  turnId?: number;
 };
 
 export const PlayerLabel = ({
@@ -51,7 +50,6 @@ export const PlayerLabel = ({
   tiltX = 0,
   isActive = false,
   activeColor,
-  turnId = 0,
 }: PlayerLabelProps) => {
   const { position, rotationY } = useMemo(() => {
     const seatDist = Math.hypot(seat.position[0], seat.position[2]);
@@ -80,7 +78,7 @@ export const PlayerLabel = ({
         <style dangerouslySetInnerHTML={{ __html: LABEL_CSS }} />
         <div style={{ animation: 'label-drop 0.4s ease-out both' }}>
         <div
-          key={showTimer ? `active-${turnId}` : 'inactive'}
+          key={showTimer ? 'active' : 'inactive'}
           className="rounded-full p-[5px] select-none transition-transform duration-300"
           style={showTimer ? {
             background: `conic-gradient(from -90deg, ${activeColor} var(--timer-angle), #404040 var(--timer-angle))`,
