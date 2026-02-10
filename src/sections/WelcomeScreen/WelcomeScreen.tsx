@@ -57,11 +57,16 @@ export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: We
   };
 
   return (
-    <section className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-8">
+    <section className="flex min-h-svh items-center justify-center px-4 py-6">
+      <div className={cn(
+        'flex w-full max-w-md flex-col items-center gap-8',
+        'landscape:max-lg:max-w-2xl landscape:max-lg:flex-row landscape:max-lg:items-center landscape:max-lg:gap-12',
+      )}>
+        {/* Section 1: Avatar + Welcome */}
         <div
           className={cn(
-            'mb-32 space-y-7 text-center transition-all duration-500 ease-out',
+            'space-y-5 text-center transition-all duration-500 ease-out',
+            'landscape:max-lg:flex-1 landscape:max-lg:text-left',
             visible ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0',
           )}
           onTransitionEnd={handleTransitionEnd}
@@ -70,20 +75,22 @@ export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: We
             src={MY_AVATAR_URL}
             alt="Oriel Absin"
             size="lg"
-            className="mx-auto"
+            className="mx-auto landscape:max-lg:h-20 landscape:max-lg:w-20 landscape:max-lg:mx-0"
           />
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t('welcome.title')}
           </h1>
-          <p className="text-neutral-500 dark:text-neutral-400">
+          <p className="text-sm text-neutral-500 sm:text-base dark:text-neutral-400">
             {t('welcome.subtitle')}
           </p>
         </div>
 
+        {/* Section 2: Form */}
         <form
           onSubmit={handleSubmit}
           className={cn(
-            'space-y-6 transition-all duration-500 ease-out delay-100',
+            'w-full space-y-5 transition-all duration-500 ease-out delay-100 sm:space-y-6',
+            'landscape:max-lg:flex-1',
             visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0',
           )}
           noValidate

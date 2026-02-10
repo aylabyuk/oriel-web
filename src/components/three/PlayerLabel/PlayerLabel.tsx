@@ -26,20 +26,23 @@ const LABEL_CSS = `
   60%  { opacity: 1; transform: translateY(4px); }
   80%  { transform: translateY(-2px); }
   100% { opacity: 1; transform: translateY(0); }
+}
 @keyframes toast-up {
-  0%   { opacity: 0; transform: translateY(8px); }
-  15%  { opacity: 1; transform: translateY(0); }
-  75%  { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-8px); }
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.6); }
+  12%  { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.05); }
+  20%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  75%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.9); }
 }
 @keyframes toast-down {
-  0%   { opacity: 0; transform: translateY(-8px); }
-  15%  { opacity: 1; transform: translateY(0); }
-  75%  { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(8px); }
+  0%   { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.6); }
+  12%  { opacity: 1; transform: translateX(-50%) translateY(2px) scale(1.05); }
+  20%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  75%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.9); }
 }`;
 
-export type Toast = { message: string; key: number };
+export type Toast = { message: string; color: string; key: number };
 
 type PlayerLabelProps = {
   name: string;
@@ -131,14 +134,15 @@ export const PlayerLabel = ({
             style={{
               position: 'absolute',
               left: '50%',
-              transform: 'translateX(-50%)',
               ...(faceCenter
-                ? { top: '100%', marginTop: '6px' }
-                : { bottom: '100%', marginBottom: '6px' }),
+                ? { top: '100%', marginTop: '8px' }
+                : { bottom: '100%', marginBottom: '8px' }),
               animation: `${faceCenter ? 'toast-down' : 'toast-up'} 2s ease-out forwards`,
+              backgroundColor: toast.color,
+              boxShadow: `0 0 12px 3px ${toast.color}90`,
               pointerEvents: 'none' as const,
             }}
-            className="whitespace-nowrap rounded-full bg-neutral-900/90 px-2.5 py-0.5 text-xs font-bold text-white shadow-lg"
+            className="whitespace-nowrap rounded-full px-3 py-1 text-sm font-bold text-white"
           >
             {toast.message}
           </div>

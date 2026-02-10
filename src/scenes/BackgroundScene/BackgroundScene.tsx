@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
+import type { PerspectiveCamera } from 'three';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useAppSelector } from '@/store/hooks';
@@ -25,14 +26,26 @@ import {
   unoColorToHex,
 } from '@/constants';
 
+/** Adjust camera FOV based on canvas width for responsive framing. */
+const ResponsiveFov = () => {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const w = size.width;
+    const fov = w >= 1024 ? 70 : w >= 768 ? 80 : 90;
+    (camera as PerspectiveCamera).fov = fov;
+    camera.updateProjectionMatrix();
+  }, [camera, size.width]);
+  return null;
+};
+
 /** Set to true to render the debug magnet card layer alongside visible cards. */
 const DEBUG_MAGNETS = false;
 
 const getEffectMessage = (value: Value): string | null => {
   switch (value) {
     case Value.SKIP: return 'Skipped!';
-    case Value.DRAW_TWO: return '+2';
-    case Value.WILD_DRAW_FOUR: return '+4';
+    case Value.DRAW_TWO: return 'Draw 2!';
+    case Value.WILD_DRAW_FOUR: return 'Draw 4!';
     default: return null;
   }
 };
@@ -96,15 +109,20 @@ export const BackgroundScene = ({
           const message = getEffectMessage(topCard.value);
           if (message) {
             const N = snapshot.players.length;
+            // snapshot.currentPlayerName is the player AFTER the skip/draw
+            // so the affected player is one step backward in the play direction.
+            // Use snapshot values (always current) instead of magnet values
+            // which can be stale when animations chain back-to-back.
             const currentIdx = snapshot.players.findIndex(
-              (p) => p.name === magnet.currentPlayerName,
+              (p) => p.name === snapshot.currentPlayerName,
             );
             if (currentIdx >= 0) {
-              const dirStep = magnet.direction === 'clockwise' ? -1 : 1;
-              const affectedIdx = ((currentIdx - dirStep) % N + N) % N;
+              const dirStep = snapshot.direction === 'clockwise' ? -1 : 1;
+              const affectedIdx = ((currentIdx + dirStep) % N + N) % N;
+              const color = unoColorToHex(topCard.color) ?? '#888';
               setToasts((prev) => {
                 const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
-                next[affectedIdx] = { message, key: Date.now() };
+                next[affectedIdx] = { message, color, key: Date.now() };
                 return next;
               });
             }
@@ -113,7 +131,7 @@ export const BackgroundScene = ({
       }
       onAnimationIdle?.();
     }
-  }, [magnet.phase, magnet.discardPile, magnet.currentPlayerName, magnet.direction, snapshot, onAnimationIdle]);
+  }, [magnet.phase, magnet.discardPile, snapshot, onAnimationIdle]);
 
   // Auto-clear toasts after CSS animation finishes
   useEffect(() => {
@@ -145,6 +163,7 @@ export const BackgroundScene = ({
   return (
     <div className="fixed inset-0 z-0">
       <Canvas camera={{ position: [0, 1.8, 2.6], fov: 80 }}>
+        <ResponsiveFov />
         <color attach="background" args={['#000000']} />
         <SceneEnvironment />
         <pointLight position={[0, 0, 3]} intensity={0.5} />
@@ -193,7 +212,7 @@ export const BackgroundScene = ({
                         activeColor={unoColorToHex(topDiscard?.color)}
                         faceCenter={isVisitor}
                         offsetY={isVisitor ? -0.1 : undefined}
-                        extraPull={isVisitor ? 0.4 : undefined}
+                        extraPull={isVisitor ? 0.4 : 0.35}
                         tiltX={isVisitor ? -0.65 : undefined}
                         toast={toasts[i] ?? null}
                       />

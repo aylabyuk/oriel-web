@@ -291,6 +291,9 @@ export const useMagnetState = (
     const cardPlayed = newTopCard && snapshot.discardPile.length > prevDiscardLen;
 
     if (cardPlayed) {
+      // Update card data so wild cards carry the chosen color from the snapshot
+      allCardsRef.current.set(newTopCard.id, newTopCard);
+
       // Find which player lost a card
       const playerIndex = state.playerHands.findIndex((hand) =>
         hand.some((c) => c.id === newTopCard.id),
