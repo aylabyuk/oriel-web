@@ -1,16 +1,7 @@
-import { type ReactNode, useEffect, useMemo, useRef } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { animated, useSpring } from '@react-spring/three';
 import { useFrame } from '@react-three/fiber';
-import { MeshReflectorMaterial, RoundedBox, useTexture } from '@react-three/drei';
-import { RepeatWrapping, type Texture } from 'three';
-import woodDiffUrl from '@/assets/textures/wood_table_diff.jpg';
-import woodRoughUrl from '@/assets/textures/wood_table_rough.jpg';
-
-const configureTexture = (tex: Texture) => {
-  tex.wrapS = tex.wrapT = RepeatWrapping;
-  tex.repeat.set(2, 2);
-  return tex;
-};
+import { MeshReflectorMaterial, RoundedBox } from '@react-three/drei';
 
 const TABLE_WIDTH = 4;
 const TABLE_HEIGHT = 0.1;
@@ -24,10 +15,9 @@ type TableProps = {
   onReady?: () => void;
 };
 
+const TABLE_COLOR = '#2a2a2a';
+
 export const Table = ({ children, onReady }: TableProps) => {
-  const [rawDiff, rawRough] = useTexture([woodDiffUrl, woodRoughUrl]);
-  const diffMap = useMemo(() => configureTexture(rawDiff), [rawDiff]);
-  const roughMap = useMemo(() => configureTexture(rawRough), [rawRough]);
 
   const firedRef = useRef(false);
 
@@ -60,17 +50,16 @@ export const Table = ({ children, onReady }: TableProps) => {
       <mesh rotation-x={-Math.PI / 2} position-y={TABLE_HEIGHT / 2 + 0.001}>
         <planeGeometry args={[TABLE_WIDTH - TABLE_RADIUS * 2, TABLE_DEPTH - TABLE_RADIUS * 2]} />
         <MeshReflectorMaterial
-          map={diffMap}
-          roughnessMap={roughMap}
-          roughness={0.1}
-          metalness={0.04}
-          mirror={0.07}
-          blur={[100, 100]}
+          color={TABLE_COLOR}
+          roughness={0.5}
+          metalness={0.1}
+          mirror={0.15}
+          blur={[200, 200]}
           mixBlur={1}
-          mixStrength={15}
+          mixStrength={4}
           mixContrast={1}
-          resolution={1024}
-          depthScale={0.4}
+          resolution={512}
+          depthScale={0.3}
           minDepthThreshold={0.1}
           maxDepthThreshold={1}
         />
@@ -79,8 +68,7 @@ export const Table = ({ children, onReady }: TableProps) => {
       {/* Table body */}
       <RoundedBox args={[TABLE_WIDTH, TABLE_HEIGHT, TABLE_DEPTH]} radius={TABLE_RADIUS} smoothness={4}>
         <meshStandardMaterial
-          map={diffMap}
-          roughnessMap={roughMap}
+          color={TABLE_COLOR}
           roughness={0.8}
           metalness={0}
         />

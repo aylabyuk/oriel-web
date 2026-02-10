@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useAppSelector } from '@/store/hooks';
-import { selectEnvironment } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
 import { SceneEnvironment } from '@/components/three/SceneEnvironment';
 import { Table } from '@/components/three/Table';
@@ -35,16 +34,6 @@ const DEBUG_VISIBLE_CARDS = true;
 /** Set to true to use timeline scrubber instead of auto-playing animations. */
 const DEBUG_TIMELINE = true;
 
-/** Isolated environment layer — subscribes to Redux inside Canvas so
- *  environment changes don't re-render the rest of BackgroundScene. */
-const EnvironmentLayer = () => {
-  const preset = useAppSelector(selectEnvironment);
-  return (
-    <Suspense fallback={null}>
-      <SceneEnvironment preset={preset} />
-    </Suspense>
-  );
-};
 
 type BackgroundSceneProps = {
   showTable?: boolean;
@@ -72,7 +61,7 @@ export const BackgroundScene = ({
   return (
     <div className="fixed inset-0 z-0">
       <Canvas camera={{ position: [0, 1.8, 2.6], fov: 80 }}>
-        <EnvironmentLayer />
+        <SceneEnvironment />
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
           <Suspense fallback={null}>

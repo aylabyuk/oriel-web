@@ -12,7 +12,7 @@ const AVATAR_COLORS: Record<string, string> = {
 const DEFAULT_COLOR = '#9b59b6';
 const TURN_DURATION_S = 10;
 
-const TIMER_CSS = `
+const LABEL_CSS = `
 @property --timer-angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -20,6 +20,12 @@ const TIMER_CSS = `
 }
 @keyframes timer-trace {
   to { --timer-angle: 360deg; }
+}
+@keyframes label-drop {
+  0%   { opacity: 0; transform: translateY(-40px); }
+  60%  { opacity: 1; transform: translateY(4px); }
+  80%  { transform: translateY(-2px); }
+  100% { opacity: 1; transform: translateY(0); }
 }`;
 
 type PlayerLabelProps = {
@@ -71,7 +77,8 @@ export const PlayerLabel = ({
   return (
     <group position={position} rotation-x={tiltX} rotation-y={rotationY}>
       <Html center transform occlude scale={0.35}>
-        <style dangerouslySetInnerHTML={{ __html: TIMER_CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: LABEL_CSS }} />
+        <div style={{ animation: 'label-drop 0.4s ease-out both' }}>
         <div
           key={showTimer ? `active-${turnId}` : 'inactive'}
           className="rounded-full p-[5px] select-none transition-transform duration-300"
@@ -93,6 +100,7 @@ export const PlayerLabel = ({
               {name}
             </span>
           </div>
+        </div>
         </div>
       </Html>
     </group>

@@ -1,7 +1,6 @@
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
-import { EnvironmentSelector } from '@/components/ui/EnvironmentSelector';
 import { RestartButton } from '@/components/ui/RestartButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 import { useGameController } from '@/hooks/useGameController';
@@ -13,13 +12,12 @@ export const App = () => {
   return (
     <div
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
-      data-theme="dark"
+      data-theme="light"
     >
       <BackgroundScene showTable={hasEnteredWelcome} onStartGame={startGame} />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <RestartButton onClick={() => {}} disabled />
-          <EnvironmentSelector />
         </div>
         {hasEnteredWelcome ? (
           <div>
