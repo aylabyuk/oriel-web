@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import type { GameSnapshot, SerializedCard } from '@/types/game';
+import type { GameSnapshot, SerializedCard, PlayDirection } from '@/types/game';
 
 // --- Timing constants (ms) ---
 const DEAL_INTERVAL = 40;
@@ -34,6 +34,10 @@ export type MagnetState = {
   selectedCardId: string | null;
   /** Card ID currently lifting out of hand — rendered with lift placement */
   liftingCardId: string | null;
+  /** Play direction — deferred during animation so it updates when the card lands */
+  direction: PlayDirection;
+  /** Current player name — deferred during animation so it updates when the card lands */
+  currentPlayerName: string | null;
 };
 
 export type MagnetPhase =
@@ -93,6 +97,8 @@ export const useMagnetState = (
     playingPlayerIndex: -1,
     selectedCardId: null,
     liftingCardId: null,
+    direction: 'clockwise',
+    currentPlayerName: null,
   });
 
   const initializedRef = useRef(false);
@@ -107,7 +113,15 @@ export const useMagnetState = (
 
   const processNext = useCallback(() => {
     const step = queueRef.current[0];
-    if (!step) return;
+    if (!step) {
+      // Queue exhausted — if we were animating a play, finalize
+      if (animatingRef.current) {
+        animatingRef.current = false;
+        const snap = latestSnapshotRef.current;
+        if (snap) setState(snapshotToMagnetState(snap));
+      }
+      return;
+    }
 
     queueRef.current.shift();
     setState((prev) => applyStep(prev, step, allCardsRef.current));
@@ -178,6 +192,8 @@ export const useMagnetState = (
       playingPlayerIndex: -1,
       selectedCardId: null,
       liftingCardId: null,
+      direction: snapshot.direction,
+      currentPlayerName: snapshot.currentPlayerName,
     });
 
     // Build the queue
@@ -243,7 +259,7 @@ export const useMagnetState = (
 
   useEffect(() => {
     if (!snapshot || state.phase !== 'playing') return;
-    if (animatingRef.current) return; // animation in progress, will sync on completion
+    if (animatingRef.current) return;
 
     // Detect if a card was played: new discard pile is longer than current
     const newTopCard = snapshot.discardPile[snapshot.discardPile.length - 1];
@@ -419,4 +435,6 @@ const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   playingPlayerIndex: -1,
   selectedCardId: null,
   liftingCardId: null,
+  direction: snapshot.direction,
+  currentPlayerName: snapshot.currentPlayerName,
 });

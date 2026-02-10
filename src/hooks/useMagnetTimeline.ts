@@ -17,6 +17,8 @@ const EMPTY_STATE: MagnetState = {
   playingPlayerIndex: -1,
   selectedCardId: null,
   liftingCardId: null,
+  direction: 'clockwise',
+  currentPlayerName: null,
 };
 
 export type MagnetTimeline = {
@@ -72,6 +74,8 @@ export const useMagnetTimeline = (
       playingPlayerIndex: -1,
       selectedCardId: null,
       liftingCardId: null,
+      direction: snapshot.direction,
+      currentPlayerName: snapshot.currentPlayerName,
     };
 
     // Build queue (mirrors useMagnetState logic)

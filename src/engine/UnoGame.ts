@@ -32,6 +32,8 @@ export class UnoGame {
   private houseRules: HouseRule[];
   private _hasDrawn = false;
   private discardHistory: Card[];
+  /** Stable seat order: player names rotated so the human is at index 0. */
+  private seatOrder: string[];
 
   constructor(
     playerNames: string[],
@@ -42,6 +44,15 @@ export class UnoGame {
     this.houseRules = houseRules;
     this.engine = new Game(playerNames, houseRules);
     this.discardHistory = [this.engine.discardedCard];
+
+    // Compute stable seat order once — the engine may reorder its players
+    // array on reverse cards, but we always want the same name→seat mapping.
+    const names = this.engine.players.map((p) => p.name);
+    const humanIdx = names.indexOf(humanPlayerName);
+    this.seatOrder = humanIdx > 0
+      ? [...names.slice(humanIdx), ...names.slice(0, humanIdx)]
+      : names;
+
     this.bindEngineEvents();
   }
 
@@ -163,6 +174,14 @@ export class UnoGame {
     this.phase = 'playing';
     this.winner = null;
     this.score = null;
+
+    // Recompute stable seat order for the new engine instance
+    const names = this.engine.players.map((p) => p.name);
+    const humanIdx = names.indexOf(this.humanPlayerName);
+    this.seatOrder = humanIdx > 0
+      ? [...names.slice(humanIdx), ...names.slice(0, humanIdx)]
+      : names;
+
     this.bindEngineEvents();
   }
 
@@ -172,10 +191,16 @@ export class UnoGame {
 
   /** Get a full serializable snapshot of the game state. */
   getSnapshot(): GameSnapshot {
+    // Use the stable seat order computed at construction time so that
+    // players never swap seats when the engine reorders on reverse cards.
+    const players = this.seatOrder.map((name) =>
+      serializePlayer(this.engine.getPlayer(name)),
+    );
+
     return {
       phase: this.phase,
       currentPlayerName: this.engine.currentPlayer.name,
-      players: this.engine.players.map((p) => serializePlayer(p)),
+      players,
       discardPile: this.discardHistory.map(serializeCard),
       direction: serializeDirection(this.engine.playingDirection),
       drawPile: this.engine.deck.cards.map(serializeCard),

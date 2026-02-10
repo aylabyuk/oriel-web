@@ -26,6 +26,11 @@ import {
 /** Set to true to render the debug magnet card layer alongside visible cards. */
 const DEBUG_MAGNETS = false;
 
+/** Phases where gameplay UI (labels, direction orbit) should remain visible */
+const GAME_ACTIVE_PHASES = new Set([
+  'playing', 'play_gap', 'play_lift', 'play_move', 'play_rotate',
+]);
+
 type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
@@ -55,9 +60,11 @@ export const BackgroundScene = ({
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
 
-  const topDiscard = snapshot?.discardPile[snapshot.discardPile.length - 1];
+  // Use magnet state's discard pile for visual props — deferred during animations
+  // so the orbit color/direction only update after the card lands.
+  const topDiscard = magnet.discardPile[magnet.discardPile.length - 1];
   const isVisitorTurn = magnet.phase === 'playing'
-    && snapshot?.currentPlayerName === snapshot?.players[0]?.name;
+    && magnet.currentPlayerName === snapshot?.players[0]?.name;
 
   const handleCardClick = useCallback((cardId: string) => {
     if (!snapshot) return;
@@ -106,7 +113,7 @@ export const BackgroundScene = ({
                 onCardClick={isVisitorTurn ? handleCardClick : undefined}
                 onDeckReady={handleCardsReady}
               />
-              {snapshot && magnet.phase === 'playing' && (
+              {snapshot && GAME_ACTIVE_PHASES.has(magnet.phase) && (
                 <>
                   {snapshot.players.map((player, i) => {
                     const isVisitor = i === 0;
@@ -116,7 +123,7 @@ export const BackgroundScene = ({
                         name={player.name}
                         seat={SEATS[SEAT_ORDER[i]]}
                         surfaceY={TABLE_SURFACE_Y}
-                        isActive={player.name === snapshot.currentPlayerName}
+                        isActive={player.name === magnet.currentPlayerName}
                         activeColor={unoColorToHex(topDiscard?.color)}
                         turnId={snapshot.discardPile.length}
                         faceCenter={isVisitor}
@@ -127,7 +134,7 @@ export const BackgroundScene = ({
                     );
                   })}
                   <DirectionOrbit
-                    direction={snapshot.direction}
+                    direction={magnet.direction}
                     activeColor={topDiscard?.color}
                   />
                 </>

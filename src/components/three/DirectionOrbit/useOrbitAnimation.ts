@@ -117,11 +117,11 @@ export const useOrbitAnimation = ({
     if (!a1 || !t1 || !a2 || !t2) return;
 
     if (!reducedMotion) {
-      const dirMult = direction === 'clockwise' ? -1 : 1;
+      const dirMult = direction === 'clockwise' ? 1 : -1;
       angleRef.current += dirMult * ORBIT_SPEED * delta;
     }
 
-    const dirMult = direction === 'clockwise' ? -1 : 1;
+    const dirMult = direction === 'clockwise' ? 1 : -1;
     updateArrow(a1, angleRef.current, dirMult);
     updateTail(t1, angleRef.current, dirMult);
     updateArrow(a2, angleRef.current + Math.PI, dirMult);
