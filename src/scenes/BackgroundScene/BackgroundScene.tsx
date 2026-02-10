@@ -29,6 +29,7 @@ const DEBUG_MAGNETS = false;
 /** Phases where gameplay UI (labels, direction orbit) should remain visible */
 const GAME_ACTIVE_PHASES = new Set([
   'playing', 'play_gap', 'play_lift', 'play_move', 'play_rotate',
+  'draw_lift', 'draw_move', 'draw_gap', 'draw_drop',
 ]);
 
 type BackgroundSceneProps = {

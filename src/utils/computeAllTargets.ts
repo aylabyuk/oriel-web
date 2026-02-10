@@ -11,6 +11,8 @@ import {
   getPlayLiftPlacement,
   getPlayMovePlacement,
   getPlayRotatePlacement,
+  getDrawLiftPlacement,
+  getDrawMovePlacement,
   getPlayerFrontPlacement,
   getPlayerStagingPlacement,
   getPlayerTurnedPlacement,
@@ -83,6 +85,26 @@ export const computeAllTargets = (
     });
   });
 
+  magnet.drawFloat.forEach((card) => {
+    const seat = seats[magnet.drawingPlayerIndex];
+    const isHuman = magnet.drawingPlayerIndex === 0;
+    const placement = (() => {
+      switch (magnet.phase) {
+        case 'draw_lift': return getDrawLiftPlacement();
+        case 'draw_move':
+        case 'draw_gap':
+          return getDrawMovePlacement(seat, isHuman);
+        default: return getDrawMovePlacement(seat, isHuman);
+      }
+    })();
+    targets.push({
+      cardId: card.id,
+      value: card.value,
+      color: card.color,
+      placement,
+    });
+  });
+
   magnet.playerFronts.forEach((cards, playerIndex) => {
     cards.forEach((card, i) => {
       targets.push({
@@ -111,6 +133,13 @@ export const computeAllTargets = (
       : -1;
     const gapAtIndex = gapIdx >= 0 ? gapIdx : undefined;
 
+    // Draw gap: neighbors spread to make room at insertion point
+    const insertGap = (
+      (magnet.phase === 'draw_gap' || magnet.phase === 'draw_drop') &&
+      playerIndex === magnet.drawingPlayerIndex &&
+      magnet.drawInsertIndex >= 0
+    ) ? magnet.drawInsertIndex : undefined;
+
     cards.forEach((card, i) => {
       // Card lifting out of hand — render with lift placement
       if (card.id === magnet.liftingCardId) {
@@ -125,7 +154,7 @@ export const computeAllTargets = (
 
       const isSpread = i < magnet.spreadProgress;
       const placement = isSpread
-        ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0, gapAtIndex)
+        ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0, gapAtIndex, insertGap)
         : getPlayerTurnedPlacement(i, cards.length, seats[playerIndex]);
       targets.push({
         cardId: card.id,

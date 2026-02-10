@@ -200,6 +200,7 @@ export const getPlayerHandPlacement = (
   seat: Seat,
   isHuman = false,
   gapAtIndex?: number,
+  insertGapAtIndex?: number,
 ): CardPlacement => {
   const { x, z, perpX, perpZ } = pullTowardCenter(seat, PULL_DISTANCE);
   const angle = seatAngle(seat);
@@ -211,6 +212,12 @@ export const getPlayerHandPlacement = (
   if (gapAtIndex !== undefined && index !== gapAtIndex) {
     const extra = isHuman ? GAP_EXTRA : GAP_EXTRA * 0.5;
     gapOffset = index < gapAtIndex ? -extra : extra;
+  }
+
+  // Neighbors spread apart to make room for an incoming drawn card
+  if (insertGapAtIndex !== undefined) {
+    const extra = (isHuman ? GAP_EXTRA : GAP_EXTRA * 0.5) * 0.5;
+    gapOffset += index < insertGapAtIndex ? -extra : extra;
   }
 
   // For upright cards, stack along the face normal (toward player) to avoid z-fighting.
@@ -269,6 +276,33 @@ export const getPlayRotatePlacement = (): CardPlacement => ({
   roll: 0,
   faceUp: true,
 });
+
+/** Draw lift: elevated above deck, face-down (card just lifted from deck) */
+export const getDrawLiftPlacement = (): CardPlacement => ({
+  position: [
+    DRAW_PILE_POSITION[0],
+    TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT,
+    DRAW_PILE_POSITION[2],
+  ],
+  yaw: Math.PI,
+  tilt: Math.PI / 2,
+  roll: 0,
+  faceUp: false,
+});
+
+/** Draw move: card travels from above deck to above the player's hand.
+ *  Face-up for the human player, face-down for opponents. */
+export const getDrawMovePlacement = (seat: Seat, isHuman = false): CardPlacement => {
+  const { x, z } = pullTowardCenter(seat, PULL_DISTANCE);
+  const angle = seatAngle(seat);
+  return {
+    position: [x, TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT, z],
+    yaw: angle,
+    tilt: isHuman ? CAMERA_TILT_X : 0,
+    roll: 0,
+    faceUp: isHuman,
+  };
+};
 
 /** Hand preview: elevated above hand center, used during DRAW phase */
 export const getHandPreviewPlacement = (seat: Seat): CardPlacement => {

@@ -15,6 +15,10 @@ const PLAY_LIFT_DELAY = 250;
 const PLAY_MOVE_DELAY = 300;
 const PLAY_ROTATE_DELAY = 200;
 const PLAY_DROP_DELAY = 150;
+const DRAW_LIFT_DELAY = 200;
+const DRAW_MOVE_DELAY = 300;
+const DRAW_GAP_DELAY = 200;
+const DRAW_DROP_DELAY = 250;
 
 // --- Types ---
 
@@ -38,6 +42,12 @@ export type MagnetState = {
   direction: PlayDirection;
   /** Current player name — deferred during animation so it updates when the card lands */
   currentPlayerName: string | null;
+  /** Cards in transit from deck to a player's hand */
+  drawFloat: SerializedCard[];
+  /** Index of the player receiving drawn cards (-1 = none) */
+  drawingPlayerIndex: number;
+  /** Sorted insertion index where the drawn card will land in the hand */
+  drawInsertIndex: number;
 };
 
 export type MagnetPhase =
@@ -52,6 +62,10 @@ export type MagnetPhase =
   | 'play_lift'
   | 'play_move'
   | 'play_rotate'
+  | 'draw_lift'
+  | 'draw_move'
+  | 'draw_gap'
+  | 'draw_drop'
   | 'playing';
 
 export type QueueStep =
@@ -68,6 +82,10 @@ export type QueueStep =
   | { type: 'play_move' }
   | { type: 'play_rotate' }
   | { type: 'play_drop' }
+  | { type: 'draw_lift'; cardId: string; playerIndex: number }
+  | { type: 'draw_move' }
+  | { type: 'draw_gap'; insertIndex: number }
+  | { type: 'draw_drop' }
   | { type: 'phase'; phase: MagnetPhase };
 
 /**
@@ -99,6 +117,9 @@ export const useMagnetState = (
     liftingCardId: null,
     direction: 'clockwise',
     currentPlayerName: null,
+    drawFloat: [],
+    drawingPlayerIndex: -1,
+    drawInsertIndex: -1,
   });
 
   const initializedRef = useRef(false);
@@ -114,12 +135,10 @@ export const useMagnetState = (
   const processNext = useCallback(() => {
     const step = queueRef.current[0];
     if (!step) {
-      // Queue exhausted — if we were animating a play, finalize
-      if (animatingRef.current) {
-        animatingRef.current = false;
-        const snap = latestSnapshotRef.current;
-        if (snap) setState(snapshotToMagnetState(snap));
-      }
+      // Queue exhausted — don't sync immediately. Clear the flag so the
+      // gameplay effect can detect any pending diffs (e.g. draws that arrived
+      // during a play animation) before falling through to a full sync.
+      animatingRef.current = false;
       return;
     }
 
@@ -149,16 +168,18 @@ export const useMagnetState = (
         case 'play_move': return PLAY_MOVE_DELAY;
         case 'play_rotate': return PLAY_ROTATE_DELAY;
         case 'play_drop': return PLAY_DROP_DELAY;
+        case 'draw_lift': return DRAW_LIFT_DELAY;
+        case 'draw_move': return DRAW_MOVE_DELAY;
+        case 'draw_gap': return DRAW_GAP_DELAY;
+        case 'draw_drop': return DRAW_DROP_DELAY;
       }
     })();
 
     if (queueRef.current.length > 0) {
       timerRef.current = setTimeout(() => processNext(), delay);
-    } else if (animatingRef.current) {
-      // Play animation finished — sync to latest snapshot
+    } else {
+      // Last step processed — clear flag so the gameplay effect handles syncing.
       animatingRef.current = false;
-      const snap = latestSnapshotRef.current;
-      if (snap) setState(snapshotToMagnetState(snap));
     }
   }, []);
 
@@ -194,6 +215,9 @@ export const useMagnetState = (
       liftingCardId: null,
       direction: snapshot.direction,
       currentPlayerName: snapshot.currentPlayerName,
+      drawFloat: [],
+      drawingPlayerIndex: -1,
+      drawInsertIndex: -1,
     });
 
     // Build the queue
@@ -288,6 +312,49 @@ export const useMagnetState = (
         queueRef.current = steps;
         processNext();
         return;
+      }
+    }
+
+    // Detect if cards were drawn: a player's hand grew
+    for (let pi = 0; pi < snapshot.players.length; pi++) {
+      const prevHandLen = state.playerHands[pi]?.length ?? 0;
+      const newHandLen = snapshot.players[pi].hand.length;
+      if (newHandLen > prevHandLen) {
+        const prevIds = new Set(state.playerHands[pi].map((c) => c.id));
+        const newCards = snapshot.players[pi].hand.filter((c) => !prevIds.has(c.id));
+
+        if (newCards.length > 0) {
+          animatingRef.current = true;
+          // Register new cards in the lookup
+          for (const card of newCards) allCardsRef.current.set(card.id, card);
+
+          const steps: QueueStep[] = [];
+          const currentSortedHand = [...state.playerHands[pi]];
+
+          for (let ci = 0; ci < newCards.length; ci++) {
+            const card = newCards[ci];
+            // Compute insertion index into the progressively growing hand
+            const handSoFar = [...currentSortedHand];
+            for (let prev = 0; prev < ci; prev++) {
+              const idx = findSortedInsertIndex(handSoFar, newCards[prev]);
+              handSoFar.splice(idx, 0, newCards[prev]);
+            }
+            const insertIdx = findSortedInsertIndex(handSoFar, card);
+
+            steps.push({ type: 'phase', phase: 'draw_lift' });
+            steps.push({ type: 'draw_lift', cardId: card.id, playerIndex: pi });
+            steps.push({ type: 'phase', phase: 'draw_move' });
+            steps.push({ type: 'draw_move' });
+            steps.push({ type: 'phase', phase: 'draw_gap' });
+            steps.push({ type: 'draw_gap', insertIndex: insertIdx });
+            steps.push({ type: 'phase', phase: 'draw_drop' });
+            steps.push({ type: 'draw_drop' });
+          }
+          steps.push({ type: 'phase', phase: 'playing' });
+          queueRef.current = steps;
+          processNext();
+          return;
+        }
       }
     }
 
@@ -410,16 +477,65 @@ export const applyStep = (
         discardFloat: [],
         playingPlayerIndex: -1,
       };
+
+    case 'draw_lift': {
+      const drawnCard = cardMap.get(step.cardId);
+      if (!drawnCard) return prev;
+      // Pop the visual top of the deck (face-down, identity doesn't matter)
+      // and place the actual drawn card into drawFloat.
+      return {
+        ...prev,
+        deck: prev.deck.slice(0, -1),
+        drawFloat: [drawnCard],
+        drawingPlayerIndex: step.playerIndex,
+      };
+    }
+
+    case 'draw_move':
+      return { ...prev };
+
+    case 'draw_gap':
+      return { ...prev, drawInsertIndex: step.insertIndex };
+
+    case 'draw_drop': {
+      const card = prev.drawFloat[0];
+      if (!card) return prev;
+      const newHands = prev.playerHands.map((h, i) => {
+        if (i !== prev.drawingPlayerIndex) return h;
+        const hand = [...h];
+        hand.splice(prev.drawInsertIndex, 0, card);
+        return hand;
+      });
+      return {
+        ...prev,
+        playerHands: newHands,
+        drawFloat: [],
+        drawingPlayerIndex: -1,
+        drawInsertIndex: -1,
+        spreadProgress: Math.max(prev.spreadProgress, ...newHands.map((h) => h.length)),
+      };
+    }
   }
 };
 
 /** Sort cards: by color (red, blue, green, yellow), then value ascending, wilds last */
-const sortCards = (a: SerializedCard, b: SerializedCard): number => {
+export const sortCards = (a: SerializedCard, b: SerializedCard): number => {
   const aWild = a.color == null ? 1 : 0;
   const bWild = b.color == null ? 1 : 0;
   if (aWild !== bWild) return aWild - bWild;
   if (a.color !== b.color) return (a.color ?? 0) - (b.color ?? 0);
   return a.value - b.value;
+};
+
+/** Find the index where `card` should be inserted to maintain sorted order. */
+const findSortedInsertIndex = (
+  sortedHand: SerializedCard[],
+  card: SerializedCard,
+): number => {
+  for (let i = 0; i < sortedHand.length; i++) {
+    if (sortCards(card, sortedHand[i]) <= 0) return i;
+  }
+  return sortedHand.length;
 };
 
 /** Convert a snapshot directly to magnet state (for playing phase) */
@@ -437,4 +553,7 @@ const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   liftingCardId: null,
   direction: snapshot.direction,
   currentPlayerName: snapshot.currentPlayerName,
+  drawFloat: [],
+  drawingPlayerIndex: -1,
+  drawInsertIndex: -1,
 });
