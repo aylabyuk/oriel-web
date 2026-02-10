@@ -26,7 +26,7 @@ const AI_CATCH_CHANCE = 0.5;
 const AI_UNO_THINK_MIN = 300;
 const AI_UNO_THINK_MAX = 800;
 /** Probability that AI remembers to call UNO (forgets = 1 - this) */
-const AI_UNO_SELF_CALL_CHANCE = 0.8;
+const AI_UNO_SELF_CALL_CHANCE = 0.5;
 /** How long the catch window stays open after an AI forgets (ms) */
 const CATCH_WINDOW_DURATION = 3000;
 

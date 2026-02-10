@@ -190,6 +190,34 @@ export const BackgroundScene = ({
     }
   }, [snapshot]);
 
+  // Show toast when UNO callable resolves (unoCallable goes non-null → null)
+  // If a player's hand grew, they were caught and penalized.
+  const unoSnapshotRef = useRef<{ callableName: string; handSizes: number[] } | null>(null);
+  useEffect(() => {
+    if (snapshot?.unoCallable && !unoSnapshotRef.current) {
+      unoSnapshotRef.current = {
+        callableName: snapshot.unoCallable.playerName,
+        handSizes: snapshot.players.map((p) => p.hand.length),
+      };
+    }
+    if (!snapshot?.unoCallable && unoSnapshotRef.current && snapshot) {
+      const saved = unoSnapshotRef.current;
+      unoSnapshotRef.current = null;
+
+      const N = snapshot.players.length;
+      const callableIdx = snapshot.players.findIndex((p) => p.name === saved.callableName);
+
+      if (callableIdx >= 0 && snapshot.players[callableIdx].hand.length > saved.handSizes[callableIdx]) {
+        // Callable player's hand grew → they were caught
+        setToasts((prev) => {
+          const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
+          next[callableIdx] = { message: 'Caught! +2', color: '#ef4444', key: Date.now() };
+          return next;
+        });
+      }
+    }
+  }, [snapshot]);
+
   // Auto-clear toasts after CSS animation finishes
   useEffect(() => {
     if (!toasts.some(Boolean)) return;
