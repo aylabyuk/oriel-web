@@ -61,6 +61,7 @@ export const BackgroundScene = ({
   return (
     <div className="fixed inset-0 z-0">
       <Canvas camera={{ position: [0, 1.8, 2.6], fov: 80 }}>
+        <color attach="background" args={['#000000']} />
         <SceneEnvironment />
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
