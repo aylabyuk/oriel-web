@@ -19,14 +19,17 @@ export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const mode = useAppSelector(selectMode);
   const snapshot = useAppSelector(selectSnapshot);
-  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, devForceEnd, devTrimHand } = useGameController();
+  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer, devForceEnd, devTrimHand } = useGameController();
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
   const [drawnWildCardId, setDrawnWildCardId] = useState<string | null>(null);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
-  const handleWildCardPlayed = useCallback((cardId: string) => setPendingWildCardId(cardId), []);
+  const handleWildCardPlayed = useCallback((cardId: string) => {
+    cancelVisitorTimer();
+    setPendingWildCardId(cardId);
+  }, [cancelVisitorTimer]);
   const handleWildDismiss = useCallback(() => {
     setPendingWildCardId(null);
     setDrawnWildCardId(null);
@@ -61,6 +64,7 @@ export const App = () => {
   }, [passAfterDraw]);
 
   const handleDrawPlay = useCallback(() => {
+    cancelVisitorTimer();
     if (!drawChoice) return;
     if (drawChoice.isWild) {
       setPendingWildCardId(drawChoice.cardId);
@@ -69,7 +73,7 @@ export const App = () => {
       playCard(drawChoice.cardId);
     }
     setDrawChoice(null);
-  }, [drawChoice, playCard]);
+  }, [drawChoice, playCard, cancelVisitorTimer]);
 
   const handleDrawCardClicked = useCallback((_cardId: string) => handleDrawPlay(), [handleDrawPlay]);
 
@@ -119,9 +123,10 @@ export const App = () => {
   const unoTargetName = unoMode === 'catch' ? unoCallable?.playerName : undefined;
 
   const handleUnoPress = useCallback(() => {
+    cancelVisitorTimer();
     if (!visitorName) return;
     callUno(visitorName);
-  }, [visitorName, callUno]);
+  }, [visitorName, callUno, cancelVisitorTimer]);
 
   // --- WD4 Challenge flow ---
   const [challengeReady, setChallengeReady] = useState(false);

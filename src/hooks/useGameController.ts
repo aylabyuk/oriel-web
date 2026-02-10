@@ -30,6 +30,9 @@ const AI_UNO_SELF_CALL_CHANCE = 0.5;
 /** How long the catch window stays open after an AI forgets (ms) */
 const CATCH_WINDOW_DURATION = 3000;
 
+/** Visitor turn timeout — matches TURN_DURATION_S in PlayerLabel (ms) */
+const VISITOR_TURN_TIMEOUT = 10_000;
+
 const ALL_COLORS = [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW];
 
 /**
@@ -47,6 +50,7 @@ export const useGameController = () => {
   const aiScheduledRef = useRef(false);
   const unoCatchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unoAiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visitorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleAiPlay = useCallback(() => {
     const game = gameRef.current;
@@ -93,12 +97,68 @@ export const useGameController = () => {
     }, totalDelay);
   }, []);
 
+  const cancelVisitorTimer = useCallback(() => {
+    if (visitorTimerRef.current) {
+      clearTimeout(visitorTimerRef.current);
+      visitorTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleVisitorAutoPlay = useCallback(() => {
+    cancelVisitorTimer();
+    const game = gameRef.current;
+    if (!game) return;
+
+    const humanName = visitorName || 'Player';
+    if (game.getCurrentPlayerName() !== humanName) return;
+
+    visitorTimerRef.current = setTimeout(() => {
+      visitorTimerRef.current = null;
+      const g = gameRef.current;
+      if (!g) return;
+      if (g.getCurrentPlayerName() !== humanName) return;
+
+      const playable = g.getPlayableCardsForPlayer(humanName);
+
+      if (playable.length > 0) {
+        const card = playable[Math.floor(Math.random() * playable.length)];
+        const chosenColor = card.isWildCard()
+          ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
+          : undefined;
+        try {
+          g.playCard(card, chosenColor);
+        } catch {
+          g.draw();
+          g.pass();
+        }
+      } else {
+        g.draw();
+        // Check if drawn card is playable
+        const nowPlayable = g.getPlayableCards();
+        if (nowPlayable.length > 0) {
+          const card = nowPlayable[0];
+          const chosenColor = card.isWildCard()
+            ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
+            : undefined;
+          try {
+            g.playCard(card, chosenColor);
+          } catch {
+            g.pass();
+          }
+        } else {
+          g.pass();
+        }
+      }
+    }, AI_ANIMATION_WAIT + VISITOR_TURN_TIMEOUT);
+  }, [visitorName, cancelVisitorTimer]);
+
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
       if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
       if (unoCatchTimerRef.current) clearTimeout(unoCatchTimerRef.current);
       if (unoAiTimerRef.current) clearTimeout(unoAiTimerRef.current);
+      if (visitorTimerRef.current) clearTimeout(visitorTimerRef.current);
     };
   }, []);
 
@@ -175,20 +235,23 @@ export const useGameController = () => {
         }
       }
 
-      // After any event, check if it's an AI's turn and schedule their play
+      // After any event, schedule the next player's move
       if (event.type === 'turn_changed' || event.type === 'card_played') {
         scheduleAiPlay();
+        scheduleVisitorAutoPlay();
       }
     });
 
     gameRef.current = game;
     dispatch(setSnapshot(game.getSnapshot()));
 
-    // If the first player is AI, kick off their play
+    // If the first player is AI, kick off their play; otherwise start visitor timer
     scheduleAiPlay();
-  }, [visitorName, dispatch, scheduleAiPlay]);
+    scheduleVisitorAutoPlay();
+  }, [visitorName, dispatch, scheduleAiPlay, scheduleVisitorAutoPlay]);
 
   const playCard = useCallback((cardId: string, chosenColor?: Color) => {
+    cancelVisitorTimer();
     const game = gameRef.current;
     if (!game) return;
     const playerName = visitorName || 'Player';
@@ -199,9 +262,10 @@ export const useGameController = () => {
     } catch {
       // Invalid play — engine rejected it, ignore
     }
-  }, [visitorName]);
+  }, [visitorName, cancelVisitorTimer]);
 
   const drawCard = useCallback((): { cardId: string; isPlayable: boolean; isWild: boolean } | null => {
+    cancelVisitorTimer();
     const game = gameRef.current;
     if (!game) return null;
     const playerName = visitorName || 'Player';
@@ -217,13 +281,14 @@ export const useGameController = () => {
     const isWild = drawnCard.isWildCard();
     const isPlayable = game.getPlayableCards().some((c) => getCardId(c) === cardId);
     return { cardId, isPlayable, isWild };
-  }, [visitorName]);
+  }, [visitorName, cancelVisitorTimer]);
 
   const passAfterDraw = useCallback(() => {
+    cancelVisitorTimer();
     const game = gameRef.current;
     if (!game) return;
     game.pass();
-  }, []);
+  }, [cancelVisitorTimer]);
 
   /** Resolve a pending WD4 challenge. accept=true means no challenge. */
   const resolveChallenge = useCallback((accept: boolean): ChallengeResult | null => {
@@ -231,10 +296,11 @@ export const useGameController = () => {
     if (!game) return null;
     const result = game.resolveChallenge(accept);
     dispatch(setSnapshot(game.getSnapshot()));
-    // Resume AI scheduling after resolution
+    // Resume scheduling after resolution
     scheduleAiPlay();
+    scheduleVisitorAutoPlay();
     return result;
-  }, [dispatch, scheduleAiPlay]);
+  }, [dispatch, scheduleAiPlay, scheduleVisitorAutoPlay]);
 
   /** For AI victims: auto-decide challenge after a think delay. */
   const tryAutoResolveChallenge = useCallback(() => {
@@ -276,6 +342,7 @@ export const useGameController = () => {
 
   const restartGame = useCallback(() => {
     if (!gameRef.current) return;
+    cancelVisitorTimer();
     if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
     if (unoCatchTimerRef.current) clearTimeout(unoCatchTimerRef.current);
     if (unoAiTimerRef.current) clearTimeout(unoAiTimerRef.current);
@@ -285,7 +352,7 @@ export const useGameController = () => {
     dispatch(setSnapshot(null));
     // After cards settle, start a fresh game which triggers dealing animation
     setTimeout(() => startGame(), RESTART_COLLECT_DELAY);
-  }, [dispatch, startGame]);
+  }, [dispatch, startGame, cancelVisitorTimer]);
 
   const getGameEndInfo = useCallback((): GameEndInfo | null => {
     return gameRef.current?.getGameEndInfo() ?? null;
@@ -310,5 +377,5 @@ export const useGameController = () => {
     dispatch(setSnapshot(game.getSnapshot()));
   }, [visitorName, dispatch]);
 
-  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, devForceEnd, devTrimHand };
+  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer, devForceEnd, devTrimHand };
 };
