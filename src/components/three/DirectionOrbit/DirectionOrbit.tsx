@@ -1,5 +1,5 @@
 import { useRef, useMemo, useEffect } from 'react';
-import { useSpring } from '@react-spring/three';
+import { useSpring, animated } from '@react-spring/three';
 import {
   BufferGeometry,
   BufferAttribute,
@@ -77,15 +77,21 @@ export const DirectionOrbit = ({
 
   const targetHex = unoColorToHex(activeColor);
 
-  const [{ colorR, colorG, colorB }, api] = useSpring(() => {
+  const [{ colorR, colorG, colorB, opacity, entranceScale }, api] = useSpring(() => {
     const c = new ThreeColor(targetHex);
     return {
       colorR: c.r,
       colorG: c.g,
       colorB: c.b,
+      opacity: 0,
+      entranceScale: 0,
       config: { tension: 120, friction: 14 },
     };
   });
+
+  useEffect(() => {
+    api.start({ opacity: 1, entranceScale: 1 });
+  }, [api]);
 
   useEffect(() => {
     const c = new ThreeColor(targetHex);
@@ -101,23 +107,24 @@ export const DirectionOrbit = ({
     colorR,
     colorG,
     colorB,
+    opacity,
     reducedMotion,
   });
 
   return (
-    <group>
+    <animated.group scale={entranceScale}>
       <mesh ref={arrow1Ref} geometry={arrow1Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} />
+        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
       </mesh>
       <mesh ref={tail1Ref} geometry={tail1Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} />
+        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
       </mesh>
       <mesh ref={arrow2Ref} geometry={arrow2Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} />
+        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
       </mesh>
       <mesh ref={tail2Ref} geometry={tail2Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} />
+        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
       </mesh>
-    </group>
+    </animated.group>
   );
 };

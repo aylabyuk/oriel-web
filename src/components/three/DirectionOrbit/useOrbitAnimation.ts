@@ -34,6 +34,7 @@ type UseOrbitAnimationArgs = {
   colorR: SpringValue<number>;
   colorG: SpringValue<number>;
   colorB: SpringValue<number>;
+  opacity: SpringValue<number>;
   reducedMotion: boolean;
 };
 
@@ -103,6 +104,7 @@ export const useOrbitAnimation = ({
   colorR,
   colorG,
   colorB,
+  opacity,
   reducedMotion,
 }: UseOrbitAnimationArgs) => {
   const angleRef = useRef(0);
@@ -128,9 +130,14 @@ export const useOrbitAnimation = ({
     const r = colorR.get() * GLOW_INTENSITY;
     const g = colorG.get() * GLOW_INTENSITY;
     const b = colorB.get() * GLOW_INTENSITY;
+    const o = opacity.get();
     (a1.material as MeshBasicMaterial).color.setRGB(r, g, b);
+    (a1.material as MeshBasicMaterial).opacity = o;
     (t1.material as MeshBasicMaterial).color.setRGB(r, g, b);
+    (t1.material as MeshBasicMaterial).opacity = o;
     (a2.material as MeshBasicMaterial).color.setRGB(r, g, b);
+    (a2.material as MeshBasicMaterial).opacity = o;
     (t2.material as MeshBasicMaterial).color.setRGB(r, g, b);
+    (t2.material as MeshBasicMaterial).opacity = o;
   });
 };

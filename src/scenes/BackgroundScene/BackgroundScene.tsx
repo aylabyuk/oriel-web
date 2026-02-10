@@ -103,7 +103,7 @@ export const BackgroundScene = ({
                   forceImmediate={DEBUG_TIMELINE && timeline.scrubbing}
                 />
               )}
-              {snapshot && (
+              {snapshot && activeMagnet.phase === 'playing' && (
                 <>
                   {snapshot.players.map((player, i) => {
                     const isVisitor = i === 0;
