@@ -1,6 +1,5 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { animated, useSpring } from '@react-spring/three';
-import { useFrame } from '@react-three/fiber';
 import { MeshReflectorMaterial, RoundedBox } from '@react-three/drei';
 
 const TABLE_WIDTH = 4;
@@ -38,11 +37,6 @@ export const Table = ({ children, onReady }: TableProps) => {
       },
     });
   }, [api, onReady]);
-
-  // Keep the spring driven every frame (same pattern as VisibleCard).
-  useFrame(() => {
-    api.start({ position: TABLE_REST_POSITION });
-  });
 
   return (
     <animated.group position={position as unknown as [number, number, number]}>

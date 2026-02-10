@@ -33,6 +33,12 @@ export type CardTarget = {
   playable?: boolean;
 };
 
+/**
+ * Only render the top N deck cards — the rest are visually hidden beneath
+ * the stack and skipping them avoids mounting 100+ components at once.
+ */
+export const VISIBLE_DECK_LIMIT = 5;
+
 /** Flatten MagnetState into a single array of per-card animation targets. */
 export const computeAllTargets = (
   magnet: MagnetState,
@@ -42,7 +48,9 @@ export const computeAllTargets = (
   const playableSet = playableCardIds ? new Set(playableCardIds) : undefined;
   const targets: CardTarget[] = [];
 
+  const deckStart = Math.max(0, magnet.deck.length - VISIBLE_DECK_LIMIT);
   magnet.deck.forEach((card, i) => {
+    if (i < deckStart) return;
     targets.push({
       cardId: card.id,
       value: card.value,
