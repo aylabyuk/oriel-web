@@ -33,9 +33,6 @@ type PlayerLabelProps = {
   isActive?: boolean;
   activeColor?: string;
   turnId?: number;
-  autoSort?: boolean;
-  onToggleSort?: () => void;
-  onUno?: () => void;
 };
 
 export const PlayerLabel = ({
@@ -49,9 +46,6 @@ export const PlayerLabel = ({
   isActive = false,
   activeColor,
   turnId = 0,
-  autoSort = false,
-  onToggleSort,
-  onUno,
 }: PlayerLabelProps) => {
   const { position, rotationY } = useMemo(() => {
     const seatDist = Math.hypot(seat.position[0], seat.position[2]);
@@ -98,25 +92,6 @@ export const PlayerLabel = ({
             <span className="whitespace-nowrap text-sm font-medium text-white">
               {name}
             </span>
-            {onToggleSort && (
-              <button
-                onClick={onToggleSort}
-                className={`flex size-6 cursor-pointer items-center justify-center rounded-full transition-colors ${autoSort ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}`}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 2v12m0 0L1.5 11.5M4 14l2.5-2.5M12 14V2m0 0L9.5 4.5M12 2l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  {!autoSort && <line x1="1" y1="15" x2="15" y2="1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />}
-                </svg>
-              </button>
-            )}
-            {onUno && (
-              <button
-                onClick={onUno}
-                className="flex size-6 cursor-pointer items-center justify-center rounded-full bg-red-600 text-[8px] font-black leading-none text-white transition-colors hover:bg-red-500"
-              >
-                UNO
-              </button>
-            )}
           </div>
         </div>
       </Html>

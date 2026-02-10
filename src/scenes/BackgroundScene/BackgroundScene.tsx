@@ -58,9 +58,6 @@ export const BackgroundScene = ({
   const snapshot = useAppSelector(selectSnapshot);
   const [tableReady, setTableReady] = useState(false);
   const handleTableReady = useCallback(() => setTableReady(true), []);
-  const [autoSort, setAutoSort] = useState(false);
-  const handleToggleSort = useCallback(() => setAutoSort((v) => !v), []);
-  const handleUno = useCallback(() => { /* TODO: UNO shout logic */ }, []);
   const magnet = useMagnetState(snapshot, tableReady);
   const timeline = useMagnetTimeline(snapshot);
 
@@ -123,9 +120,6 @@ export const BackgroundScene = ({
                         offsetY={isVisitor ? -0.1 : undefined}
                         extraPull={isVisitor ? 0.4 : undefined}
                         tiltX={isVisitor ? -0.65 : undefined}
-                        autoSort={isVisitor ? autoSort : undefined}
-                        onToggleSort={isVisitor ? handleToggleSort : undefined}
-                        onUno={isVisitor ? handleUno : undefined}
                       />
                     );
                   })}
