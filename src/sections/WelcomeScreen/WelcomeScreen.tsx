@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -15,11 +15,19 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { MY_AVATAR_URL } from '@/constants';
+import { cn } from '@/utils/cn';
 
-export const WelcomeScreen = () => {
+type WelcomeScreenProps = {
+  loading?: boolean;
+  exiting?: boolean;
+  onExited?: () => void;
+};
+
+export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: WelcomeScreenProps) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   const name = useAppSelector(selectVisitorName);
   const company = useAppSelector(selectVisitorCompany);
@@ -27,7 +35,16 @@ export const WelcomeScreen = () => {
 
   useEffect(() => {
     nameInputRef.current?.focus();
+    requestAnimationFrame(() => setMounted(true));
   }, []);
+
+  const visible = mounted && !exiting;
+
+  const handleTransitionEnd = (e: React.TransitionEvent) => {
+    if (exiting && e.propertyName === 'opacity') {
+      onExited?.();
+    }
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,7 +59,13 @@ export const WelcomeScreen = () => {
   return (
     <section className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
-        <div className="mb-32 space-y-7 text-center">
+        <div
+          className={cn(
+            'mb-32 space-y-7 text-center transition-all duration-500 ease-out',
+            visible ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0',
+          )}
+          onTransitionEnd={handleTransitionEnd}
+        >
           <Avatar
             src={MY_AVATAR_URL}
             alt="Oriel Absin"
@@ -59,7 +82,10 @@ export const WelcomeScreen = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-6"
+          className={cn(
+            'space-y-6 transition-all duration-500 ease-out delay-100',
+            visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0',
+          )}
           noValidate
         >
           <Input
@@ -71,6 +97,7 @@ export const WelcomeScreen = () => {
             error={nameError}
             required
             autoComplete="name"
+            disabled={loading}
           />
           <Input
             label={t('welcome.companyLabel')}
@@ -78,8 +105,9 @@ export const WelcomeScreen = () => {
             value={company}
             onChange={(e) => dispatch(setCompany(e.target.value))}
             autoComplete="organization"
+            disabled={loading}
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full cursor-pointer" loading={loading}>
             {t('welcome.startButton')}
           </Button>
         </form>

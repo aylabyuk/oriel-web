@@ -30,16 +30,23 @@ type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
   onPlayCard?: (cardId: string, chosenColor?: import('uno-engine').Color) => void;
+  onSceneReady?: () => void;
 };
 
 export const BackgroundScene = ({
   showTable = false,
   onStartGame,
   onPlayCard,
+  onSceneReady,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const [tableReady, setTableReady] = useState(false);
+  const [cardsReady, setCardsReady] = useState(false);
   const handleTableReady = useCallback(() => setTableReady(true), []);
+  const handleCardsReady = useCallback(() => {
+    setCardsReady(true);
+    onSceneReady?.();
+  }, [onSceneReady]);
   const magnet = useMagnetState(snapshot, tableReady);
 
   useEffect(() => {
@@ -71,7 +78,7 @@ export const BackgroundScene = ({
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
           <Suspense fallback={null}>
-            <Table onReady={handleTableReady}>
+            <Table startEntrance={cardsReady} onReady={handleTableReady}>
               {DEBUG_MAGNETS && (
                 <>
                   <MagnetDeck cards={magnet.deck} />
@@ -96,6 +103,7 @@ export const BackgroundScene = ({
                 magnet={magnet}
                 playableCardIds={isVisitorTurn ? snapshot?.playableCardIds : undefined}
                 onCardClick={isVisitorTurn ? handleCardClick : undefined}
+                onDeckReady={handleCardsReady}
               />
               {snapshot && magnet.phase === 'playing' && (
                 <>

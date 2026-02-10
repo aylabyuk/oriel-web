@@ -3,12 +3,15 @@ import { cn } from '@/utils/cn';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary';
+  loading?: boolean;
 };
 
 export const Button = ({
   variant = 'primary',
   className,
   children,
+  loading,
+  disabled,
   ...props
 }: ButtonProps) => (
   <button
@@ -31,8 +34,16 @@ export const Button = ({
       ],
       className,
     )}
+    disabled={disabled || loading}
     {...props}
   >
-    {children}
+    {loading ? (
+      <span className="inline-flex items-center justify-center gap-2">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+        Loading...
+      </span>
+    ) : (
+      children
+    )}
   </button>
 );

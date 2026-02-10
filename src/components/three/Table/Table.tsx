@@ -11,12 +11,13 @@ const TABLE_REST_POSITION: [number, number, number] = [0, -1, -2];
 
 type TableProps = {
   children?: ReactNode;
+  startEntrance?: boolean;
   onReady?: () => void;
 };
 
 const TABLE_COLOR = '#2a2a2a';
 
-export const Table = ({ children, onReady }: TableProps) => {
+export const Table = ({ children, startEntrance = true, onReady }: TableProps) => {
 
   const firedRef = useRef(false);
 
@@ -25,8 +26,9 @@ export const Table = ({ children, onReady }: TableProps) => {
     config: { tension: 80, friction: 20 },
   }));
 
-  // Start the entrance animation once on mount.
+  // Start the entrance animation when startEntrance becomes true.
   useEffect(() => {
+    if (!startEntrance) return;
     api.start({
       position: TABLE_REST_POSITION,
       onRest() {
@@ -36,7 +38,7 @@ export const Table = ({ children, onReady }: TableProps) => {
         }
       },
     });
-  }, [api, onReady]);
+  }, [api, startEntrance, onReady]);
 
   return (
     <animated.group position={position as unknown as [number, number, number]}>
