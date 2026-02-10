@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { Color } from 'uno-engine';
-import type { ChallengeResult } from '@/types/game';
+import type { ChallengeResult, GameEndInfo } from '@/types/game';
 import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent } from '@/store/slices/game';
@@ -15,6 +15,20 @@ const AI_ANIMATION_WAIT = 1500;
 /** Random additional "thinking" delay range (ms) */
 const AI_THINK_MIN = 500;
 const AI_THINK_MAX = 1500;
+
+/** Delay range before AI tries to catch visitor forgetting UNO (ms) */
+const AI_CATCH_MIN = 1500;
+const AI_CATCH_MAX = 2500;
+/** Probability that an AI opponent catches a visitor who forgot to call UNO */
+const AI_CATCH_CHANCE = 0.5;
+
+/** Delay range for AI "thinking" before calling UNO on itself (ms) */
+const AI_UNO_THINK_MIN = 300;
+const AI_UNO_THINK_MAX = 800;
+/** Probability that AI remembers to call UNO (forgets = 1 - this) */
+const AI_UNO_SELF_CALL_CHANCE = 0.8;
+/** How long the catch window stays open after an AI forgets (ms) */
+const CATCH_WINDOW_DURATION = 3000;
 
 const ALL_COLORS = [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW];
 
@@ -31,6 +45,8 @@ export const useGameController = () => {
   const gameRef = useRef<UnoGame | null>(null);
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aiScheduledRef = useRef(false);
+  const unoCatchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const unoAiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleAiPlay = useCallback(() => {
     const game = gameRef.current;
@@ -77,10 +93,12 @@ export const useGameController = () => {
     }, totalDelay);
   }, []);
 
-  // Clean up AI timer on unmount
+  // Clean up timers on unmount
   useEffect(() => {
     return () => {
       if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
+      if (unoCatchTimerRef.current) clearTimeout(unoCatchTimerRef.current);
+      if (unoAiTimerRef.current) clearTimeout(unoAiTimerRef.current);
     };
   }, []);
 
@@ -107,6 +125,55 @@ export const useGameController = () => {
 
       // Don't schedule AI play while a WD4 challenge is pending
       if (snap.pendingChallenge) return;
+
+      // UNO detection — someone played to 1 card
+      if (event.type === 'card_played' && snap.unoCallable) {
+        const callable = snap.unoCallable.playerName;
+        const humanName = playerNames[0];
+
+        if (callable === humanName) {
+          // Visitor played to 1 card — schedule AI catch attempt
+          const catchDelay = AI_CATCH_MIN + Math.random() * (AI_CATCH_MAX - AI_CATCH_MIN);
+          unoCatchTimerRef.current = setTimeout(() => {
+            const g = gameRef.current;
+            if (!g || g.getUnoCallable() !== humanName) return;
+            if (Math.random() < AI_CATCH_CHANCE) {
+              const catcher = AI_OPPONENTS[Math.floor(Math.random() * AI_OPPONENTS.length)];
+              g.callUno(catcher);
+            }
+            // Always close the UNO window when the catch timer expires
+            g.setUnoCallable(null);
+            dispatch(setSnapshot(g.getSnapshot()));
+          }, catchDelay);
+        } else if (AI_NAMES.has(callable)) {
+          // AI played to 1 card — clear immediately so App doesn't show
+          // the catch button yet, then schedule AI "think" timer
+          game.setUnoCallable(null);
+          dispatch(setSnapshot(game.getSnapshot()));
+
+          const thinkDelay = AI_UNO_THINK_MIN + Math.random() * (AI_UNO_THINK_MAX - AI_UNO_THINK_MIN);
+          unoAiTimerRef.current = setTimeout(() => {
+            const g = gameRef.current;
+            if (!g) return;
+            if (Math.random() < AI_UNO_SELF_CALL_CHANCE) {
+              // AI remembers — call UNO on itself, safe
+              g.callUno(callable);
+              dispatch(setSnapshot(g.getSnapshot()));
+            } else {
+              // AI forgot! Open catch window for visitor
+              g.setUnoCallable(callable);
+              dispatch(setSnapshot(g.getSnapshot()));
+              // Auto-close the catch window after a duration
+              unoAiTimerRef.current = setTimeout(() => {
+                const g2 = gameRef.current;
+                if (!g2 || g2.getUnoCallable() !== callable) return;
+                g2.setUnoCallable(null);
+                dispatch(setSnapshot(g2.getSnapshot()));
+              }, CATCH_WINDOW_DURATION);
+            }
+          }, thinkDelay);
+        }
+      }
 
       // After any event, check if it's an AI's turn and schedule their play
       if (event.type === 'turn_changed' || event.type === 'card_played') {
@@ -188,5 +255,56 @@ export const useGameController = () => {
     }, thinkDelay);
   }, [dispatch, scheduleAiPlay]);
 
-  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge };
+  const callUno = useCallback((playerName: string) => {
+    const game = gameRef.current;
+    if (!game) return;
+    if (unoCatchTimerRef.current) {
+      clearTimeout(unoCatchTimerRef.current);
+      unoCatchTimerRef.current = null;
+    }
+    if (unoAiTimerRef.current) {
+      clearTimeout(unoAiTimerRef.current);
+      unoAiTimerRef.current = null;
+    }
+    game.callUno(playerName);
+    game.setUnoCallable(null);
+    dispatch(setSnapshot(game.getSnapshot()));
+  }, [dispatch]);
+
+  const restartGame = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
+    if (unoCatchTimerRef.current) clearTimeout(unoCatchTimerRef.current);
+    if (unoAiTimerRef.current) clearTimeout(unoAiTimerRef.current);
+    aiScheduledRef.current = false;
+    game.restart();
+    dispatch(setSnapshot(game.getSnapshot()));
+    scheduleAiPlay();
+  }, [dispatch, scheduleAiPlay]);
+
+  const getGameEndInfo = useCallback((): GameEndInfo | null => {
+    return gameRef.current?.getGameEndInfo() ?? null;
+  }, []);
+
+  /** DEV ONLY — force game end for testing. Remove before production. */
+  const devForceEnd = useCallback((winnerName?: string) => {
+    const game = gameRef.current;
+    if (!game) return;
+    if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
+    aiScheduledRef.current = false;
+    game.devForceEnd(winnerName);
+    dispatch(setSnapshot(game.getSnapshot()));
+  }, [dispatch]);
+
+  /** DEV ONLY — trim visitor hand to N cards. Remove before production. */
+  const devTrimHand = useCallback((keep: number) => {
+    const game = gameRef.current;
+    if (!game) return;
+    const name = visitorName || 'Player';
+    game.devTrimHand(name, keep);
+    dispatch(setSnapshot(game.getSnapshot()));
+  }, [visitorName, dispatch]);
+
+  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, devForceEnd, devTrimHand };
 };

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
 import { selectMode } from '@/store/slices/theme';
@@ -9,6 +9,8 @@ import { RestartButton } from '@/components/ui/RestartButton';
 import { WildColorPicker } from '@/components/ui/WildColorPicker';
 import { DrawChoiceModal } from '@/components/ui/DrawChoiceModal';
 import { ChallengeModal } from '@/components/ui/ChallengeModal';
+import { GameEndOverlay } from '@/components/ui/GameEndOverlay';
+import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 import { useGameController } from '@/hooks/useGameController';
 import type { Color } from 'uno-engine';
@@ -17,7 +19,7 @@ export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const mode = useAppSelector(selectMode);
   const snapshot = useAppSelector(selectSnapshot);
-  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge } = useGameController();
+  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, devForceEnd, devTrimHand } = useGameController();
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
@@ -76,6 +78,40 @@ export const App = () => {
     passAfterDraw();
   }, [passAfterDraw]);
 
+  // --- Game end ---
+  const gameEnded = snapshot?.phase === 'ended';
+  const endInfo = useMemo(() => gameEnded ? getGameEndInfo() : null, [gameEnded, getGameEndInfo]);
+  const isVisitorWinner = endInfo?.winner === snapshot?.players[0]?.name;
+
+  // DEV ONLY — Shift+E force end, Shift+W visitor win, Shift+U trim hand to 2. Remove before production.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'E') devForceEnd();
+      if (e.shiftKey && e.key === 'W') devForceEnd(snapshot?.players[0]?.name);
+      if (e.shiftKey && e.key === 'U') devTrimHand(2);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [devForceEnd, devTrimHand, snapshot]);
+
+  // --- UNO shout / catch flow ---
+  const UNO_SHOUT_WINDOW = 2500;
+  const CATCH_WINDOW_DISPLAY = 3000;
+  const unoCallable = snapshot?.unoCallable ?? null;
+  const visitorName = snapshot?.players[0]?.name;
+  const unoMode: 'shout' | 'catch' | null = unoCallable
+    ? unoCallable.playerName === visitorName
+      ? 'shout'
+      : 'catch'
+    : null;
+  const unoDuration = unoMode === 'shout' ? UNO_SHOUT_WINDOW : CATCH_WINDOW_DISPLAY;
+  const unoTargetName = unoMode === 'catch' ? unoCallable?.playerName : undefined;
+
+  const handleUnoPress = useCallback(() => {
+    if (!visitorName) return;
+    callUno(visitorName);
+  }, [visitorName, callUno]);
+
   // --- WD4 Challenge flow ---
   const [challengeReady, setChallengeReady] = useState(false);
 
@@ -128,10 +164,22 @@ export const App = () => {
         onAccept={handleChallengeAccept}
         onChallenge={handleChallengeIssue}
       />
+      <GameEndOverlay
+        open={gameEnded}
+        endInfo={endInfo}
+        isVisitorWinner={isVisitorWinner}
+        onPlayAgain={restartGame}
+      />
+      <UnoButton
+        mode={unoMode}
+        targetName={unoTargetName}
+        duration={unoDuration}
+        onPress={handleUnoPress}
+      />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <ThemeToggle />
-          <RestartButton onClick={() => {}} disabled />
+          <RestartButton onClick={restartGame} disabled={!gameEnded} />
         </div>
         {welcomeDismissed ? (
           <div>

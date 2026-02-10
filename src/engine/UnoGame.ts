@@ -4,6 +4,8 @@ import type {
   GamePhase,
   GameEvent,
   GameEventListener,
+  GameEndInfo,
+  PlayerScoreBreakdown,
   DialogueTrigger,
   PendingChallenge,
   ChallengeResult,
@@ -38,6 +40,8 @@ export class UnoGame {
   private seatOrder: string[];
   /** Pending WD4 challenge state — set after a WD4 is played, cleared on resolution. */
   private _pendingChallenge: (PendingChallenge & { wasBluff: boolean }) | null = null;
+  /** Player who just played to 1 card and needs to call UNO. Cleared on callUno() or next turn. */
+  private _unoCallable: string | null = null;
 
   constructor(
     playerNames: string[],
@@ -83,6 +87,13 @@ export class UnoGame {
       'cardplay',
       (event: { card: Card; player: { name: string } }) => {
         this.discardHistory.push(event.card);
+
+        // Detect UNO condition: player just played down to 1 card
+        const player = this.engine.getPlayer(event.player.name);
+        if (player.hand.length === 1) {
+          this._unoCallable = event.player.name;
+        }
+
         const trigger = this.getDialogueTrigger(event.card);
         this.emit({
           type: 'card_played',
@@ -109,6 +120,10 @@ export class UnoGame {
       'nextplayer',
       (event: { player: { name: string } }) => {
         this._hasDrawn = false;
+        // NOTE: do NOT clear _unoCallable here — cardplay and nextplayer
+        // fire synchronously within engine.play(), so clearing here would
+        // erase it before React ever sees it. The controller manages the
+        // UNO window lifecycle via callUno() and the catch timer.
         this.emit({
           type: 'turn_changed',
           playerName: event.player.name,
@@ -181,11 +196,26 @@ export class UnoGame {
       : undefined;
     const penalized = this.engine.uno(yellingPlayer);
 
+    // If the callable player called UNO on themselves, they're safe
+    if (yellingPlayerName === this._unoCallable) {
+      this._unoCallable = null;
+    }
+
     if (yellingPlayerName) {
       this.emit({
         type: 'uno_called',
         playerName: yellingPlayerName,
       });
+    }
+
+    if (penalized.length > 0) {
+      for (const p of penalized) {
+        this.emit({
+          type: 'uno_penalty',
+          playerName: p.name,
+          data: { count: 2 },
+        });
+      }
     }
 
     return penalized.map((p) => p.name);
@@ -241,6 +271,16 @@ export class UnoGame {
     return 'legit_play';
   }
 
+  /** Get the player who needs to call UNO, or null. */
+  getUnoCallable(): string | null {
+    return this._unoCallable;
+  }
+
+  /** Set or clear the UNO callable player (controller manages the lifecycle). */
+  setUnoCallable(name: string | null): void {
+    this._unoCallable = name;
+  }
+
   /** Get the pending challenge state (without revealing wasBluff). */
   getPendingChallenge(): PendingChallenge | null {
     if (!this._pendingChallenge) return null;
@@ -259,6 +299,7 @@ export class UnoGame {
     this.winner = null;
     this.score = null;
     this._pendingChallenge = null;
+    this._unoCallable = null;
 
     // Recompute stable seat order for the new engine instance
     const names = this.engine.players.map((p) => p.name);
@@ -305,6 +346,9 @@ export class UnoGame {
       score: this.score,
       playableCardIds: this.getPlayableCards().map((c) => getCardId(c)),
       pendingChallenge: this.getPendingChallenge(),
+      unoCallable: this._unoCallable
+        ? { playerName: this._unoCallable, deadline: 0 }
+        : null,
     };
   }
 
@@ -353,9 +397,48 @@ export class UnoGame {
     return this.engine;
   }
 
+  /** Get end-of-game info with per-player score breakdown. Returns null if game hasn't ended. */
+  getGameEndInfo(): GameEndInfo | null {
+    if (this.phase !== 'ended' || !this.winner || this.score === null) return null;
+
+    const breakdown: PlayerScoreBreakdown[] = this.seatOrder
+      .filter((name) => name !== this.winner)
+      .map((name) => {
+        const hand = this.engine.getPlayer(name).hand;
+        return {
+          name,
+          cardCount: hand.length,
+          points: hand.reduce((sum, card) => sum + card.score, 0),
+        };
+      });
+
+    return { winner: this.winner, score: this.score, breakdown };
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  /** DEV ONLY — trim a player's hand to `keep` cards. Remove before production. */
+  devTrimHand(playerName: string, keep: number): void {
+    const player = this.engine.getPlayer(playerName);
+    while (player.hand.length > keep) {
+      player.hand.pop();
+    }
+  }
+
+  /** DEV ONLY — force the game to end immediately for testing. Remove before production. */
+  devForceEnd(winnerName?: string): void {
+    const winner = winnerName ?? this.seatOrder[1];
+    this.phase = 'ended';
+    this.winner = winner;
+    this.score = this.seatOrder
+      .filter((n) => n !== winner)
+      .reduce((sum, name) => {
+        return sum + this.engine.getPlayer(name).hand.reduce((s, c) => s + c.score, 0);
+      }, 0);
+    this.emit({ type: 'game_ended', playerName: winner, data: { score: this.score } });
+  }
 
   /** Map a card to the dialogue trigger type for the portfolio narrative. */
   getDialogueTrigger(card: Card): DialogueTrigger {

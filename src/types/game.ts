@@ -36,9 +36,27 @@ export type GameSnapshot = {
   score: number | null;
   playableCardIds: string[];
   pendingChallenge: PendingChallenge | null;
+  unoCallable: UnoCallablePlayer | null;
+};
+
+export type PlayerScoreBreakdown = {
+  name: string;
+  cardCount: number;
+  points: number;
+};
+
+export type GameEndInfo = {
+  winner: string;
+  score: number;
+  breakdown: PlayerScoreBreakdown[];
 };
 
 export type ChallengeResult = 'bluff_caught' | 'legit_play';
+
+export type UnoCallablePlayer = {
+  playerName: string;
+  deadline: number;
+};
 
 export type PendingChallenge = {
   blufferName: string;
@@ -54,7 +72,8 @@ export type GameEventType =
   | 'uno_called'
   | 'game_ended'
   | 'turn_changed'
-  | 'challenge_resolved';
+  | 'challenge_resolved'
+  | 'uno_penalty';
 
 export type GameEvent = {
   type: GameEventType;

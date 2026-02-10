@@ -219,6 +219,8 @@ expect(mesh.props.position).toEqual([0, 0, 0]);
 - [UNO Portfolio Concept](ideas/uno-portfolio.md) — Core concept: portfolio site as an UNO card game where visitors unlock resume info through gameplay
 - [Magnet Card Architecture](ideas/magnet-card-architecture.md) — Decoupled card animation system: invisible position targets (Magnet Cards) + animated visuals (Visible Cards) that follow via react-spring
 - [Wild Draw Four Challenge](ideas/wild-draw-four-challenge.md) — Challenge mechanic for WD4 bluff detection with simplified penalty rules
+- [Endgame & UNO Shout](ideas/endgame-and-uno-shout.md) — Winning, scoring, UNO callout mechanics, deck exhaustion, and edge cases
+
 ## Git Conventions
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`
 - Commit messages: conventional commits (`feat:`, `fix:`, `test:`, `chore:`, `docs:`, `refactor:`)
