@@ -30,6 +30,7 @@ type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
   onPlayCard?: (cardId: string, chosenColor?: import('uno-engine').Color) => void;
+  onWildCardPlayed?: (cardId: string) => void;
   onSceneReady?: () => void;
 };
 
@@ -37,6 +38,7 @@ export const BackgroundScene = ({
   showTable = false,
   onStartGame,
   onPlayCard,
+  onWildCardPlayed,
   onSceneReady,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
@@ -58,17 +60,16 @@ export const BackgroundScene = ({
     && snapshot?.currentPlayerName === snapshot?.players[0]?.name;
 
   const handleCardClick = useCallback((cardId: string) => {
-    if (!snapshot || !onPlayCard) return;
+    if (!snapshot) return;
     const card = snapshot.players[0]?.hand.find((c) => c.id === cardId);
     if (!card) return;
     const isWild = card.color == null;
     if (isWild) {
-      // TODO: wild color picker
-      onPlayCard(cardId);
+      onWildCardPlayed?.(cardId);
     } else {
-      onPlayCard(cardId);
+      onPlayCard?.(cardId);
     }
-  }, [snapshot, onPlayCard]);
+  }, [snapshot, onPlayCard, onWildCardPlayed]);
 
   return (
     <div className="fixed inset-0 z-0">
