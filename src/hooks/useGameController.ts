@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { Color } from 'uno-engine';
+import type { ChallengeResult } from '@/types/game';
 import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent } from '@/store/slices/game';
@@ -101,7 +102,11 @@ export const useGameController = () => {
 
     game.onEvent((event) => {
       dispatch(pushEvent(event));
-      dispatch(setSnapshot(game.getSnapshot()));
+      const snap = game.getSnapshot();
+      dispatch(setSnapshot(snap));
+
+      // Don't schedule AI play while a WD4 challenge is pending
+      if (snap.pendingChallenge) return;
 
       // After any event, check if it's an AI's turn and schedule their play
       if (event.type === 'turn_changed' || event.type === 'card_played') {
@@ -153,5 +158,35 @@ export const useGameController = () => {
     game.pass();
   }, []);
 
-  return { startGame, playCard, drawCard, passAfterDraw };
+  /** Resolve a pending WD4 challenge. accept=true means no challenge. */
+  const resolveChallenge = useCallback((accept: boolean): ChallengeResult | null => {
+    const game = gameRef.current;
+    if (!game) return null;
+    const result = game.resolveChallenge(accept);
+    dispatch(setSnapshot(game.getSnapshot()));
+    // Resume AI scheduling after resolution
+    scheduleAiPlay();
+    return result;
+  }, [dispatch, scheduleAiPlay]);
+
+  /** For AI victims: auto-decide challenge after a think delay. */
+  const tryAutoResolveChallenge = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    const challenge = game.getPendingChallenge();
+    if (!challenge || !AI_NAMES.has(challenge.victimName)) return;
+
+    const thinkDelay = AI_THINK_MIN + Math.random() * (AI_THINK_MAX - AI_THINK_MIN);
+    aiTimerRef.current = setTimeout(() => {
+      const g = gameRef.current;
+      if (!g) return;
+      // AI challenges 30% of the time
+      const shouldChallenge = Math.random() < 0.3;
+      g.resolveChallenge(!shouldChallenge);
+      dispatch(setSnapshot(g.getSnapshot()));
+      scheduleAiPlay();
+    }, thinkDelay);
+  }, [dispatch, scheduleAiPlay]);
+
+  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge };
 };

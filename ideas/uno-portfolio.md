@@ -4,7 +4,7 @@ Personal portfolio site disguised as an UNO card game. Visitors play UNO against
 
 ## Gameplay & Narrative Design
 
-- Each opponent represents a different facet: "Dev Oriel" (React, TypeScript, CTC work), "Community Oriel" (church service, volunteering, Filipino community), "Fun Oriel" (hobbies, jokes, trivia, family life)
+- Each opponent represents a different facet: "Dev Oriel" (React, TypeScript, work), "Community Oriel" (church service, volunteering, Filipino community), "Fun Oriel" (hobbies, jokes, trivia, family life)
 - Dialogue triggers tied to game events:
   - **Draw 2** — triggers a "fun fact"
   - **Skip** — triggers a "did you know"

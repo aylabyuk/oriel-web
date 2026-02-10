@@ -5,6 +5,8 @@ import type {
   GameEvent,
   GameEventListener,
   DialogueTrigger,
+  PendingChallenge,
+  ChallengeResult,
 } from '@/types/game';
 import {
   serializeCard,
@@ -34,6 +36,8 @@ export class UnoGame {
   private discardHistory: Card[];
   /** Stable seat order: player names rotated so the human is at index 0. */
   private seatOrder: string[];
+  /** Pending WD4 challenge state — set after a WD4 is played, cleared on resolution. */
+  private _pendingChallenge: (PendingChallenge & { wasBluff: boolean }) | null = null;
 
   constructor(
     playerNames: string[],
@@ -133,6 +137,27 @@ export class UnoGame {
 
   /** Play a card from the current player's hand. */
   playCard(card: Card, chosenColor?: Color): void {
+    if (card.value === Value.WILD_DRAW_FOUR) {
+      // Snapshot bluffer's hand BEFORE play to detect bluff.
+      // A play is a bluff if the player had non-wild cards matching the discard color.
+      const discardColor = this.engine.discardedCard.color;
+      const blufferName = this.engine.currentPlayer.name;
+      const victimName = this.engine.nextPlayer.name;
+      const wasBluff = this.engine.currentPlayer.hand.some(
+        (c) => !c.isWildCard() && c.color === discardColor,
+      );
+
+      // Set challenge state BEFORE engine.play() so that events fired during
+      // play() produce snapshots with pendingChallenge set, preventing AI
+      // from being scheduled while the challenge window is open.
+      this._pendingChallenge = { blufferName, victimName, wasBluff };
+      this.phase = 'challenging';
+
+      if (chosenColor) card.color = chosenColor;
+      this.engine.play(card);
+      return;
+    }
+
     if (card.isWildCard() && chosenColor) {
       card.color = chosenColor;
     }
@@ -166,6 +191,65 @@ export class UnoGame {
     return penalized.map((p) => p.name);
   }
 
+  /** Resolve a pending WD4 challenge. Returns the outcome, or null if accepted. */
+  resolveChallenge(accepted: boolean): ChallengeResult | null {
+    const challenge = this._pendingChallenge;
+    if (!challenge) return null;
+
+    this._pendingChallenge = null;
+    this.phase = 'playing';
+
+    if (accepted) {
+      this.emit({
+        type: 'challenge_resolved',
+        playerName: challenge.victimName,
+        data: { result: 'accepted', blufferName: challenge.blufferName },
+      });
+      return null;
+    }
+
+    if (challenge.wasBluff) {
+      // Bluff caught — bluffer draws 4 penalty cards
+      const bluffer = this.engine.getPlayer(challenge.blufferName);
+      this.engine.draw(bluffer, 4, { silent: true });
+      this.emit({
+        type: 'card_drawn',
+        playerName: challenge.blufferName,
+        data: { count: 4 },
+      });
+      this.emit({
+        type: 'challenge_resolved',
+        playerName: challenge.victimName,
+        data: { result: 'bluff_caught', blufferName: challenge.blufferName },
+      });
+      return 'bluff_caught';
+    }
+
+    // Legit play — challenger draws 2 extra penalty cards
+    const victim = this.engine.getPlayer(challenge.victimName);
+    this.engine.draw(victim, 2, { silent: true });
+    this.emit({
+      type: 'card_drawn',
+      playerName: challenge.victimName,
+      data: { count: 2 },
+    });
+    this.emit({
+      type: 'challenge_resolved',
+      playerName: challenge.victimName,
+      data: { result: 'legit_play', blufferName: challenge.blufferName },
+    });
+    return 'legit_play';
+  }
+
+  /** Get the pending challenge state (without revealing wasBluff). */
+  getPendingChallenge(): PendingChallenge | null {
+    if (!this._pendingChallenge) return null;
+    return {
+      blufferName: this._pendingChallenge.blufferName,
+      victimName: this._pendingChallenge.victimName,
+    };
+  }
+
   /** Restart the game with the same players and rules. */
   restart(): void {
     const playerNames = this.engine.players.map((p) => p.name);
@@ -174,6 +258,7 @@ export class UnoGame {
     this.phase = 'playing';
     this.winner = null;
     this.score = null;
+    this._pendingChallenge = null;
 
     // Recompute stable seat order for the new engine instance
     const names = this.engine.players.map((p) => p.name);
@@ -219,6 +304,7 @@ export class UnoGame {
       winner: this.winner,
       score: this.score,
       playableCardIds: this.getPlayableCards().map((c) => getCardId(c)),
+      pendingChallenge: this.getPendingChallenge(),
     };
   }
 

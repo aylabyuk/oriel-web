@@ -2,11 +2,13 @@ import { useCallback, useRef, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
 import { selectMode } from '@/store/slices/theme';
+import { selectSnapshot } from '@/store/slices/game';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { RestartButton } from '@/components/ui/RestartButton';
 import { WildColorPicker } from '@/components/ui/WildColorPicker';
 import { DrawChoiceModal } from '@/components/ui/DrawChoiceModal';
+import { ChallengeModal } from '@/components/ui/ChallengeModal';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 import { useGameController } from '@/hooks/useGameController';
 import type { Color } from 'uno-engine';
@@ -14,7 +16,8 @@ import type { Color } from 'uno-engine';
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const mode = useAppSelector(selectMode);
-  const { startGame, playCard, drawCard, passAfterDraw } = useGameController();
+  const snapshot = useAppSelector(selectSnapshot);
+  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge } = useGameController();
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
@@ -73,6 +76,32 @@ export const App = () => {
     passAfterDraw();
   }, [passAfterDraw]);
 
+  // --- WD4 Challenge flow ---
+  const [challengeReady, setChallengeReady] = useState(false);
+
+  const handleChallengeReady = useCallback(() => {
+    const pending = snapshot?.pendingChallenge;
+    if (!pending) return;
+    // If the victim is the human player, show the modal
+    const visitorName = snapshot?.players[0]?.name;
+    if (pending.victimName === visitorName) {
+      setChallengeReady(true);
+    } else {
+      // AI victim — auto-decide
+      tryAutoResolveChallenge();
+    }
+  }, [snapshot, tryAutoResolveChallenge]);
+
+  const handleChallengeAccept = useCallback(() => {
+    setChallengeReady(false);
+    resolveChallenge(true);
+  }, [resolveChallenge]);
+
+  const handleChallengeIssue = useCallback(() => {
+    setChallengeReady(false);
+    resolveChallenge(false);
+  }, [resolveChallenge]);
+
   return (
     <div
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
@@ -86,12 +115,19 @@ export const App = () => {
         onAnimationIdle={handleAnimationIdle}
         onWildCardPlayed={handleWildCardPlayed}
         onSceneReady={handleSceneReady}
-        deckEnabled={!drawPending && drawChoice === null}
+        onChallengeReady={handleChallengeReady}
+        deckEnabled={!drawPending && drawChoice === null && !challengeReady}
         playableOverride={drawChoice ? [drawChoice.cardId] : drawnWildCardId ? [drawnWildCardId] : undefined}
         onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
       />
       <DrawChoiceModal open={drawChoice !== null} onPlay={handleDrawPlay} onSkip={handleDrawSkip} />
       <WildColorPicker open={pendingWildCardId != null} onColorSelect={handleWildColorSelect} onDismiss={handleWildDismiss} />
+      <ChallengeModal
+        open={challengeReady}
+        blufferName={snapshot?.pendingChallenge?.blufferName ?? ''}
+        onAccept={handleChallengeAccept}
+        onChallenge={handleChallengeIssue}
+      />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <ThemeToggle />

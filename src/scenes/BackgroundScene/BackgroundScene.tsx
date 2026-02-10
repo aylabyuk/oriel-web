@@ -66,6 +66,7 @@ type BackgroundSceneProps = {
   onWildCardPlayed?: (cardId: string) => void;
   onDrawCardClicked?: (cardId: string) => void;
   onSceneReady?: () => void;
+  onChallengeReady?: () => void;
   deckEnabled?: boolean;
   playableOverride?: string[];
 };
@@ -79,6 +80,7 @@ export const BackgroundScene = ({
   onWildCardPlayed,
   onDrawCardClicked,
   onSceneReady,
+  onChallengeReady,
   deckEnabled = true,
   playableOverride,
 }: BackgroundSceneProps) => {
@@ -131,9 +133,62 @@ export const BackgroundScene = ({
           }
         }
       }
+      // Fire challenge-ready when draw-4 animation finishes and challenge is pending
+      if (prev?.startsWith('draw') && snapshot?.pendingChallenge) {
+        onChallengeReady?.();
+      }
+
       onAnimationIdle?.();
     }
-  }, [magnet.phase, magnet.discardPile, snapshot, onAnimationIdle]);
+  }, [magnet.phase, magnet.discardPile, snapshot, onAnimationIdle, onChallengeReady]);
+
+  // Show toast when a WD4 challenge resolves (pendingChallenge goes non-null → null)
+  const challengeSnapshotRef = useRef<{ blufferName: string; victimName: string; handSizes: number[] } | null>(null);
+  useEffect(() => {
+    if (snapshot?.pendingChallenge && !challengeSnapshotRef.current) {
+      // Save baseline hand sizes when challenge appears
+      challengeSnapshotRef.current = {
+        blufferName: snapshot.pendingChallenge.blufferName,
+        victimName: snapshot.pendingChallenge.victimName,
+        handSizes: snapshot.players.map((p) => p.hand.length),
+      };
+    }
+    if (!snapshot?.pendingChallenge && challengeSnapshotRef.current && snapshot) {
+      const saved = challengeSnapshotRef.current;
+      challengeSnapshotRef.current = null;
+
+      const N = snapshot.players.length;
+      const blufferIdx = snapshot.players.findIndex((p) => p.name === saved.blufferName);
+      const victimIdx = snapshot.players.findIndex((p) => p.name === saved.victimName);
+
+      let message: string;
+      let targetIdx: number;
+      let color: string;
+
+      if (blufferIdx >= 0 && snapshot.players[blufferIdx].hand.length > saved.handSizes[blufferIdx]) {
+        // Bluffer gained cards → bluff caught
+        message = 'Bluff caught!';
+        targetIdx = blufferIdx;
+        color = '#ef4444';
+      } else if (victimIdx >= 0 && snapshot.players[victimIdx].hand.length > saved.handSizes[victimIdx]) {
+        // Victim gained extra cards → challenge failed
+        message = 'Challenge failed!';
+        targetIdx = victimIdx;
+        color = '#f97316';
+      } else {
+        // No extra draws → accepted
+        message = 'Accepted';
+        targetIdx = victimIdx >= 0 ? victimIdx : 0;
+        color = '#888';
+      }
+
+      setToasts((prev) => {
+        const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
+        next[targetIdx] = { message, color, key: Date.now() };
+        return next;
+      });
+    }
+  }, [snapshot]);
 
   // Auto-clear toasts after CSS animation finishes
   useEffect(() => {

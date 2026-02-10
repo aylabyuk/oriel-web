@@ -23,7 +23,7 @@ export type SerializedPlayer = {
 
 export type PlayDirection = 'clockwise' | 'counter_clockwise';
 
-export type GamePhase = 'idle' | 'playing' | 'choosing_color' | 'ended';
+export type GamePhase = 'idle' | 'playing' | 'choosing_color' | 'challenging' | 'ended';
 
 export type GameSnapshot = {
   phase: GamePhase;
@@ -35,6 +35,14 @@ export type GameSnapshot = {
   winner: string | null;
   score: number | null;
   playableCardIds: string[];
+  pendingChallenge: PendingChallenge | null;
+};
+
+export type ChallengeResult = 'bluff_caught' | 'legit_play';
+
+export type PendingChallenge = {
+  blufferName: string;
+  victimName: string;
 };
 
 export type GameEventType =
@@ -45,7 +53,8 @@ export type GameEventType =
   | 'player_skipped'
   | 'uno_called'
   | 'game_ended'
-  | 'turn_changed';
+  | 'turn_changed'
+  | 'challenge_resolved';
 
 export type GameEvent = {
   type: GameEventType;
