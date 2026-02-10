@@ -255,7 +255,9 @@ export const applyStep = (
 
     case 'reveal_turn': {
       const newStaging = prev.playerStaging.map(() => [] as SerializedCard[]);
-      const newHands = prev.playerHands.map((h, i) => [...h, ...prev.playerStaging[i]]);
+      const newHands = prev.playerHands.map((h, i) =>
+        [...h, ...prev.playerStaging[i]].sort(sortCards),
+      );
       return { ...prev, playerStaging: newStaging, playerHands: newHands };
     }
 
