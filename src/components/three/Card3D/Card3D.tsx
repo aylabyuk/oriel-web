@@ -1,5 +1,7 @@
+import type { RefObject } from 'react';
 import { useTexture } from '@react-three/drei';
 import { Shape, ShapeGeometry, ExtrudeGeometry } from 'three';
+import type { Mesh } from 'three';
 import type { Value, Color } from 'uno-engine';
 import { getCardFilename } from '@/utils/cardTexture';
 import { CARD_TEXTURES, CARD_BACK_TEXTURE } from '@/constants';
@@ -62,6 +64,8 @@ type Card3DProps = {
   rotation?: [number, number, number];
   glowColor?: string;
   glowIntensity?: number;
+  /** Ref to the body mesh — allows external animation of material properties */
+  bodyRef?: RefObject<Mesh | null>;
 };
 
 export const Card3D = ({
@@ -72,6 +76,7 @@ export const Card3D = ({
   rotation = [0, 0, 0],
   glowColor,
   glowIntensity = 0,
+  bodyRef,
 }: Card3DProps) => {
   const showFront = faceUp && value !== undefined;
   const frontUrl = showFront
@@ -88,7 +93,7 @@ export const Card3D = ({
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh geometry={bodyGeo}>
+      <mesh ref={bodyRef} geometry={bodyGeo}>
         <meshStandardMaterial
           color="#ffffff"
           roughness={0.5}

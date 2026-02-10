@@ -84,8 +84,10 @@ export const BackgroundScene = ({
   // Use magnet state's discard pile for visual props — deferred during animations
   // so the orbit color/direction only update after the card lands.
   const topDiscard = magnet.discardPile[magnet.discardPile.length - 1];
+  const visitorName = snapshot?.players[0]?.name;
   const isVisitorTurn = magnet.phase === 'playing'
-    && magnet.currentPlayerName === snapshot?.players[0]?.name;
+    && magnet.currentPlayerName === visitorName
+    && snapshot?.currentPlayerName === visitorName;
 
   const handleCardClick = useCallback((cardId: string) => {
     if (!snapshot) return;

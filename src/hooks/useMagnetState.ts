@@ -10,14 +10,14 @@ const DISCARD_LIFT_DELAY = 200;
 const DISCARD_FLIP_DELAY = 250;
 const DISCARD_MOVE_DELAY = 250;
 const DISCARD_DROP_DELAY = 150;
-const PLAY_GAP_DELAY = 200;
+const PLAY_GAP_DELAY = 400;
 const PLAY_LIFT_DELAY = 250;
 const PLAY_MOVE_DELAY = 300;
 const PLAY_ROTATE_DELAY = 200;
 const PLAY_DROP_DELAY = 150;
 const DRAW_LIFT_DELAY = 200;
 const DRAW_MOVE_DELAY = 300;
-const DRAW_GAP_DELAY = 200;
+const DRAW_GAP_DELAY = 400;
 const DRAW_DROP_DELAY = 250;
 
 // --- Types ---
@@ -382,7 +382,18 @@ export const applyStep = (
 ): MagnetState => {
   switch (step.type) {
     case 'phase':
-      return { ...prev, phase: step.phase };
+      return {
+        ...prev,
+        phase: step.phase,
+        // Clear animation fields when returning to playing so gaps close
+        ...(step.phase === 'playing' ? {
+          playingPlayerIndex: -1,
+          selectedCardId: null,
+          liftingCardId: null,
+          drawingPlayerIndex: -1,
+          drawInsertIndex: -1,
+        } : {}),
+      };
 
     case 'deal': {
       const card = cardMap.get(step.cardId);
@@ -510,8 +521,8 @@ export const applyStep = (
         ...prev,
         playerHands: newHands,
         drawFloat: [],
-        drawingPlayerIndex: -1,
-        drawInsertIndex: -1,
+        // Keep drawingPlayerIndex and drawInsertIndex so the gap stays
+        // open while the card settles into its slot. Cleared on 'playing'.
         spreadProgress: Math.max(prev.spreadProgress, ...newHands.map((h) => h.length)),
       };
     }

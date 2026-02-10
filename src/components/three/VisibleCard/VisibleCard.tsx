@@ -1,15 +1,17 @@
 import { Suspense, useRef } from 'react';
 import { useSpring } from '@react-spring/three';
 import { useFrame } from '@react-three/fiber';
-import type { Group } from 'three';
+import type { Group, Mesh, MeshStandardMaterial } from 'three';
 import { Card3D } from '@/components/three/Card3D';
 import type { Value, Color } from 'uno-engine';
 import type { CardPlacement } from '@/utils/zoneLayout';
 import type { SpringConfig } from '@/utils/computeAllTargets';
 
 const DEFAULT_CONFIG: SpringConfig = { tension: 300, friction: 35 };
+/** Gentle spring for playable lift / glow so transitions feel smooth */
+const PLAYABLE_CONFIG: SpringConfig = { tension: 80, friction: 14 };
 
-const PLAYABLE_LIFT = 0.15;
+const PLAYABLE_LIFT = 0.12;
 const PLAYABLE_GLOW_COLOR = '#ffffff';
 const PLAYABLE_GLOW = 0.6;
 
@@ -47,6 +49,7 @@ export const VisibleCard = ({
   const tiltRef = useRef<Group>(null!);
   const liftRef = useRef<Group>(null!);
   const rollRef = useRef<Group>(null!);
+  const bodyMeshRef = useRef<Mesh>(null!);
 
   const [springs, api] = useSpring(() => ({
     px: to.position[0],
@@ -56,6 +59,7 @@ export const VisibleCard = ({
     tilt: to.tilt,
     roll: to.roll,
     lift: 0,
+    glow: 0,
     config: DEFAULT_CONFIG,
   }));
 
@@ -68,8 +72,9 @@ export const VisibleCard = ({
       tilt: to.tilt,
       roll: to.roll,
       lift: playable ? PLAYABLE_LIFT : 0,
-      immediate: snap,
-      config: springConfig ?? DEFAULT_CONFIG,
+      glow: playable ? PLAYABLE_GLOW : 0,
+      immediate: (key: string) => (key === 'lift' || key === 'glow') ? false : !!snap,
+      config: (key: string) => (key === 'lift' || key === 'glow') ? PLAYABLE_CONFIG : (springConfig ?? DEFAULT_CONFIG),
     });
 
     outerRef.current.position.set(springs.px.get(), springs.py.get(), springs.pz.get());
@@ -77,6 +82,10 @@ export const VisibleCard = ({
     tiltRef.current.rotation.x = springs.tilt.get();
     liftRef.current.position.y = springs.lift.get();
     rollRef.current.rotation.z = springs.roll.get();
+
+    if (bodyMeshRef.current) {
+      (bodyMeshRef.current.material as MeshStandardMaterial).emissiveIntensity = springs.glow.get();
+    }
   });
 
   return (
@@ -95,7 +104,7 @@ export const VisibleCard = ({
                 color={color}
                 faceUp
                 glowColor={PLAYABLE_GLOW_COLOR}
-                glowIntensity={playable ? PLAYABLE_GLOW : 0}
+                bodyRef={bodyMeshRef}
               />
             </Suspense>
           </group>

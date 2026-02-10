@@ -240,13 +240,28 @@ export const getPlayerHandPlacement = (
   };
 };
 
-/** Play lift: card rises from hand along its local "up" direction so it
+/** Play lift: card rises from its slot along the local "up" direction so it
  *  slides out of the tilted fan without clipping neighboring cards.
- *  For the human player the tilt creates a slanted plane — the card moves
- *  upward and inward (toward table center) along that plane. */
-export const getPlayLiftPlacement = (seat: Seat, isHuman = false): CardPlacement => {
-  const { x, z } = pullTowardCenter(seat, PULL_DISTANCE);
+ *  Preserves the card's perpendicular spread offset so it lifts straight
+ *  up from its position rather than sliding to the hand center. */
+export const getPlayLiftPlacement = (
+  seat: Seat,
+  isHuman = false,
+  cardIndex?: number,
+  totalCards?: number,
+): CardPlacement => {
+  const { x, z, perpX, perpZ } = pullTowardCenter(seat, PULL_DISTANCE);
   const angle = seatAngle(seat);
+
+  // Preserve the card's spread position so it lifts straight up from its slot
+  let spreadX = 0;
+  let spreadZ = 0;
+  if (cardIndex !== undefined && totalCards !== undefined) {
+    const spread = isHuman ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
+    const offset = (cardIndex - (totalCards - 1) / 2) * spread;
+    spreadX = perpX * offset;
+    spreadZ = perpZ * offset;
+  }
 
   const tiltAngle = isHuman ? Math.abs(CAMERA_TILT_X) : 0;
   const clearance = CARD_HEIGHT;
@@ -262,9 +277,9 @@ export const getPlayLiftPlacement = (seat: Seat, isHuman = false): CardPlacement
 
   return {
     position: [
-      x + inwardX * lateral,
+      x + spreadX + inwardX * lateral,
       TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT + extraY,
-      z + inwardZ * lateral,
+      z + spreadZ + inwardZ * lateral,
     ],
     yaw: angle,
     tilt: isHuman ? CAMERA_TILT_X : 0,
@@ -313,11 +328,28 @@ export const getDrawLiftPlacement = (): CardPlacement => ({
 });
 
 /** Draw move: card travels from above deck to above the player's hand.
- *  Offset along the card's local up so it enters along the tilt plane.
+ *  When an insertIndex is provided (during draw_gap), the card hovers above
+ *  its target slot so it drops straight down without lateral movement.
  *  Face-up for the human player, face-down for opponents. */
-export const getDrawMovePlacement = (seat: Seat, isHuman = false): CardPlacement => {
-  const { x, z } = pullTowardCenter(seat, PULL_DISTANCE);
+export const getDrawMovePlacement = (
+  seat: Seat,
+  isHuman = false,
+  insertIndex?: number,
+  currentHandSize?: number,
+): CardPlacement => {
+  const { x, z, perpX, perpZ } = pullTowardCenter(seat, PULL_DISTANCE);
   const angle = seatAngle(seat);
+
+  // Position above the target insertion slot
+  let spreadX = 0;
+  let spreadZ = 0;
+  if (insertIndex !== undefined && currentHandSize !== undefined) {
+    const spread = isHuman ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
+    const newTotal = currentHandSize + 1;
+    const offset = (insertIndex - (newTotal - 1) / 2) * spread;
+    spreadX = perpX * offset;
+    spreadZ = perpZ * offset;
+  }
 
   const tiltAngle = isHuman ? Math.abs(CAMERA_TILT_X) : 0;
   const clearance = CARD_HEIGHT;
@@ -331,9 +363,9 @@ export const getDrawMovePlacement = (seat: Seat, isHuman = false): CardPlacement
 
   return {
     position: [
-      x + inwardX * lateral,
+      x + spreadX + inwardX * lateral,
       TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT + extraY,
-      z + inwardZ * lateral,
+      z + spreadZ + inwardZ * lateral,
     ],
     yaw: angle,
     tilt: isHuman ? CAMERA_TILT_X : 0,

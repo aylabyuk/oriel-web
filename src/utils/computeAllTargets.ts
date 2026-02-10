@@ -92,13 +92,16 @@ export const computeAllTargets = (
   magnet.drawFloat.forEach((card) => {
     const seat = seats[magnet.drawingPlayerIndex];
     const isHuman = magnet.drawingPlayerIndex === 0;
+    const handSize = magnet.playerHands[magnet.drawingPlayerIndex]?.length ?? 0;
+    const insertIdx = magnet.drawInsertIndex >= 0 ? magnet.drawInsertIndex : undefined;
     const placement = (() => {
       switch (magnet.phase) {
         case 'draw_lift': return getDrawLiftPlacement();
         case 'draw_move':
-        case 'draw_gap':
           return getDrawMovePlacement(seat, isHuman);
-        default: return getDrawMovePlacement(seat, isHuman);
+        case 'draw_gap':
+          return getDrawMovePlacement(seat, isHuman, insertIdx, handSize);
+        default: return getDrawMovePlacement(seat, isHuman, insertIdx, handSize);
       }
     })();
     targets.push({
@@ -135,11 +138,20 @@ export const computeAllTargets = (
     const gapIdx = magnet.selectedCardId
       ? cards.findIndex((c) => c.id === magnet.selectedCardId)
       : -1;
-    const gapAtIndex = gapIdx >= 0 ? gapIdx : undefined;
+
+    // During draw_drop the card is already in the hand — use gapAtIndex
+    // (which skips the card itself) so neighbors stay spread while it settles.
+    const isDrawDrop = magnet.phase === 'draw_drop'
+      && playerIndex === magnet.drawingPlayerIndex
+      && magnet.drawInsertIndex >= 0;
+    const gapAtIndex = gapIdx >= 0
+      ? gapIdx
+      : isDrawDrop ? magnet.drawInsertIndex : undefined;
 
     // Draw gap: neighbors spread to make room at insertion point
+    // (only during draw_gap — draw_drop uses gapAtIndex above instead)
     const insertGap = (
-      (magnet.phase === 'draw_gap' || magnet.phase === 'draw_drop') &&
+      magnet.phase === 'draw_gap' &&
       playerIndex === magnet.drawingPlayerIndex &&
       magnet.drawInsertIndex >= 0
     ) ? magnet.drawInsertIndex : undefined;
@@ -151,7 +163,7 @@ export const computeAllTargets = (
           cardId: card.id,
           value: card.value,
           color: card.color,
-          placement: getPlayLiftPlacement(seats[playerIndex], playerIndex === 0),
+          placement: getPlayLiftPlacement(seats[playerIndex], playerIndex === 0, i, cards.length),
         });
         return;
       }
