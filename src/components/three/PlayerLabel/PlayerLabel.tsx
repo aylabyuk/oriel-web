@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import type { Seat } from '@/constants';
+import type { DialogueBubble } from '@/types/dialogue';
 const PULL_DISTANCE = 1.2;
 
 const AVATAR_COLORS: Record<string, string> = {
@@ -40,6 +41,13 @@ const LABEL_CSS = `
   20%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   75%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   100% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.9); }
+}
+@keyframes dialogue-bubble {
+  0%   { opacity: 0; transform: translateY(4px) scale(0.85); }
+  10%  { opacity: 1; transform: translateY(-1px) scale(1.02); }
+  18%  { opacity: 1; transform: translateY(0) scale(1); }
+  82%  { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-4px) scale(0.95); }
 }`;
 
 export type Toast = { message: string; color: string; key: number };
@@ -56,6 +64,8 @@ type PlayerLabelProps = {
   isActive?: boolean;
   activeColor?: string;
   toast?: Toast | null;
+  dialogue?: DialogueBubble | null;
+  dialogueAlign?: 'left' | 'right';
 };
 
 export const PlayerLabel = ({
@@ -70,6 +80,8 @@ export const PlayerLabel = ({
   isActive = false,
   activeColor,
   toast,
+  dialogue,
+  dialogueAlign,
 }: PlayerLabelProps) => {
   const { position, rotationY } = useMemo(() => {
     const seatDist = Math.hypot(seat.position[0], seat.position[2]);
@@ -145,6 +157,26 @@ export const PlayerLabel = ({
             className="whitespace-nowrap rounded-full px-3 py-1 text-sm font-bold text-white"
           >
             {toast.message}
+          </div>
+        )}
+        {dialogue && (
+          <div
+            key={dialogue.key}
+            style={{
+              position: 'absolute',
+              bottom: '100%',
+              marginBottom: toast ? '48px' : '10px',
+              ...(dialogueAlign === 'left'
+                ? { right: '0', borderRight: `3px solid ${avatarColor}` }
+                : { left: '0', borderLeft: `3px solid ${avatarColor}` }),
+              animation: 'dialogue-bubble 3s ease-out forwards',
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              pointerEvents: 'none' as const,
+              width: '240px',
+            }}
+            className="whitespace-normal rounded-lg px-3 py-1.5 text-sm leading-snug font-medium text-white/90 italic"
+          >
+            {dialogue.message}
           </div>
         )}
         </div>

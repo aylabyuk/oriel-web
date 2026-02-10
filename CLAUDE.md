@@ -220,6 +220,7 @@ expect(mesh.props.position).toEqual([0, 0, 0]);
 - [Magnet Card Architecture](ideas/magnet-card-architecture.md) — Decoupled card animation system: invisible position targets (Magnet Cards) + animated visuals (Visible Cards) that follow via react-spring
 - [Wild Draw Four Challenge](ideas/wild-draw-four-challenge.md) — Challenge mechanic for WD4 bluff detection with simplified penalty rules
 - [Endgame & UNO Shout](ideas/endgame-and-uno-shout.md) — Winning, scoring, UNO callout mechanics, deck exhaustion, and edge cases
+- [AI Dialogue System](ideas/ai-dialogue.md) — Personality-driven game commentary: 3 AI opponents with distinct personalities react to game events with short dialogue lines
 
 ## Git Conventions
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`

@@ -20,6 +20,7 @@ import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import type { Toast } from '@/components/three/PlayerLabel/PlayerLabel';
 import { useMagnetState } from '@/hooks/useMagnetState';
+import { useDialogue } from '@/hooks/useDialogue';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import {
   SEATS,
@@ -49,6 +50,12 @@ const getEffectMessage = (value: Value): string | null => {
     case Value.WILD_DRAW_FOUR: return 'Draw 4!';
     default: return null;
   }
+};
+
+const DIALOGUE_ALIGN: Record<string, 'left' | 'right'> = {
+  Meio: 'right',
+  Dong: 'left',
+  Oscar: 'left',
 };
 
 /** Phases where gameplay UI (labels, direction orbit) should remain visible */
@@ -94,6 +101,7 @@ export const BackgroundScene = ({
     onSceneReady?.();
   }, [onSceneReady]);
   const magnet = useMagnetState(snapshot, tableReady);
+  const dialogues = useDialogue();
   const [toasts, setToasts] = useState<(Toast | null)[]>([]);
 
   useEffect(() => {
@@ -300,6 +308,8 @@ export const BackgroundScene = ({
                         extraPull={isVisitor ? 0.4 : 0.35}
                         tiltX={isVisitor ? -0.65 : undefined}
                         toast={toasts[i] ?? null}
+                        dialogue={dialogues[i] ?? null}
+                        dialogueAlign={DIALOGUE_ALIGN[player.name]}
                       />
                     );
                   })}
