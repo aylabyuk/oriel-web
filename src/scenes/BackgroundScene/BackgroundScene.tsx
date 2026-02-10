@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -36,16 +36,22 @@ type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
   onPlayCard?: (cardId: string, chosenColor?: import('uno-engine').Color) => void;
+  onDrawCard?: () => void;
+  onAnimationIdle?: () => void;
   onWildCardPlayed?: (cardId: string) => void;
   onSceneReady?: () => void;
+  deckEnabled?: boolean;
 };
 
 export const BackgroundScene = ({
   showTable = false,
   onStartGame,
   onPlayCard,
+  onDrawCard,
+  onAnimationIdle,
   onWildCardPlayed,
   onSceneReady,
+  deckEnabled = true,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const [tableReady, setTableReady] = useState(false);
@@ -60,6 +66,16 @@ export const BackgroundScene = ({
   useEffect(() => {
     if (showTable) onStartGame?.();
   }, [showTable, onStartGame]);
+
+  // Fire callback when animations settle back to 'playing' phase
+  const prevPhaseRef = useRef(magnet.phase);
+  useEffect(() => {
+    const prev = prevPhaseRef.current;
+    prevPhaseRef.current = magnet.phase;
+    if (magnet.phase === 'playing' && prev !== 'playing') {
+      onAnimationIdle?.();
+    }
+  }, [magnet.phase, onAnimationIdle]);
 
   // Use magnet state's discard pile for visual props — deferred during animations
   // so the orbit color/direction only update after the card lands.
@@ -112,6 +128,7 @@ export const BackgroundScene = ({
                 magnet={magnet}
                 playableCardIds={isVisitorTurn ? snapshot?.playableCardIds : undefined}
                 onCardClick={isVisitorTurn ? handleCardClick : undefined}
+                onDeckClick={isVisitorTurn && deckEnabled ? onDrawCard : undefined}
                 onDeckReady={handleCardsReady}
               />
               {snapshot && GAME_ACTIVE_PHASES.has(magnet.phase) && (

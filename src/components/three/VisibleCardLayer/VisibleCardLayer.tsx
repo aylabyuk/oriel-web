@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { computeAllTargets } from '@/utils/computeAllTargets';
 import { VisibleCard } from '@/components/three/VisibleCard';
 import { SEATS, SEAT_ORDER } from '@/constants';
@@ -9,6 +9,7 @@ type VisibleCardLayerProps = {
   forceImmediate?: boolean;
   playableCardIds?: string[];
   onCardClick?: (cardId: string) => void;
+  onDeckClick?: () => void;
   onDeckReady?: () => void;
 };
 
@@ -17,7 +18,7 @@ const seats = SEAT_ORDER.map((key) => SEATS[key]);
 /** Number of deck cards to mount per frame during progressive rendering */
 const DECK_BATCH_SIZE = 15;
 
-export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCardClick, onDeckReady }: VisibleCardLayerProps) => {
+export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCardClick, onDeckClick, onDeckReady }: VisibleCardLayerProps) => {
   const [deckLimit, setDeckLimit] = useState(0);
   const deckReadyFiredRef = useRef(false);
 
@@ -38,9 +39,11 @@ export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCa
     }
   }, [deckLimit, magnet.deck.length, onDeckReady]);
 
+  const deckClickEnabled = !!onDeckClick;
+  const handleDeckClick = useCallback((_cardId: string) => onDeckClick?.(), [onDeckClick]);
   const targets = useMemo(
-    () => computeAllTargets(magnet, seats, playableCardIds, deckLimit),
-    [magnet, playableCardIds, deckLimit],
+    () => computeAllTargets(magnet, seats, playableCardIds, deckLimit, deckClickEnabled),
+    [magnet, playableCardIds, deckLimit, deckClickEnabled],
   );
 
   return (
@@ -54,8 +57,8 @@ export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCa
           to={t.placement}
           immediate={forceImmediate || t.immediate}
           springConfig={t.springConfig}
-          playable={t.playable}
-          onCardClick={onCardClick}
+          playable={t.playable || t.deckClickable}
+          onCardClick={t.deckClickable ? handleDeckClick : onCardClick}
         />
       ))}
     </group>

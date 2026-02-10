@@ -33,6 +33,7 @@ export type CardTarget = {
   immediate?: boolean;
   springConfig?: SpringConfig;
   playable?: boolean;
+  deckClickable?: boolean;
 };
 
 /** Flatten MagnetState into a single array of per-card animation targets. */
@@ -41,11 +42,13 @@ export const computeAllTargets = (
   seats: Seat[],
   playableCardIds?: string[],
   deckRenderLimit = magnet.deck.length,
+  deckClickable = false,
 ): CardTarget[] => {
   const playableSet = playableCardIds ? new Set(playableCardIds) : undefined;
   const targets: CardTarget[] = [];
 
   const deckStart = Math.max(0, magnet.deck.length - deckRenderLimit);
+  const topDeckIndex = magnet.deck.length - 1;
   magnet.deck.forEach((card, i) => {
     if (i < deckStart) return;
     targets.push({
@@ -53,6 +56,7 @@ export const computeAllTargets = (
       value: card.value,
       color: card.color,
       placement: getDeckPlacement(i),
+      deckClickable: deckClickable && i === topDeckIndex,
     });
   });
 

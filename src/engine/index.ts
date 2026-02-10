@@ -1,5 +1,6 @@
 export { UnoGame } from '@/engine/UnoGame';
 export {
+  getCardId,
   serializeCard,
   serializePlayer,
   serializeDirection,

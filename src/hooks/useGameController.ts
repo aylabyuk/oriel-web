@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { Color } from 'uno-engine';
-import { UnoGame } from '@/engine';
+import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent } from '@/store/slices/game';
 import { selectVisitorName } from '@/store/slices/visitor';
@@ -129,5 +129,29 @@ export const useGameController = () => {
     }
   }, [visitorName]);
 
-  return { startGame, playCard };
+  const drawCard = useCallback((): { cardId: string; isPlayable: boolean; isWild: boolean } | null => {
+    const game = gameRef.current;
+    if (!game) return null;
+    const playerName = visitorName || 'Player';
+    if (game.getCurrentPlayerName() !== playerName) return null;
+
+    const handBefore = new Set(game.getPlayerHand(playerName).map((c) => getCardId(c)));
+    game.draw();
+
+    const drawnCard = game.getPlayerHand(playerName).find((c) => !handBefore.has(getCardId(c)));
+    if (!drawnCard) return null;
+
+    const cardId = getCardId(drawnCard);
+    const isWild = drawnCard.isWildCard();
+    const isPlayable = game.getPlayableCards().some((c) => getCardId(c) === cardId);
+    return { cardId, isPlayable, isWild };
+  }, [visitorName]);
+
+  const passAfterDraw = useCallback(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    game.pass();
+  }, []);
+
+  return { startGame, playCard, drawCard, passAfterDraw };
 };
