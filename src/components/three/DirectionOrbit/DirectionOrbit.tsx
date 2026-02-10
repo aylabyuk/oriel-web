@@ -1,5 +1,5 @@
 import { useRef, useMemo, useEffect } from 'react';
-import { useSpring, animated } from '@react-spring/three';
+import { useSpring, animated, to } from '@react-spring/three';
 import {
   BufferGeometry,
   BufferAttribute,
@@ -77,7 +77,7 @@ export const DirectionOrbit = ({
 
   const targetHex = unoColorToHex(activeColor);
 
-  const [{ colorR, colorG, colorB, opacity, entranceScale }, api] = useSpring(() => {
+  const [{ colorR, colorG, colorB, opacity, entranceScale, dirMult, reverseScale, glowBoost }, api] = useSpring(() => {
     const c = new ThreeColor(targetHex);
     return {
       colorR: c.r,
@@ -85,6 +85,9 @@ export const DirectionOrbit = ({
       colorB: c.b,
       opacity: 0,
       entranceScale: 0,
+      dirMult: direction === 'clockwise' ? 1 : -1,
+      reverseScale: 1,
+      glowBoost: 1,
       config: { tension: 120, friction: 14 },
     };
   });
@@ -98,21 +101,46 @@ export const DirectionOrbit = ({
     api.start({ colorR: c.r, colorG: c.g, colorB: c.b });
   }, [targetHex, api]);
 
+  // Animate direction reversal with scale pop + glow burst
+  const prevDirectionRef = useRef(direction);
+  useEffect(() => {
+    if (direction === prevDirectionRef.current) return;
+    prevDirectionRef.current = direction;
+
+    const newDirMult = direction === 'clockwise' ? 1 : -1;
+
+    // Smooth decelerate → reverse
+    api.start({
+      dirMult: newDirMult,
+      config: { tension: 60, friction: 14 },
+    });
+
+    if (!reducedMotion) {
+      // Quick scale pop + glow burst, then settle back
+      api.start({
+        from: { reverseScale: 1.2, glowBoost: 1.8 },
+        to: { reverseScale: 1, glowBoost: 1 },
+        config: { tension: 180, friction: 12 },
+      });
+    }
+  }, [direction, api, reducedMotion]);
+
   useOrbitAnimation({
     arrow1Ref,
     tail1Ref,
     arrow2Ref,
     tail2Ref,
-    direction,
+    dirMult,
     colorR,
     colorG,
     colorB,
     opacity,
+    glowBoost,
     reducedMotion,
   });
 
   return (
-    <animated.group scale={entranceScale}>
+    <animated.group scale={to([entranceScale, reverseScale], (e, r) => e * r)}>
       <mesh ref={arrow1Ref} geometry={arrow1Geo}>
         <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
       </mesh>

@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Mesh, BufferAttribute, MeshBasicMaterial } from 'three';
 import type { SpringValue } from '@react-spring/three';
-import type { PlayDirection } from '@/types/game';
 
 const ORBIT_RADIUS = 1.2;
 const ORBIT_Y = 0.056;
@@ -30,11 +29,12 @@ type UseOrbitAnimationArgs = {
   tail1Ref: React.RefObject<Mesh | null>;
   arrow2Ref: React.RefObject<Mesh | null>;
   tail2Ref: React.RefObject<Mesh | null>;
-  direction: PlayDirection;
+  dirMult: SpringValue<number>;
   colorR: SpringValue<number>;
   colorG: SpringValue<number>;
   colorB: SpringValue<number>;
   opacity: SpringValue<number>;
+  glowBoost: SpringValue<number>;
   reducedMotion: boolean;
 };
 
@@ -100,11 +100,12 @@ export const useOrbitAnimation = ({
   tail1Ref,
   arrow2Ref,
   tail2Ref,
-  direction,
+  dirMult,
   colorR,
   colorG,
   colorB,
   opacity,
+  glowBoost,
   reducedMotion,
 }: UseOrbitAnimationArgs) => {
   const angleRef = useRef(0);
@@ -116,20 +117,21 @@ export const useOrbitAnimation = ({
     const t2 = tail2Ref.current;
     if (!a1 || !t1 || !a2 || !t2) return;
 
+    const dm = dirMult.get();
+
     if (!reducedMotion) {
-      const dirMult = direction === 'clockwise' ? 1 : -1;
-      angleRef.current += dirMult * ORBIT_SPEED * delta;
+      angleRef.current += dm * ORBIT_SPEED * delta;
     }
 
-    const dirMult = direction === 'clockwise' ? 1 : -1;
-    updateArrow(a1, angleRef.current, dirMult);
-    updateTail(t1, angleRef.current, dirMult);
-    updateArrow(a2, angleRef.current + Math.PI, dirMult);
-    updateTail(t2, angleRef.current + Math.PI, dirMult);
+    updateArrow(a1, angleRef.current, dm);
+    updateTail(t1, angleRef.current, dm);
+    updateArrow(a2, angleRef.current + Math.PI, dm);
+    updateTail(t2, angleRef.current + Math.PI, dm);
 
-    const r = colorR.get() * GLOW_INTENSITY;
-    const g = colorG.get() * GLOW_INTENSITY;
-    const b = colorB.get() * GLOW_INTENSITY;
+    const boost = glowBoost.get();
+    const r = colorR.get() * GLOW_INTENSITY * boost;
+    const g = colorG.get() * GLOW_INTENSITY * boost;
+    const b = colorB.get() * GLOW_INTENSITY * boost;
     const o = opacity.get();
     (a1.material as MeshBasicMaterial).color.setRGB(r, g, b);
     (a1.material as MeshBasicMaterial).opacity = o;
