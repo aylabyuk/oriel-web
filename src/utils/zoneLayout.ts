@@ -40,6 +40,8 @@ const SCATTER_ROT = 0.15;
 const DECK_ROT_JITTER = 0.06;
 const CARD_HALF_HEIGHT = CARD_HEIGHT / 2;
 const OPPONENT_CARD_SPREAD = 0.15;
+/** Extra perpendicular offset per side when neighbors give way */
+const GAP_EXTRA = 0.3;
 /** Visitor camera tilt — tilts cards toward the camera (from develop branch) */
 const CAMERA_TILT_X = -0.65;
 /** Small lift for visitor cards above surface */
@@ -197,11 +199,19 @@ export const getPlayerHandPlacement = (
   totalCards: number,
   seat: Seat,
   isHuman = false,
+  gapAtIndex?: number,
 ): CardPlacement => {
   const { x, z, perpX, perpZ } = pullTowardCenter(seat, PULL_DISTANCE);
   const angle = seatAngle(seat);
   const spread = isHuman ? CARD_SPREAD : OPPONENT_CARD_SPREAD;
   const offset = (index - (totalCards - 1) / 2) * spread;
+
+  // Neighbors spread apart when a card is selected for play
+  let gapOffset = 0;
+  if (gapAtIndex !== undefined && index !== gapAtIndex) {
+    const extra = isHuman ? GAP_EXTRA : GAP_EXTRA * 0.5;
+    gapOffset = index < gapAtIndex ? -extra : extra;
+  }
 
   // For upright cards, stack along the face normal (toward player) to avoid z-fighting.
   const depthIdx = totalCards - 1 - index;
@@ -210,9 +220,9 @@ export const getPlayerHandPlacement = (
 
   return {
     position: [
-      x + perpX * offset + (isHuman ? 0 : normalX * depthIdx * CARD_DEPTH),
+      x + perpX * (offset + gapOffset) + (isHuman ? 0 : normalX * depthIdx * CARD_DEPTH),
       TABLE_SURFACE_Y + CARD_HALF_HEIGHT + (isHuman ? CAMERA_LIFT_Y + depthIdx * CARD_DEPTH : 0),
-      z + perpZ * offset + (isHuman ? 0 : normalZ * depthIdx * CARD_DEPTH),
+      z + perpZ * (offset + gapOffset) + (isHuman ? 0 : normalZ * depthIdx * CARD_DEPTH),
     ],
     yaw: angle,
     tilt: isHuman ? CAMERA_TILT_X : 0,

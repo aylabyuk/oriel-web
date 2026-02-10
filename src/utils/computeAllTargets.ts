@@ -103,10 +103,26 @@ export const computeAllTargets = (
   });
 
   magnet.playerHands.forEach((cards, playerIndex) => {
+    const gapIdx = magnet.selectedCardId
+      ? cards.findIndex((c) => c.id === magnet.selectedCardId)
+      : -1;
+    const gapAtIndex = gapIdx >= 0 ? gapIdx : undefined;
+
     cards.forEach((card, i) => {
+      // Card lifting out of hand — render with lift placement
+      if (card.id === magnet.liftingCardId) {
+        targets.push({
+          cardId: card.id,
+          value: card.value,
+          color: card.color,
+          placement: getPlayLiftPlacement(seats[playerIndex], playerIndex === 0),
+        });
+        return;
+      }
+
       const isSpread = i < magnet.spreadProgress;
       const placement = isSpread
-        ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0)
+        ? getPlayerHandPlacement(i, cards.length, seats[playerIndex], playerIndex === 0, gapAtIndex)
         : getPlayerTurnedPlacement(i, cards.length, seats[playerIndex]);
       targets.push({
         cardId: card.id,

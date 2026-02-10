@@ -10,6 +10,7 @@ const DISCARD_LIFT_DELAY = 200;
 const DISCARD_FLIP_DELAY = 250;
 const DISCARD_MOVE_DELAY = 250;
 const DISCARD_DROP_DELAY = 150;
+const PLAY_GAP_DELAY = 200;
 const PLAY_LIFT_DELAY = 250;
 const PLAY_MOVE_DELAY = 300;
 const PLAY_ROTATE_DELAY = 200;
@@ -29,6 +30,10 @@ export type MagnetState = {
   spreadProgress: number;
   /** Index of the player whose card is being animated to the discard pile (-1 = none) */
   playingPlayerIndex: number;
+  /** Card ID selected for play — neighbors spread apart during play_gap phase */
+  selectedCardId: string | null;
+  /** Card ID currently lifting out of hand — rendered with lift placement */
+  liftingCardId: string | null;
 };
 
 export type MagnetPhase =
@@ -39,6 +44,7 @@ export type MagnetPhase =
   | 'discard_lift'
   | 'discard_flip'
   | 'discard_move'
+  | 'play_gap'
   | 'play_lift'
   | 'play_move'
   | 'play_rotate'
@@ -53,6 +59,7 @@ export type QueueStep =
   | { type: 'discard_flip' }
   | { type: 'discard_move' }
   | { type: 'discard_drop' }
+  | { type: 'play_gap'; cardId: string; playerIndex: number }
   | { type: 'play_lift'; cardId: string; playerIndex: number }
   | { type: 'play_move' }
   | { type: 'play_rotate' }
@@ -84,6 +91,8 @@ export const useMagnetState = (
     phase: 'idle',
     spreadProgress: 0,
     playingPlayerIndex: -1,
+    selectedCardId: null,
+    liftingCardId: null,
   });
 
   const initializedRef = useRef(false);
@@ -121,6 +130,7 @@ export const useMagnetState = (
         case 'discard_flip': return DISCARD_FLIP_DELAY;
         case 'discard_move': return DISCARD_MOVE_DELAY;
         case 'discard_drop': return DISCARD_DROP_DELAY;
+        case 'play_gap': return PLAY_GAP_DELAY;
         case 'play_lift': return PLAY_LIFT_DELAY;
         case 'play_move': return PLAY_MOVE_DELAY;
         case 'play_rotate': return PLAY_ROTATE_DELAY;
@@ -166,6 +176,8 @@ export const useMagnetState = (
       phase: 'dealing',
       spreadProgress: 0,
       playingPlayerIndex: -1,
+      selectedCardId: null,
+      liftingCardId: null,
     });
 
     // Build the queue
@@ -246,6 +258,8 @@ export const useMagnetState = (
       if (playerIndex >= 0) {
         animatingRef.current = true;
         const steps: QueueStep[] = [
+          { type: 'phase', phase: 'play_gap' },
+          { type: 'play_gap', cardId: newTopCard.id, playerIndex },
           { type: 'phase', phase: 'play_lift' },
           { type: 'play_lift', cardId: newTopCard.id, playerIndex },
           { type: 'phase', phase: 'play_move' },
@@ -339,23 +353,36 @@ export const applyStep = (
         discardFloat: [],
       };
 
-    case 'play_lift': {
-      const card = cardMap.get(step.cardId);
+    case 'play_gap':
+      return {
+        ...prev,
+        selectedCardId: step.cardId,
+        playingPlayerIndex: step.playerIndex,
+      };
+
+    case 'play_lift':
+      return {
+        ...prev,
+        liftingCardId: step.cardId,
+      };
+
+    case 'play_move': {
+      const liftId = prev.liftingCardId;
+      if (!liftId) return prev;
+      const card = cardMap.get(liftId);
       if (!card) return prev;
       const newHands = prev.playerHands.map((h, i) =>
-        i === step.playerIndex ? h.filter((c) => c.id !== step.cardId) : h,
+        i === prev.playingPlayerIndex ? h.filter((c) => c.id !== liftId) : h,
       );
       return {
         ...prev,
         playerHands: newHands,
         discardFloat: [card],
-        playingPlayerIndex: step.playerIndex,
+        selectedCardId: null,
+        liftingCardId: null,
         spreadProgress: Math.max(0, ...newHands.map((h) => h.length)),
       };
     }
-
-    case 'play_move':
-      return { ...prev };
 
     case 'play_rotate':
       return { ...prev };
@@ -390,4 +417,6 @@ const snapshotToMagnetState = (snapshot: GameSnapshot): MagnetState => ({
   phase: 'playing',
   spreadProgress: Math.max(0, ...snapshot.players.map((p) => p.hand.length)),
   playingPlayerIndex: -1,
+  selectedCardId: null,
+  liftingCardId: null,
 });
