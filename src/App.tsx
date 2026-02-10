@@ -15,13 +15,18 @@ export const App = () => {
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
+  const [drawnWildCardId, setDrawnWildCardId] = useState<string | null>(null);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
   const handleWildCardPlayed = useCallback((cardId: string) => setPendingWildCardId(cardId), []);
-  const handleWildDismiss = useCallback(() => setPendingWildCardId(null), []);
+  const handleWildDismiss = useCallback(() => {
+    setPendingWildCardId(null);
+    setDrawnWildCardId(null);
+  }, []);
   const handleWildColorSelect = useCallback((color: Color) => {
     if (pendingWildCardId) playCard(pendingWildCardId, color);
     setPendingWildCardId(null);
+    setDrawnWildCardId(null);
   }, [pendingWildCardId, playCard]);
 
   // --- Draw-choice flow ---
@@ -51,6 +56,7 @@ export const App = () => {
     if (!drawChoice) return;
     if (drawChoice.isWild) {
       setPendingWildCardId(drawChoice.cardId);
+      setDrawnWildCardId(drawChoice.cardId);
     } else {
       playCard(drawChoice.cardId);
     }
@@ -78,7 +84,7 @@ export const App = () => {
         onWildCardPlayed={handleWildCardPlayed}
         onSceneReady={handleSceneReady}
         deckEnabled={!drawPending && drawChoice === null}
-        playableOverride={drawChoice ? [drawChoice.cardId] : undefined}
+        playableOverride={drawChoice ? [drawChoice.cardId] : drawnWildCardId ? [drawnWildCardId] : undefined}
         onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
       />
       <DrawChoiceModal open={drawChoice !== null} onPlay={handleDrawPlay} onSkip={handleDrawSkip} />
