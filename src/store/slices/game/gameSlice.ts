@@ -19,9 +19,9 @@ export const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
-    setSnapshot(state, action: PayloadAction<GameSnapshot>) {
+    setSnapshot(state, action: PayloadAction<GameSnapshot | null>) {
       state.snapshot = action.payload;
-      state.phase = action.payload.phase;
+      state.phase = action.payload?.phase ?? 'idle';
     },
     pushEvent(state, action: PayloadAction<GameEvent>) {
       state.events.push(action.payload);

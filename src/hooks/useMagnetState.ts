@@ -364,6 +364,52 @@ export const useMagnetState = (
     setState(snapshotToMagnetState(snapshot));
   }, [snapshot, state.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // --- Reset: collect all cards back to deck when snapshot nulls ---
+
+  useEffect(() => {
+    if (snapshot !== null || !initializedRef.current) return;
+
+    // Cancel any in-progress animation
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    queueRef.current = [];
+    animatingRef.current = false;
+    initializedRef.current = false;
+
+    // Gather every card from all zones into the deck
+    setState((prev) => {
+      const allCards: SerializedCard[] = [
+        ...prev.deck,
+        ...prev.discardPile,
+        ...prev.discardFloat,
+        ...prev.drawFloat,
+        ...prev.playerFronts.flat(),
+        ...prev.playerStaging.flat(),
+        ...prev.playerHands.flat(),
+      ];
+      return {
+        deck: allCards,
+        discardPile: [],
+        discardFloat: [],
+        playerFronts: prev.playerFronts.map(() => []),
+        playerStaging: prev.playerStaging.map(() => []),
+        playerHands: prev.playerHands.map(() => []),
+        phase: 'idle',
+        spreadProgress: 0,
+        playingPlayerIndex: -1,
+        selectedCardId: null,
+        liftingCardId: null,
+        direction: prev.direction,
+        currentPlayerName: null,
+        drawFloat: [],
+        drawingPlayerIndex: -1,
+        drawInsertIndex: -1,
+      };
+    });
+  }, [snapshot]);
+
   // --- Cleanup ---
 
   useEffect(() => {

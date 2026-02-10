@@ -37,7 +37,7 @@ const ALL_COLORS = [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW];
  * same starting player, etc.). Set to `null` for normal random behavior.
  * Change the seed to explore different game scenarios.
  */
-const DEV_SEED: number | null = 42;
+const DEV_SEED: number | null = null;
 
 export const useGameController = () => {
   const dispatch = useAppDispatch();
@@ -247,8 +247,8 @@ export const useGameController = () => {
     aiTimerRef.current = setTimeout(() => {
       const g = gameRef.current;
       if (!g) return;
-      // AI challenges 30% of the time
-      const shouldChallenge = Math.random() < 0.3;
+      // AI challenges 60% of the time
+      const shouldChallenge = Math.random() < 0.6;
       g.resolveChallenge(!shouldChallenge);
       dispatch(setSnapshot(g.getSnapshot()));
       scheduleAiPlay();
@@ -271,17 +271,21 @@ export const useGameController = () => {
     dispatch(setSnapshot(game.getSnapshot()));
   }, [dispatch]);
 
+  /** Delay for card-collect animation before re-dealing (ms) */
+  const RESTART_COLLECT_DELAY = 800;
+
   const restartGame = useCallback(() => {
-    const game = gameRef.current;
-    if (!game) return;
+    if (!gameRef.current) return;
     if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
     if (unoCatchTimerRef.current) clearTimeout(unoCatchTimerRef.current);
     if (unoAiTimerRef.current) clearTimeout(unoAiTimerRef.current);
     aiScheduledRef.current = false;
-    game.restart();
-    dispatch(setSnapshot(game.getSnapshot()));
-    scheduleAiPlay();
-  }, [dispatch, scheduleAiPlay]);
+    gameRef.current = null;
+    // Null snapshot triggers useMagnetState to collect cards back to deck
+    dispatch(setSnapshot(null));
+    // After cards settle, start a fresh game which triggers dealing animation
+    setTimeout(() => startGame(), RESTART_COLLECT_DELAY);
+  }, [dispatch, startGame]);
 
   const getGameEndInfo = useCallback((): GameEndInfo | null => {
     return gameRef.current?.getGameEndInfo() ?? null;

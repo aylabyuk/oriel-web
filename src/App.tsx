@@ -78,6 +78,17 @@ export const App = () => {
     passAfterDraw();
   }, [passAfterDraw]);
 
+  // --- Play again / restart ---
+  const handlePlayAgain = useCallback(() => {
+    setPendingWildCardId(null);
+    setDrawnWildCardId(null);
+    setDrawChoice(null);
+    setDrawPending(false);
+    setChallengeReady(false);
+    pendingDrawRef.current = null;
+    restartGame();
+  }, [restartGame]);
+
   // --- Game end ---
   const gameEnded = snapshot?.phase === 'ended';
   const endInfo = useMemo(() => gameEnded ? getGameEndInfo() : null, [gameEnded, getGameEndInfo]);
@@ -168,7 +179,7 @@ export const App = () => {
         open={gameEnded}
         endInfo={endInfo}
         isVisitorWinner={isVisitorWinner}
-        onPlayAgain={restartGame}
+        onPlayAgain={handlePlayAgain}
       />
       <UnoButton
         mode={unoMode}
@@ -179,7 +190,7 @@ export const App = () => {
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <ThemeToggle />
-          <RestartButton onClick={restartGame} disabled={!gameEnded} />
+          <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
         </div>
         {welcomeDismissed ? (
           <div>
