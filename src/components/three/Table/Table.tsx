@@ -1,6 +1,8 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { animated, useSpring } from '@react-spring/three';
 import { MeshReflectorMaterial, RoundedBox } from '@react-three/drei';
+import { useAppSelector } from '@/store/hooks';
+import { selectMode } from '@/store/slices/theme';
 
 const TABLE_WIDTH = 4;
 const TABLE_HEIGHT = 0.1;
@@ -15,10 +17,11 @@ type TableProps = {
   onReady?: () => void;
 };
 
-const TABLE_COLOR = '#2a2a2a';
+const tableColorS = { dark: '#2a2a2a', light: '#c8bfb0' } as const;
 
 export const Table = ({ children, startEntrance = true, onReady }: TableProps) => {
-
+  const mode = useAppSelector(selectMode);
+  const tableColor = tableColorS[mode];
   const firedRef = useRef(false);
 
   const [{ position }, api] = useSpring(() => ({
@@ -46,9 +49,9 @@ export const Table = ({ children, startEntrance = true, onReady }: TableProps) =
       <mesh rotation-x={-Math.PI / 2} position-y={TABLE_HEIGHT / 2 + 0.001}>
         <planeGeometry args={[TABLE_WIDTH - TABLE_RADIUS * 2, TABLE_DEPTH - TABLE_RADIUS * 2]} />
         <MeshReflectorMaterial
-          color={TABLE_COLOR}
+          color={tableColor}
           roughness={0.5}
-          metalness={0.1}
+          metalness={mode === 'dark' ? 0.1 : 0.05}
           mirror={0.15}
           blur={[200, 200]}
           mixBlur={1}
@@ -64,7 +67,7 @@ export const Table = ({ children, startEntrance = true, onReady }: TableProps) =
       {/* Table body */}
       <RoundedBox args={[TABLE_WIDTH, TABLE_HEIGHT, TABLE_DEPTH]} radius={TABLE_RADIUS} smoothness={4}>
         <meshStandardMaterial
-          color={TABLE_COLOR}
+          color={tableColor}
           roughness={0.8}
           metalness={0}
         />

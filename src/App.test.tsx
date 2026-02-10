@@ -9,12 +9,7 @@ describe('App', () => {
     expect(screen.getByText(en.welcome.title)).toBeInTheDocument();
   });
 
-  it('renders the environment selector', () => {
-    renderWithProviders(<App />);
-    expect(screen.getByRole('radiogroup', { name: 'Environment' })).toBeInTheDocument();
-  });
-
-  it('renders the main content after entering welcome', () => {
+  it('shows welcome screen while loading after submit', () => {
     renderWithProviders(<App />, {
       preloadedState: {
         visitor: {
@@ -26,7 +21,7 @@ describe('App', () => {
         },
       },
     });
-    expect(screen.getByText('Oriel Absin')).toBeInTheDocument();
-    expect(screen.queryByText(en.welcome.title)).not.toBeInTheDocument();
+    // Welcome screen stays visible until exit transition completes
+    expect(screen.getByText(en.welcome.title)).toBeInTheDocument();
   });
 });

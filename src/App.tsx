@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
+import { selectMode } from '@/store/slices/theme';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { RestartButton } from '@/components/ui/RestartButton';
 import { WildColorPicker } from '@/components/ui/WildColorPicker';
 import { DrawChoiceModal } from '@/components/ui/DrawChoiceModal';
@@ -11,6 +13,7 @@ import type { Color } from 'uno-engine';
 
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
+  const mode = useAppSelector(selectMode);
   const { startGame, playCard, drawCard, passAfterDraw } = useGameController();
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
@@ -73,7 +76,7 @@ export const App = () => {
   return (
     <div
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
-      data-theme="dark"
+      data-theme={mode}
     >
       <BackgroundScene
         showTable={hasEnteredWelcome}
@@ -91,11 +94,12 @@ export const App = () => {
       <WildColorPicker open={pendingWildCardId != null} onColorSelect={handleWildColorSelect} onDismiss={handleWildDismiss} />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
+          <ThemeToggle />
           <RestartButton onClick={() => {}} disabled />
         </div>
         {welcomeDismissed ? (
           <div>
-            <h1 className="p-8 text-4xl font-bold">Oriel Absin</h1>
+            <span className="p-4 text-xs font-medium text-neutral-400">orielvinci.com</span>
           </div>
         ) : (
           <WelcomeScreen
