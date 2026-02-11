@@ -9,6 +9,12 @@ export const DEFAULT_CAMERA_POSITION = [0, 2.28, 3.19] as const;
 export const DEFAULT_CAMERA_TARGET = [0, -0.3, 0] as const;
 export const DEFAULT_CAMERA_FOV = 80;
 
+/** Lerp speed for camera reset after freeLook toggle-off */
+export const CAMERA_RESET_SPEED = 3;
+
+/** Lerp speed for camera focus shift between active players */
+export const CAMERA_FOCUS_SPEED = 2;
+
 /** Set to true to render the debug magnet card layer alongside visible cards. */
 export const DEBUG_MAGNETS = false;
 

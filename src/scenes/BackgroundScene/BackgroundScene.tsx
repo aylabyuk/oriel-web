@@ -35,6 +35,8 @@ import {
   DEFAULT_CAMERA_POSITION,
   DEFAULT_CAMERA_TARGET,
   DEFAULT_CAMERA_FOV,
+  CAMERA_RESET_SPEED,
+  CAMERA_FOCUS_SPEED,
 } from './BackgroundScene.constants';
 
 /** Compute the responsive FOV for the current canvas width. */
@@ -51,38 +53,63 @@ const ResponsiveFov = () => {
   return null;
 };
 
-/** Smoothly animate camera back to default when freeLook is toggled off. */
-const CAMERA_LERP_SPEED = 3;
-const _targetPos = new Vector3(...DEFAULT_CAMERA_POSITION);
-const _targetLook = new Vector3(...DEFAULT_CAMERA_TARGET);
+/**
+ * Unified camera controller:
+ * - Resets position + lookAt when freeLook toggles off
+ * - Auto-focuses lookAt on active player's seat when freeLook is off
+ */
+const _defaultPos = new Vector3(...DEFAULT_CAMERA_POSITION);
+const _desiredLook = new Vector3(...DEFAULT_CAMERA_TARGET);
 const _currentLook = new Vector3();
 
-const CameraReset = ({ freeLook }: { freeLook: boolean }) => {
+const CameraController = ({
+  freeLook,
+  activePlayerIndex,
+}: {
+  freeLook: boolean;
+  activePlayerIndex: number | null;
+}) => {
   const { camera } = useThree();
-  const animatingRef = useRef(false);
-  const prevRef = useRef(freeLook);
+  const resetRef = useRef(false);
+  const prevFreeLookRef = useRef(freeLook);
 
+  // Trigger position reset when freeLook toggles off
   useEffect(() => {
-    const was = prevRef.current;
-    prevRef.current = freeLook;
-    if (was && !freeLook) animatingRef.current = true;
+    const was = prevFreeLookRef.current;
+    prevFreeLookRef.current = freeLook;
+    if (was && !freeLook) resetRef.current = true;
   }, [freeLook]);
 
-  useFrame((_, delta) => {
-    if (!animatingRef.current) return;
-    const alpha = 1 - Math.exp(-CAMERA_LERP_SPEED * delta);
-    camera.position.lerp(_targetPos, alpha);
+  // Update desired lookAt target when active player changes
+  useEffect(() => {
+    if (freeLook) return;
+    if (activePlayerIndex == null || activePlayerIndex === 0) {
+      _desiredLook.set(...DEFAULT_CAMERA_TARGET);
+    } else {
+      const seat = SEATS[SEAT_ORDER[activePlayerIndex]];
+      if (seat) _desiredLook.set(...seat.cameraTarget);
+    }
+  }, [activePlayerIndex, freeLook]);
 
+  useFrame((_, delta) => {
+    if (freeLook) return;
+
+    // Position reset (after freeLook toggle-off)
+    if (resetRef.current) {
+      const alpha = 1 - Math.exp(-CAMERA_RESET_SPEED * delta);
+      camera.position.lerp(_defaultPos, alpha);
+      if (camera.position.distanceTo(_defaultPos) < 0.001) {
+        camera.position.copy(_defaultPos);
+        resetRef.current = false;
+      }
+    }
+
+    // LookAt focus — always lerp toward desired target
     camera.getWorldDirection(_currentLook);
     _currentLook.multiplyScalar(2).add(camera.position);
-    _currentLook.lerp(_targetLook, alpha);
+    const focusAlpha = 1 - Math.exp(-CAMERA_FOCUS_SPEED * delta);
+    _currentLook.lerp(_desiredLook, focusAlpha);
     camera.lookAt(_currentLook);
-
-    if (camera.position.distanceTo(_targetPos) < 0.001) {
-      camera.position.copy(_targetPos);
-      camera.lookAt(_targetLook);
-      animatingRef.current = false;
-    }
   });
 
   return null;
@@ -338,6 +365,15 @@ export const BackgroundScene = ({
     magnet.currentPlayerName === visitorName &&
     snapshot?.currentPlayerName === visitorName;
 
+  const activePlayerIndex =
+    magnet.phase === 'playing' && snapshot
+      ? snapshot.players.findIndex(
+          (p) =>
+            p.name === magnet.currentPlayerName &&
+            p.name === snapshot.currentPlayerName,
+        )
+      : -1;
+
   const handleCardClick = useCallback(
     (cardId: string) => {
       if (!snapshot) return;
@@ -357,7 +393,10 @@ export const BackgroundScene = ({
     <div className="fixed inset-0 z-0">
       <Canvas camera={{ position: [...DEFAULT_CAMERA_POSITION], fov: DEFAULT_CAMERA_FOV }}>
         <ResponsiveFov />
-        <CameraReset freeLook={freeLook} />
+        <CameraController
+          freeLook={freeLook}
+          activePlayerIndex={activePlayerIndex >= 0 ? activePlayerIndex : null}
+        />
         <color
           attach="background"
           args={[mode === 'dark' ? '#000000' : '#e8e4df']}
