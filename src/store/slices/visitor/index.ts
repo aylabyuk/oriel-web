@@ -8,6 +8,5 @@ export {
   selectVisitorName,
   selectVisitorCompany,
   selectNameError,
-  selectSubmitted,
   selectHasEnteredWelcome,
 } from '@/store/slices/visitor/visitorSlice';

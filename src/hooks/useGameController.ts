@@ -5,7 +5,7 @@ import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent } from '@/store/slices/game';
 import { selectVisitorName } from '@/store/slices/visitor';
-import { mulberry32 } from '@/utils/mulberry32';
+
 
 const AI_OPPONENTS = ['Meio', 'Dong', 'Oscar'] as const;
 const AI_NAMES = new Set<string>(AI_OPPONENTS);
@@ -34,13 +34,6 @@ const CATCH_WINDOW_DURATION = 3000;
 const VISITOR_TURN_TIMEOUT = 10_000;
 
 const ALL_COLORS = [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW];
-
-/**
- * Dev-only: set to a number for deterministic games (same seed = same deal,
- * same starting player, etc.). Set to `null` for normal random behavior.
- * Change the seed to explore different game scenarios.
- */
-const DEV_SEED: number | null = null;
 
 export const useGameController = () => {
   const dispatch = useAppDispatch();
@@ -165,18 +158,8 @@ export const useGameController = () => {
   const startGame = useCallback(() => {
     if (gameRef.current) return;
 
-    // Temporarily replace Math.random with a seeded PRNG so the
-    // uno-engine deck shuffle + starting-player pick are deterministic.
-    const originalRandom = Math.random;
-    if (DEV_SEED !== null) {
-      Math.random = mulberry32(DEV_SEED);
-    }
-
     const playerNames = [visitorName || 'Player', ...AI_OPPONENTS];
     const game = new UnoGame(playerNames, playerNames[0]);
-
-    // Restore original Math.random immediately after construction.
-    Math.random = originalRandom;
 
     game.onEvent((event) => {
       dispatch(pushEvent(event));
@@ -362,24 +345,5 @@ export const useGameController = () => {
     return gameRef.current?.getGameEndInfo() ?? null;
   }, []);
 
-  /** DEV ONLY — force game end for testing. Remove before production. */
-  const devForceEnd = useCallback((winnerName?: string) => {
-    const game = gameRef.current;
-    if (!game) return;
-    if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
-    aiScheduledRef.current = false;
-    game.devForceEnd(winnerName);
-    dispatch(setSnapshot(game.getSnapshot()));
-  }, [dispatch]);
-
-  /** DEV ONLY — trim visitor hand to N cards. Remove before production. */
-  const devTrimHand = useCallback((keep: number) => {
-    const game = gameRef.current;
-    if (!game) return;
-    const name = visitorName || 'Player';
-    game.devTrimHand(name, keep);
-    dispatch(setSnapshot(game.getSnapshot()));
-  }, [visitorName, dispatch]);
-
-  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer, devForceEnd, devTrimHand };
+  return { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer };
 };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectHasEnteredWelcome } from '@/store/slices/visitor';
 import { selectMode } from '@/store/slices/theme';
@@ -22,7 +22,7 @@ export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const mode = useAppSelector(selectMode);
   const snapshot = useAppSelector(selectSnapshot);
-  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer, devForceEnd, devTrimHand } = useGameController();
+  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer } = useGameController();
   const { dialogues, history } = useDialogue();
   const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 640);
   const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
@@ -103,17 +103,6 @@ export const App = () => {
   const gameEnded = snapshot?.phase === 'ended';
   const endInfo = useMemo(() => gameEnded ? getGameEndInfo() : null, [gameEnded, getGameEndInfo]);
   const isVisitorWinner = endInfo?.winner === snapshot?.players[0]?.name;
-
-  // DEV ONLY — Shift+E force end, Shift+W visitor win, Shift+U trim hand to 2. Remove before production.
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.key === 'E') devForceEnd();
-      if (e.shiftKey && e.key === 'W') devForceEnd(snapshot?.players[0]?.name);
-      if (e.shiftKey && e.key === 'U') devTrimHand(2);
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [devForceEnd, devTrimHand, snapshot]);
 
   // --- UNO shout / catch flow ---
   const UNO_SHOUT_WINDOW = 2500;

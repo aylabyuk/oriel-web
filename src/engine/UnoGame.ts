@@ -34,7 +34,6 @@ export class UnoGame {
   private score: number | null = null;
   private humanPlayerName: string;
   private houseRules: HouseRule[];
-  private _hasDrawn = false;
   private discardHistory: Card[];
   /** Stable seat order: player names rotated so the human is at index 0. */
   private seatOrder: string[];
@@ -107,7 +106,6 @@ export class UnoGame {
     this.engine.on(
       'draw',
       (event: { player: { name: string }; cards: Card[] }) => {
-        this._hasDrawn = true;
         this.emit({
           type: 'card_drawn',
           playerName: event.player.name,
@@ -119,7 +117,6 @@ export class UnoGame {
     this.engine.on(
       'nextplayer',
       (event: { player: { name: string } }) => {
-        this._hasDrawn = false;
         // NOTE: do NOT clear _unoCallable here — cardplay and nextplayer
         // fire synchronously within engine.play(), so clearing here would
         // erase it before React ever sees it. The controller manages the
@@ -372,11 +369,6 @@ export class UnoGame {
     return this.engine.currentPlayer.name;
   }
 
-  /** Check if it's the human player's turn. */
-  isHumanTurn(): boolean {
-    return this.engine.currentPlayer.name === this.humanPlayerName;
-  }
-
   /** Get cards the human player can legally play on the current discard. */
   getPlayableCards(): Card[] {
     return this.getPlayableCardsForPlayer(this.humanPlayerName);
@@ -402,16 +394,6 @@ export class UnoGame {
     return this.engine.getPlayer(playerName).hand;
   }
 
-  /** Check whether the current player has already drawn this turn. */
-  hasDrawn(): boolean {
-    return this._hasDrawn;
-  }
-
-  /** Get the underlying engine instance (escape hatch for custom rules). */
-  getEngine(): Game {
-    return this.engine;
-  }
-
   /** Get end-of-game info with per-player score breakdown. Returns null if game hasn't ended. */
   getGameEndInfo(): GameEndInfo | null {
     if (this.phase !== 'ended' || !this.winner || this.score === null) return null;
@@ -433,27 +415,6 @@ export class UnoGame {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
-
-  /** DEV ONLY — trim a player's hand to `keep` cards. Remove before production. */
-  devTrimHand(playerName: string, keep: number): void {
-    const player = this.engine.getPlayer(playerName);
-    while (player.hand.length > keep) {
-      player.hand.pop();
-    }
-  }
-
-  /** DEV ONLY — force the game to end immediately for testing. Remove before production. */
-  devForceEnd(winnerName?: string): void {
-    const winner = winnerName ?? this.seatOrder[1];
-    this.phase = 'ended';
-    this.winner = winner;
-    this.score = this.seatOrder
-      .filter((n) => n !== winner)
-      .reduce((sum, name) => {
-        return sum + this.engine.getPlayer(name).hand.reduce((s, c) => s + c.score, 0);
-      }, 0);
-    this.emit({ type: 'game_ended', playerName: winner, data: { score: this.score } });
-  }
 
   /** Map a card to the dialogue trigger type for the portfolio narrative. */
   getDialogueTrigger(card: Card): DialogueTrigger {
