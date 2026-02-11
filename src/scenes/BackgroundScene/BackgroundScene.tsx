@@ -17,6 +17,7 @@ import {
   MagnetPlayerHand,
 } from '@/components/three/MagnetZones';
 import { Value } from 'uno-engine';
+import { DeckArrow } from '@/components/three/DeckArrow';
 import { VisibleCardLayer } from '@/components/three/VisibleCardLayer';
 import { PlayerLabel } from '@/components/three/PlayerLabel/PlayerLabel';
 import type { Toast } from '@/components/three/PlayerLabel/PlayerLabel';
@@ -386,6 +387,11 @@ export const BackgroundScene = ({
                   ))}
                 </>
               )}
+              <DeckArrow
+                visible={
+                  isVisitorTurn && deckEnabled && !playableOverride
+                }
+              />
               <VisibleCardLayer
                 magnet={magnet}
                 playableCardIds={
