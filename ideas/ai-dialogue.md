@@ -7,8 +7,8 @@ The 3 AI opponents have distinct personalities and react to game events with sho
 ## Personalities
 
 - **Meio** — The Strategist: analytical, slightly smug, treats plays like chess moves, frustrated when outplayed, genuine compliments on clever plays
-- **Dong** — The Trash Talker: loud, competitive, loves chaos, celebrates wins, dramatic in defeat, teases when hitting someone
-- **Oscar** — The Chill One: laid back, unbothered, underreacts to everything, accidentally savage, surprisingly gracious
+- **Mark** — The Trash Talker: loud, competitive, loves chaos, celebrates wins, dramatic in defeat, teases when hitting someone
+- **Jap** — The Chill One: laid back, unbothered, underreacts to everything, accidentally savage, surprisingly gracious
 
 ## Architecture
 

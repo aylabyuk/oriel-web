@@ -3,13 +3,18 @@ import type {
   DialogueCategory,
   DialogueLine,
 } from '@/types/dialogue';
+import {
+  AI_STRATEGIST,
+  AI_TRASH_TALKER,
+  AI_CHILL,
+} from '@/constants/players';
 
 export const DIALOGUE_LINES: Record<
   AiPersonality,
   Record<DialogueCategory, DialogueLine[]>
 > = {
   // ─── MEIO — The Strategist ─────────────────────────────────────────
-  Meio: {
+  [AI_STRATEGIST]: {
     game_started: [
       { text: "Let's see how this unfolds." },
       { text: 'The variables are set. Interesting.' },
@@ -250,13 +255,13 @@ export const DIALOGUE_LINES: Record<
     ],
   },
 
-  // ─── DONG — The Trash Talker ───────────────────────────────────────
-  Dong: {
+  // ─── MARK — The Trash Talker ───────────────────────────────────────
+  [AI_TRASH_TALKER]: {
     game_started: [
       { text: "Let's GOOOO!" },
       { text: "I'm winning this one. Calling it now." },
       { text: "Alright who's ready to LOSE?!" },
-      { text: 'New game, same result — Dong wins!' },
+      { text: 'New game, same result — {speaker} wins!' },
       { text: "Hope you're all ready for heartbreak!" },
       { text: 'This is MY game!' },
       { text: "Let's see what we're working with!" },
@@ -340,7 +345,7 @@ export const DIALOGUE_LINES: Record<
       { text: "Let's gooo!" },
       { text: 'I choose the color! I have the POWER!' },
       { text: 'Wild card energy!' },
-      { text: 'Nobody tells Dong what color to play!' },
+      { text: 'Nobody tells {speaker} what color to play!' },
       { text: 'Bow to my wild card!' },
       { text: 'The table bends to MY will!' },
     ],
@@ -404,7 +409,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'We SAW through that, {player}!' },
       { text: 'Nice try, {player}! NOT!' },
       { text: 'Bluff DESTROYED!' },
-      { text: 'You thought you could fool Dong?!' },
+      { text: 'You thought you could fool {speaker}?!' },
     ],
     challenge_legit: [
       { text: 'No way! It was legit?!' },
@@ -422,7 +427,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'NEVER DOUBTED MYSELF!' },
       { text: 'EZ GG!' },
       { text: 'BOW DOWN TO THE CHAMPION!' },
-      { text: 'What did I say?! DONG WINS!' },
+      { text: 'What did I say?! {speaker} WINS!' },
       { text: 'UNDEFEATED! UNDISPUTED!' },
       { text: "GG EVERYONE! I'm the BEST!" },
       { text: 'Thank you, thank you! Hold your applause!' },
@@ -492,8 +497,8 @@ export const DIALOGUE_LINES: Record<
     ],
   },
 
-  // ─── OSCAR — The Chill One ─────────────────────────────────────────
-  Oscar: {
+  // ─── JAP — The Chill One ───────────────────────────────────────────
+  [AI_CHILL]: {
     game_started: [
       { text: "Oh, we're playing? Cool." },
       { text: "Let's do this." },

@@ -6,7 +6,7 @@ A personal portfolio site disguised as an UNO card game. Visitors play UNO again
 
 ## The Concept
 
-Instead of a traditional portfolio with static sections, this site turns the experience into a card game. Three AI opponents — Meio (the strategist), Dong (the trash talker), and Oscar (the chill one) — react to game events with personality-driven dialogue, tell jokes, and share facts about Oriel as the game progresses.
+Instead of a traditional portfolio with static sections, this site turns the experience into a card game. Three AI opponents — Meio (the strategist), Mark (the trash talker), and Jap (the chill one) — react to game events with personality-driven dialogue, tell jokes, and share facts about Oriel as the game progresses.
 
 The site itself is the portfolio piece: it demonstrates React architecture, 3D rendering, state management, animation systems, and creative UI/UX thinking all at once.
 

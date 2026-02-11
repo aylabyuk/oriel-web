@@ -1,9 +1,14 @@
 import { Value, Color } from 'uno-engine';
+import {
+  AI_STRATEGIST,
+  AI_TRASH_TALKER,
+  AI_CHILL,
+} from '@/constants/players';
 
 export const AI_INDEX: Record<string, number> = {
-  Meio: 1,
-  Dong: 2,
-  Oscar: 3,
+  [AI_STRATEGIST]: 1,
+  [AI_TRASH_TALKER]: 2,
+  [AI_CHILL]: 3,
 };
 
 /** Delay after event before first dialogue appears (ms) */

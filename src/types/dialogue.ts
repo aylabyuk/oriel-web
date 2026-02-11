@@ -1,4 +1,6 @@
-export type AiPersonality = 'Meio' | 'Dong' | 'Oscar';
+import type { AiPersonality } from '@/constants/players';
+
+export type { AiPersonality };
 
 export type DialogueCategory =
   | 'got_skipped'

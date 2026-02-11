@@ -2,6 +2,11 @@ import { DIALOGUE_LINES } from '@/data/dialogueLines';
 import type { AiPersonality, DialogueCategory } from '@/types/dialogue';
 import type { GameSnapshot } from '@/types/game';
 import {
+  AI_STRATEGIST,
+  AI_TRASH_TALKER,
+  AI_CHILL,
+} from '@/constants/players';
+import {
   CATEGORY_PROBABILITY,
   HISTORY_SIZE,
   COOLDOWN_MS,
@@ -19,8 +24,8 @@ type LineContext = {
 
 export const createDialogueSelector = () => {
   const state: SelectorState = {
-    history: { Meio: [], Dong: [], Oscar: [] },
-    lastTime: { Meio: 0, Dong: 0, Oscar: 0 },
+    history: { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] },
+    lastTime: { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 },
   };
 
   const selectLine = (
@@ -65,8 +70,8 @@ export const createDialogueSelector = () => {
   };
 
   const reset = () => {
-    state.history = { Meio: [], Dong: [], Oscar: [] };
-    state.lastTime = { Meio: 0, Dong: 0, Oscar: 0 };
+    state.history = { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] };
+    state.lastTime = { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 };
   };
 
   return { selectLine, reset };
