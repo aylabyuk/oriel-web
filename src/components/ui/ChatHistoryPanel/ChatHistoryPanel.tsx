@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { cn } from '@/utils/cn';
 import type { AiPersonality, DialogueHistoryEntry } from '@/types/dialogue';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const AVATAR_COLORS: Record<AiPersonality, string> = {
   Meio: '#e74c3c',
@@ -20,6 +21,7 @@ const formatTime = (ts: number): string => {
 };
 
 export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const springs = useSpring({
@@ -50,10 +52,10 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
     >
       <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2 sm:px-4 sm:py-3">
         <span className="text-xs font-semibold text-white/90 sm:text-sm">
-          Chat History
+          {t('chat.title')}
         </span>
         <span className="ml-auto text-[10px] text-white/40 sm:text-xs">
-          {history.length} messages
+          {t('chat.messageCount', { count: history.length })}
         </span>
       </div>
 
@@ -64,7 +66,7 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
       >
         {history.length === 0 ? (
           <p className="text-center text-xs text-white/30 italic">
-            No messages yet. AI dialogue will appear here.
+            {t('chat.empty')}
           </p>
         ) : (
           history.map((entry, i) =>

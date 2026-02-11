@@ -1,4 +1,5 @@
 import { useSpring, animated } from '@react-spring/web';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type DrawChoiceModalProps = {
   open: boolean;
@@ -11,6 +12,7 @@ export const DrawChoiceModal = ({
   onPlay,
   onSkip,
 }: DrawChoiceModalProps) => {
+  const { t } = useTranslation();
   const springs = useSpring({
     opacity: open ? 1 : 0,
     y: open ? 0 : -24,
@@ -28,19 +30,19 @@ export const DrawChoiceModal = ({
       }}
     >
       <span className="mr-1 text-sm font-medium text-white/80">
-        Play drawn card?
+        {t('draw.playDrawnCard')}
       </span>
       <button
         onClick={onPlay}
         className="cursor-pointer rounded-lg bg-white/90 px-4 py-1.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-105 focus:ring-2 focus:ring-white/50 focus:outline-none"
       >
-        Play
+        {t('draw.play')}
       </button>
       <button
         onClick={onSkip}
         className="cursor-pointer rounded-lg border border-white/20 px-4 py-1.5 text-sm font-medium text-white/70 transition-transform hover:scale-105 hover:text-white focus:ring-2 focus:ring-white/50 focus:outline-none"
       >
-        Skip
+        {t('draw.skip')}
       </button>
     </animated.div>
   );

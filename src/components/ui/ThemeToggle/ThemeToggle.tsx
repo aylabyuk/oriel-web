@@ -1,17 +1,21 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { toggleMode, selectMode } from '@/store/slices/theme';
 import { cn } from '@/utils/cn';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export const ThemeToggle = () => {
   const dispatch = useAppDispatch();
   const mode = useAppSelector(selectMode);
   const isDark = mode === 'dark';
+  const { t } = useTranslation();
 
   return (
     <button
       type="button"
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      data-tooltip={isDark ? 'Light mode' : 'Dark mode'}
+      aria-label={
+        isDark ? t('toolbar.switchToLight') : t('toolbar.switchToDark')
+      }
+      data-tooltip={isDark ? t('toolbar.lightMode') : t('toolbar.darkMode')}
       onClick={() => dispatch(toggleMode())}
       className={cn(
         'relative flex h-9 w-9 cursor-pointer items-center justify-center',

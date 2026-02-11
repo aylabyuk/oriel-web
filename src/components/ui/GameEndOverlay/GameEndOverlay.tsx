@@ -1,5 +1,6 @@
 import { useSpring, useTrail, animated } from '@react-spring/web';
 import type { GameEndInfo } from '@/types/game';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type GameEndOverlayProps = {
   open: boolean;
@@ -34,6 +35,8 @@ export const GameEndOverlay = ({
     config: { tension: 220, friction: 24 },
   });
 
+  const { t } = useTranslation();
+
   if (!endInfo) return null;
 
   return (
@@ -52,7 +55,9 @@ export const GameEndOverlay = ({
         style={{ scale: springs.scale }}
       >
         <h2 className="text-2xl font-bold text-white">
-          {isVisitorWinner ? 'You win!' : `${endInfo.winner} wins!`}
+          {isVisitorWinner
+            ? t('game.youWin')
+            : t('game.playerWins', { name: endInfo.winner })}
         </h2>
 
         <div className="flex flex-col items-center gap-1">
@@ -61,14 +66,14 @@ export const GameEndOverlay = ({
             {scoreSpring.val.to((v) => Math.floor(v))}
           </animated.span>
           <span className="text-xs font-medium tracking-wide text-white/50 uppercase">
-            Points
+            {t('game.points')}
           </span>
         </div>
 
         {breakdownCount > 0 && (
           <div className="w-full space-y-2">
             <span className="text-xs font-medium tracking-wide text-white/40 uppercase">
-              Remaining cards
+              {t('game.remainingCards')}
             </span>
             {trail.map((style, i) => {
               const player = endInfo.breakdown[i];
@@ -85,8 +90,8 @@ export const GameEndOverlay = ({
                   <span>{player.name}</span>
                   <span className="tabular-nums">
                     {player.cardCount}{' '}
-                    {player.cardCount === 1 ? 'card' : 'cards'} &middot;{' '}
-                    {player.points} pts
+                    {player.cardCount === 1 ? t('game.card') : t('game.cards')}{' '}
+                    &middot; {player.points} {t('game.pts')}
                   </span>
                 </animated.div>
               );
@@ -98,7 +103,7 @@ export const GameEndOverlay = ({
           onClick={onPlayAgain}
           className="mt-1 w-full cursor-pointer rounded-xl bg-white/90 px-6 py-2.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-105 focus:ring-2 focus:ring-white/50 focus:outline-none"
         >
-          Play Again
+          {t('game.playAgain')}
         </button>
       </animated.div>
     </animated.div>

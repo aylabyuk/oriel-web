@@ -23,6 +23,7 @@ import { useMagnetState } from '@/hooks/useMagnetState';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import type { DialogueBubble } from '@/types/dialogue';
 import { SEATS, SEAT_ORDER, unoColorToHex } from '@/constants';
+import { useTranslation } from '@/hooks/useTranslation';
 
 /** Adjust camera FOV based on canvas width for responsive framing. */
 const ResponsiveFov = () => {
@@ -39,18 +40,11 @@ const ResponsiveFov = () => {
 /** Set to true to render the debug magnet card layer alongside visible cards. */
 const DEBUG_MAGNETS = false;
 
-const getEffectMessage = (value: Value): string | null => {
-  switch (value) {
-    case Value.SKIP:
-      return 'Skipped!';
-    case Value.DRAW_TWO:
-      return 'Draw 2!';
-    case Value.WILD_DRAW_FOUR:
-      return 'Draw 4!';
-    default:
-      return null;
-  }
-};
+const EFFECT_VALUES = new Set([
+  Value.SKIP,
+  Value.DRAW_TWO,
+  Value.WILD_DRAW_FOUR,
+]);
 
 const DIALOGUE_ALIGN: Record<string, 'left' | 'right'> = {
   Meio: 'right',
@@ -105,6 +99,7 @@ export const BackgroundScene = ({
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const mode = useAppSelector(selectMode);
+  const { t } = useTranslation();
   const [tableReady, setTableReady] = useState(false);
   const [cardsReady, setCardsReady] = useState(false);
   const handleTableReady = useCallback(() => setTableReady(true), []);
@@ -128,30 +123,30 @@ export const BackgroundScene = ({
     if (magnet.phase === 'playing' && prev !== 'playing') {
       if (prev?.startsWith('play') && snapshot) {
         const topCard = magnet.discardPile[magnet.discardPile.length - 1];
-        if (topCard) {
-          const message = getEffectMessage(topCard.value);
-          if (message) {
-            const N = snapshot.players.length;
-            // snapshot.currentPlayerName is the player AFTER the skip/draw
-            // so the affected player is one step backward in the play direction.
-            // Use snapshot values (always current) instead of magnet values
-            // which can be stale when animations chain back-to-back.
-            const currentIdx = snapshot.players.findIndex(
-              (p) => p.name === snapshot.currentPlayerName,
-            );
-            if (currentIdx >= 0) {
-              const dirStep = snapshot.direction === 'clockwise' ? -1 : 1;
-              const affectedIdx = (((currentIdx + dirStep) % N) + N) % N;
-              const color = unoColorToHex(topCard.color) ?? '#888';
-              setToasts((prev) => {
-                const next = Array.from(
-                  { length: N },
-                  (_, i) => prev[i] ?? null,
-                );
-                next[affectedIdx] = { message, color, key: Date.now() };
-                return next;
-              });
-            }
+        if (topCard && EFFECT_VALUES.has(topCard.value)) {
+          const message =
+            topCard.value === Value.SKIP
+              ? t('status.skipped')
+              : topCard.value === Value.DRAW_TWO
+                ? t('status.drawTwo')
+                : t('status.drawFour');
+          const N = snapshot.players.length;
+          // snapshot.currentPlayerName is the player AFTER the skip/draw
+          // so the affected player is one step backward in the play direction.
+          // Use snapshot values (always current) instead of magnet values
+          // which can be stale when animations chain back-to-back.
+          const currentIdx = snapshot.players.findIndex(
+            (p) => p.name === snapshot.currentPlayerName,
+          );
+          if (currentIdx >= 0) {
+            const dirStep = snapshot.direction === 'clockwise' ? -1 : 1;
+            const affectedIdx = (((currentIdx + dirStep) % N) + N) % N;
+            const color = unoColorToHex(topCard.color) ?? '#888';
+            setToasts((prev) => {
+              const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
+              next[affectedIdx] = { message, color, key: Date.now() };
+              return next;
+            });
           }
         }
       }
@@ -168,6 +163,7 @@ export const BackgroundScene = ({
     snapshot,
     onAnimationIdle,
     onChallengeReady,
+    t,
   ]);
 
   // Show toast when a WD4 challenge resolves (pendingChallenge goes non-null → null)
@@ -210,7 +206,7 @@ export const BackgroundScene = ({
         snapshot.players[blufferIdx].hand.length > saved.handSizes[blufferIdx]
       ) {
         // Bluffer gained cards → bluff caught
-        message = 'Bluff caught!';
+        message = t('status.bluffCaught');
         targetIdx = blufferIdx;
         color = '#ef4444';
       } else if (
@@ -218,12 +214,12 @@ export const BackgroundScene = ({
         snapshot.players[victimIdx].hand.length > saved.handSizes[victimIdx]
       ) {
         // Victim gained extra cards → challenge failed
-        message = 'Challenge failed!';
+        message = t('status.challengeFailed');
         targetIdx = victimIdx;
         color = '#f97316';
       } else {
         // No extra draws → accepted
-        message = 'Accepted';
+        message = t('status.accepted');
         targetIdx = victimIdx >= 0 ? victimIdx : 0;
         color = '#888';
       }
@@ -234,7 +230,7 @@ export const BackgroundScene = ({
         return next;
       });
     }
-  }, [snapshot]);
+  }, [snapshot, t]);
 
   // Show toast when UNO callable resolves (unoCallable goes non-null → null)
   // If a player's hand grew, they were caught and penalized.
@@ -266,7 +262,7 @@ export const BackgroundScene = ({
         setToasts((prev) => {
           const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
           next[callableIdx] = {
-            message: 'Caught! +2',
+            message: t('status.caughtPenalty'),
             color: '#ef4444',
             key: Date.now(),
           };
@@ -274,7 +270,7 @@ export const BackgroundScene = ({
         });
       }
     }
-  }, [snapshot]);
+  }, [snapshot, t]);
 
   // Auto-clear toasts after CSS animation finishes
   useEffect(() => {

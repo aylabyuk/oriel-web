@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type UnoButtonProps = {
   mode: 'shout' | 'catch' | null;
@@ -63,8 +64,15 @@ export const UnoButton = ({
     };
   }, [open, duration]);
 
-  const label = mode === 'catch' ? `Catch ${targetName}!` : 'UNO!';
-  const ariaLabel = mode === 'catch' ? `Catch ${targetName}` : 'Call UNO';
+  const { t } = useTranslation();
+  const label =
+    mode === 'catch'
+      ? t('uno.catch', { name: targetName ?? '' })
+      : t('uno.shout');
+  const ariaLabel =
+    mode === 'catch'
+      ? t('uno.catchLabel', { name: targetName ?? '' })
+      : t('uno.callLabel');
   const bgClass =
     mode === 'catch'
       ? 'bg-red-500 hover:bg-red-400'

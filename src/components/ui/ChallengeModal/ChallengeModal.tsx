@@ -1,4 +1,5 @@
 import { useSpring, animated } from '@react-spring/web';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type ChallengeModalProps = {
   open: boolean;
@@ -13,6 +14,7 @@ export const ChallengeModal = ({
   onAccept,
   onChallenge,
 }: ChallengeModalProps) => {
+  const { t } = useTranslation();
   const springs = useSpring({
     opacity: open ? 1 : 0,
     y: open ? 0 : -24,
@@ -30,19 +32,19 @@ export const ChallengeModal = ({
       }}
     >
       <span className="mr-1 text-sm font-medium text-white/80">
-        {blufferName} played Wild Draw 4!
+        {t('challenge.playedWildDrawFour', { name: blufferName })}
       </span>
       <button
         onClick={onChallenge}
         className="cursor-pointer rounded-lg bg-red-500/90 px-4 py-1.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-white/50 focus:outline-none"
       >
-        Challenge
+        {t('challenge.challenge')}
       </button>
       <button
         onClick={onAccept}
         className="cursor-pointer rounded-lg border border-white/20 px-4 py-1.5 text-sm font-medium text-white/70 transition-transform hover:scale-105 hover:text-white focus:ring-2 focus:ring-white/50 focus:outline-none"
       >
-        Accept
+        {t('challenge.accept')}
       </button>
     </animated.div>
   );

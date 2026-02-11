@@ -1,13 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { Color } from 'uno-engine';
+import { useTranslation } from '@/hooks/useTranslation';
 
-const COLORS = [
-  { label: 'Red', hex: '#ef6f6f', color: Color.RED },
-  { label: 'Blue', hex: '#5b8ef5', color: Color.BLUE },
-  { label: 'Green', hex: '#4dcb7a', color: Color.GREEN },
-  { label: 'Yellow', hex: '#f0b84d', color: Color.YELLOW },
+const COLOR_OPTIONS = [
+  { hex: '#ef6f6f', color: Color.RED },
+  { hex: '#5b8ef5', color: Color.BLUE },
+  { hex: '#4dcb7a', color: Color.GREEN },
+  { hex: '#f0b84d', color: Color.YELLOW },
 ] as const;
+
+const COLOR_LABELS = {
+  [Color.RED]: 'colors.red',
+  [Color.BLUE]: 'colors.blue',
+  [Color.GREEN]: 'colors.green',
+  [Color.YELLOW]: 'colors.yellow',
+} as const;
 
 type WildColorPickerProps = {
   open: boolean;
@@ -20,6 +28,7 @@ export const WildColorPicker = ({
   onColorSelect,
   onDismiss,
 }: WildColorPickerProps) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const springs = useSpring({
@@ -54,15 +63,18 @@ export const WildColorPicker = ({
         pointerEvents: open ? 'auto' : 'none',
       }}
     >
-      {COLORS.map((c) => (
-        <button
-          key={c.label}
-          aria-label={c.label}
-          onClick={() => onColorSelect(c.color)}
-          className="h-10 w-10 cursor-pointer rounded-full border-2 border-white/20 transition-transform hover:scale-110 focus:ring-2 focus:ring-white/50 focus:outline-none"
-          style={{ backgroundColor: c.hex }}
-        />
-      ))}
+      {COLOR_OPTIONS.map((c) => {
+        const label = t(COLOR_LABELS[c.color]);
+        return (
+          <button
+            key={label}
+            aria-label={label}
+            onClick={() => onColorSelect(c.color)}
+            className="h-10 w-10 cursor-pointer rounded-full border-2 border-white/20 transition-transform hover:scale-110 focus:ring-2 focus:ring-white/50 focus:outline-none"
+            style={{ backgroundColor: c.hex }}
+          />
+        );
+      })}
     </animated.div>
   );
 };
