@@ -16,13 +16,17 @@ export const ChatToggle = ({ open, onClick }: ChatToggleProps) => {
       data-tooltip={open ? t('chat.closeChat') : t('chat.openChat')}
       onClick={onClick}
       className={cn(
-        'fixed right-4 bottom-4 z-60',
-        'flex h-9 w-9 cursor-pointer items-center justify-center',
+        'relative flex h-9 w-9 cursor-pointer items-center justify-center',
         'rounded-full text-lg shadow-sm backdrop-blur-sm transition-colors',
         'bg-white/60 hover:bg-white/80 dark:bg-black/60 dark:hover:bg-black/80',
         'focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none',
         'dark:focus:ring-neutral-500',
         open && 'ring-2 ring-neutral-400 dark:ring-neutral-500',
+        'after:pointer-events-none after:absolute after:top-full after:mt-2',
+        'after:rounded after:border after:border-white/20 after:bg-black/80 after:px-2 after:py-1',
+        'after:text-xs after:whitespace-nowrap after:text-white after:opacity-0 after:transition-opacity',
+        'after:content-[attr(data-tooltip)]',
+        'hover:after:opacity-100',
       )}
     >
       <svg

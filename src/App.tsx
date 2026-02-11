@@ -22,6 +22,7 @@ import { ChatHistoryPanel } from '@/components/ui/ChatHistoryPanel';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
+import { cn } from '@/utils/cn';
 import type { Color } from 'uno-engine';
 
 export const App = () => {
@@ -203,30 +204,42 @@ export const App = () => {
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
       data-theme={mode}
     >
-      <BackgroundScene
-        showTable={hasEnteredWelcome}
-        onStartGame={startGame}
-        onPlayCard={playCard}
-        onDrawCard={handleDrawCard}
-        onAnimationIdle={handleAnimationIdle}
-        onDealingComplete={handleDealingComplete}
-        onWildCardPlayed={handleWildCardPlayed}
-        onSceneReady={handleSceneReady}
-        onChallengeReady={handleChallengeReady}
-        entranceEnabled={welcomeDismissed}
-        dealingEnabled={disclaimerAcked}
-        freeLook={freeLook}
-        deckEnabled={!drawPending && drawChoice === null && !challengeReady}
-        playableOverride={
-          drawChoice
-            ? [drawChoice.cardId]
-            : drawnWildCardId
-              ? [drawnWildCardId]
-              : undefined
-        }
-        onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
-        dialogues={dialogues}
-      />
+      <div className="fixed inset-0 z-0">
+        <BackgroundScene
+          showTable={hasEnteredWelcome}
+          onStartGame={startGame}
+          onPlayCard={playCard}
+          onDrawCard={handleDrawCard}
+          onAnimationIdle={handleAnimationIdle}
+          onDealingComplete={handleDealingComplete}
+          onWildCardPlayed={handleWildCardPlayed}
+          onSceneReady={handleSceneReady}
+          onChallengeReady={handleChallengeReady}
+          entranceEnabled={welcomeDismissed}
+          dealingEnabled={disclaimerAcked}
+          freeLook={freeLook}
+          deckEnabled={!drawPending && drawChoice === null && !challengeReady}
+          playableOverride={
+            drawChoice
+              ? [drawChoice.cardId]
+              : drawnWildCardId
+                ? [drawnWildCardId]
+                : undefined
+          }
+          onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
+          dialogues={dialogues}
+        />
+      </div>
+      {/* Mobile/tablet drawer overlay — hidden on lg+ */}
+      {disclaimerAcked && (
+        <div className="lg:hidden">
+          <ChatHistoryPanel
+            variant="drawer"
+            open={chatOpen}
+            history={history}
+          />
+        </div>
+      )}
       <DisclaimerModal
         open={welcomeDismissed && !disclaimerAcked}
         visitorName={enteredVisitorName}
@@ -260,19 +273,26 @@ export const App = () => {
         duration={unoDuration}
         onPress={handleUnoPress}
       />
+      {/* Desktop floating panel — hidden below lg */}
       {disclaimerAcked && (
-        <>
-          <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+        <div className="hidden lg:block">
           <ChatHistoryPanel open={chatOpen} history={history} />
-        </>
+        </div>
       )}
-      <div className="relative z-10">
-        <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
+      <div className="relative z-70">
+        <div
+          className={cn(
+            'fixed top-4 right-4 z-70 flex items-center gap-2',
+            'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
+            'dark:bg-neutral-900/70',
+          )}
+        >
           <ThemeToggle />
           {disclaimerAcked && (
             <>
               <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
               <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
+              <ChatToggle open={chatOpen} onClick={handleChatToggle} />
             </>
           )}
         </div>

@@ -28,7 +28,7 @@ export const RestartButton = ({
         'dark:focus:ring-neutral-500',
         disabled && 'pointer-events-none opacity-40',
         'after:pointer-events-none after:absolute after:top-full after:mt-2',
-        'after:rounded after:bg-black/80 after:px-2 after:py-1',
+        'after:rounded after:border after:border-white/20 after:bg-black/80 after:px-2 after:py-1',
         'after:text-xs after:whitespace-nowrap after:text-white after:opacity-0 after:transition-opacity',
         'after:content-[attr(data-tooltip)]',
         'hover:after:opacity-100',

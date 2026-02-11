@@ -390,7 +390,7 @@ export const BackgroundScene = ({
   );
 
   return (
-    <div className="fixed inset-0 z-0">
+    <div className="h-full w-full">
       <Canvas camera={{ position: [...DEFAULT_CAMERA_POSITION], fov: DEFAULT_CAMERA_FOV }}>
         <ResponsiveFov />
         <CameraController
