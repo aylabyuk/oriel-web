@@ -8,6 +8,7 @@ export const en = {
     companyLabel: 'Company',
     companyPlaceholder: 'Who are you with? (optional)',
     nameRequired: 'I need a name before we can play!',
+    nameReserved: "That name's taken by one of my AI opponents! Try another.",
     startButton: 'Deal Me In',
   },
   game: {

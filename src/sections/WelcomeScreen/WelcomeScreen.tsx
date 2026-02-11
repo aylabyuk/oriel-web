@@ -15,6 +15,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { MY_AVATAR_URL } from '@/constants';
+import { AI_NAME_SET } from '@/constants/players';
 import { cn } from '@/utils/cn';
 
 type WelcomeScreenProps = {
@@ -52,12 +53,20 @@ export const WelcomeScreen = ({
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch(submitWelcome());
 
-    if (!name.trim()) {
+    const trimmed = name.trim();
+    if (!trimmed) {
       dispatch(setNameError(t('welcome.nameRequired')));
       nameInputRef.current?.focus();
+      return;
     }
+    if (AI_NAME_SET.has(trimmed)) {
+      dispatch(setNameError(t('welcome.nameReserved')));
+      nameInputRef.current?.focus();
+      return;
+    }
+
+    dispatch(submitWelcome());
   };
 
   return (
