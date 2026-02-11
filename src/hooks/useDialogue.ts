@@ -13,6 +13,7 @@ import type {
 } from '@/types/dialogue';
 import type { GameEvent, GameSnapshot, SerializedCard } from '@/types/game';
 import { fetchJokes } from '@/utils/fetchJokes';
+import type { Joke } from '@/utils/fetchJokes';
 import { AI_NAMES, AI_NAME_SET } from '@/constants/players';
 import {
   AI_INDEX,
@@ -24,11 +25,20 @@ import {
   JOKE_CHANCE,
   JOKE_REFETCH_THRESHOLD,
   JOKE_INTRO_DURATION,
+  JOKE_GO_AHEAD_DELAY,
+  JOKE_GO_AHEAD_DURATION,
   JOKE_PUNCHLINE_DELAY,
+  JOKE_SETUP_TO_PUNCHLINE_DELAY,
+  JOKE_QUESTION_PROMPT_DELAY,
+  JOKE_QUESTION_PROMPT_DURATION,
   JOKE_REACTION_STAGGER,
   JOKE_REACTION_DURATION,
   jokeReadTime,
+  MAX_JOKE_WORDS,
   JOKE_INTROS,
+  JOKE_GO_AHEAD_LINES,
+  detectQuestionWord,
+  JOKE_QUESTION_RESPONSES,
   JOKE_REACTIONS_POSITIVE,
   JOKE_REACTIONS_NEGATIVE,
   COLOR_NAMES,
@@ -390,14 +400,21 @@ export const useDialogue = () => {
   const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const jokePoolRef = useRef<string[]>([]);
+  const jokePoolRef = useRef<Joke[]>([]);
+  const jokeActiveRef = useRef(false);
   const fetchingJokesRef = useRef(false);
 
   const refillJokes = useCallback(() => {
     if (fetchingJokesRef.current) return;
     fetchingJokesRef.current = true;
     fetchJokes().then((jokes) => {
-      jokePoolRef.current.push(...jokes);
+      const short = jokes.filter((j) => {
+        const words =
+          j.setup.split(/\s+/).length +
+          (j.punchline?.split(/\s+/).length ?? 0);
+        return words <= MAX_JOKE_WORDS;
+      });
+      jokePoolRef.current.push(...short);
       fetchingJokesRef.current = false;
     });
   }, []);
@@ -423,6 +440,7 @@ export const useDialogue = () => {
     selectorRef.current.reset();
     processedRef.current = 0;
     gameStartedRef.current = false;
+    jokeActiveRef.current = false;
     setDialogues([null, null, null, null]);
     setHistory([]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
@@ -469,6 +487,7 @@ export const useDialogue = () => {
     if (!visitorName || snapshot.currentPlayerName !== visitorName) return;
 
     visitorSlowTimerRef.current = setTimeout(() => {
+      if (jokeActiveRef.current) return;
       const now = Date.now();
       const ctx = { visitor: visitorName };
       const candidates = shuffle(
@@ -547,20 +566,26 @@ export const useDialogue = () => {
         }
       }
 
-      scheduleDialogues(
-        selected,
-        REACTION_DELAY_BASE,
-        timersRef,
-        setDialogues,
-        setHistory,
-      );
-
-      // Occasionally have an AI tell a joke on turn changes
-      if (
+      // Decide if a joke will be told BEFORE scheduling regular dialogues
+      const willTellJoke =
         event.type === 'turn_changed' &&
+        !jokeActiveRef.current &&
         jokePoolRef.current.length > 0 &&
-        Math.random() < JOKE_CHANCE
-      ) {
+        Math.random() < JOKE_CHANCE;
+
+      if (!jokeActiveRef.current && !willTellJoke) {
+        scheduleDialogues(
+          selected,
+          REACTION_DELAY_BASE,
+          timersRef,
+          setDialogues,
+          setHistory,
+        );
+      }
+
+      if (willTellJoke) {
+        jokeActiveRef.current = true;
+        clearVisitorSlowTimer();
         const joke = jokePoolRef.current.pop()!;
         const teller = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
         const reactors = otherAis(teller);
@@ -569,6 +594,11 @@ export const useDialogue = () => {
         const tellerIdx = AI_INDEX[teller];
         const intro =
           JOKE_INTROS[Math.floor(Math.random() * JOKE_INTROS.length)];
+
+        const prompter =
+          reactors[Math.floor(Math.random() * reactors.length)];
+        const prompterIdx = AI_INDEX[prompter];
+        const jokeTimers: ReturnType<typeof setTimeout>[] = [];
 
         // Phase 1 — Intro: "Hey, I got a joke!"
         const introShow = setTimeout(() => {
@@ -595,13 +625,44 @@ export const useDialogue = () => {
           });
         }, baseT + JOKE_INTRO_DURATION);
 
-        // Phase 2 — Punchline: stays on screen based on word count
-        const readTime = jokeReadTime(joke);
-        const jokeStart = baseT + JOKE_PUNCHLINE_DELAY;
-        const jokeShow = setTimeout(() => {
+        // Phase 1b — "Go ahead" from another AI
+        const goAheadLine =
+          JOKE_GO_AHEAD_LINES[
+            Math.floor(Math.random() * JOKE_GO_AHEAD_LINES.length)
+          ];
+        const goAheadShow = setTimeout(() => {
           setDialogues((prev) => {
             const n = [...prev];
-            n[tellerIdx] = { message: joke, key: Date.now() };
+            n[prompterIdx] = { message: goAheadLine, key: Date.now() };
+            return n;
+          });
+          setHistory((prev) => [
+            ...prev,
+            {
+              kind: 'dialogue',
+              personality: prompter,
+              message: goAheadLine,
+              timestamp: Date.now(),
+            },
+          ]);
+        }, baseT + JOKE_GO_AHEAD_DELAY);
+        const goAheadHide = setTimeout(() => {
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[prompterIdx] = null;
+            return n;
+          });
+        }, baseT + JOKE_GO_AHEAD_DELAY + JOKE_GO_AHEAD_DURATION);
+        jokeTimers.push(goAheadShow, goAheadHide);
+
+        // Phase 2 — Setup
+        const setupStart = baseT + JOKE_PUNCHLINE_DELAY;
+        const setupReadTime = jokeReadTime(joke.setup);
+
+        const setupShow = setTimeout(() => {
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = { message: joke.setup, key: Date.now() };
             return n;
           });
           setHistory((prev) => [
@@ -609,22 +670,113 @@ export const useDialogue = () => {
             {
               kind: 'dialogue',
               personality: teller,
-              message: joke,
+              message: joke.setup,
               timestamp: Date.now(),
             },
           ]);
-        }, jokeStart);
-        // Joke hides when first reaction appears
-        const reactionsStart = jokeStart + readTime;
-        const jokeHide = setTimeout(() => {
-          setDialogues((prev) => {
-            const n = [...prev];
-            n[tellerIdx] = null;
-            return n;
-          });
-        }, reactionsStart);
+        }, setupStart);
+        jokeTimers.push(setupShow);
 
-        // Phase 3 — Reactions from other AIs (after read time)
+        let reactionsStart: number;
+
+        if (joke.punchline) {
+          // Two-part: hide setup, optionally show question prompt, then punchline
+          const setupHide = setTimeout(() => {
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[tellerIdx] = null;
+              return n;
+            });
+          }, setupStart + setupReadTime);
+          jokeTimers.push(setupHide);
+
+          const punchlineText = joke.punchline;
+          const questionWord = detectQuestionWord(joke.setup);
+          let punchlineStart: number;
+
+          if (questionWord) {
+            // Phase 2b — Question prompt: "What?" / "Why?" etc.
+            const responses = JOKE_QUESTION_RESPONSES[questionWord];
+            const questionLine =
+              responses[Math.floor(Math.random() * responses.length)];
+            const questionStart =
+              setupStart + setupReadTime + JOKE_QUESTION_PROMPT_DELAY;
+
+            const questionShow = setTimeout(() => {
+              setDialogues((prev) => {
+                const n = [...prev];
+                n[prompterIdx] = { message: questionLine, key: Date.now() };
+                return n;
+              });
+              setHistory((prev) => [
+                ...prev,
+                {
+                  kind: 'dialogue',
+                  personality: prompter,
+                  message: questionLine,
+                  timestamp: Date.now(),
+                },
+              ]);
+            }, questionStart);
+            const questionHide = setTimeout(() => {
+              setDialogues((prev) => {
+                const n = [...prev];
+                n[prompterIdx] = null;
+                return n;
+              });
+            }, questionStart + JOKE_QUESTION_PROMPT_DURATION);
+            jokeTimers.push(questionShow, questionHide);
+
+            punchlineStart =
+              questionStart +
+              JOKE_QUESTION_PROMPT_DURATION +
+              JOKE_SETUP_TO_PUNCHLINE_DELAY;
+          } else {
+            punchlineStart =
+              setupStart + setupReadTime + JOKE_SETUP_TO_PUNCHLINE_DELAY;
+          }
+
+          const punchlineReadTime = jokeReadTime(punchlineText);
+          reactionsStart = punchlineStart + punchlineReadTime;
+
+          const punchlineShow = setTimeout(() => {
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[tellerIdx] = { message: punchlineText, key: Date.now() };
+              return n;
+            });
+            setHistory((prev) => [
+              ...prev,
+              {
+                kind: 'dialogue',
+                personality: teller,
+                message: punchlineText,
+                timestamp: Date.now(),
+              },
+            ]);
+          }, punchlineStart);
+          const punchlineHide = setTimeout(() => {
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[tellerIdx] = null;
+              return n;
+            });
+          }, reactionsStart);
+          jokeTimers.push(punchlineShow, punchlineHide);
+        } else {
+          // Single joke: hide after read time
+          reactionsStart = setupStart + setupReadTime;
+          const setupHide = setTimeout(() => {
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[tellerIdx] = null;
+              return n;
+            });
+          }, reactionsStart);
+          jokeTimers.push(setupHide);
+        }
+
+        // Phase 3 — Reactions from other AIs
         for (let r = 0; r < reactors.length; r++) {
           const reactor = reactors[r];
           const pool =
@@ -662,7 +814,16 @@ export const useDialogue = () => {
           timersRef.current.push(rShow, rHide);
         }
 
-        timersRef.current.push(introShow, introHide, jokeShow, jokeHide);
+        // Deactivate joke guard after the last reaction hides
+        const lastReactionEnd =
+          reactionsStart +
+          (reactors.length - 1) * JOKE_REACTION_STAGGER +
+          JOKE_REACTION_DURATION;
+        const jokeEnd = setTimeout(() => {
+          jokeActiveRef.current = false;
+        }, lastReactionEnd);
+
+        timersRef.current.push(introShow, introHide, ...jokeTimers, jokeEnd);
         if (jokePoolRef.current.length < JOKE_REFETCH_THRESHOLD) refillJokes();
       }
     }

@@ -23,9 +23,16 @@ export const JOKE_REFETCH_THRESHOLD = 3;
 
 /** Joke sequence timing (ms) */
 export const JOKE_INTRO_DURATION = 2500;
+export const JOKE_GO_AHEAD_DELAY = 1200;
+export const JOKE_GO_AHEAD_DURATION = 1500;
 export const JOKE_PUNCHLINE_DELAY = 2800;
+export const JOKE_SETUP_TO_PUNCHLINE_DELAY = 800;
+export const JOKE_QUESTION_PROMPT_DELAY = 400;
+export const JOKE_QUESTION_PROMPT_DURATION = 1500;
 export const JOKE_REACTION_STAGGER = 1500;
 export const JOKE_REACTION_DURATION = 4000;
+/** Max words allowed for a joke (total across setup + punchline) — longer jokes are discarded */
+export const MAX_JOKE_WORDS = 25;
 /** ms per word for joke read time, with a floor */
 export const JOKE_MS_PER_WORD = 400;
 export const JOKE_READ_TIME_MIN = 5000;
@@ -43,6 +50,40 @@ export const JOKE_INTROS = [
   'You guys ready for this?',
   'Stop me if you heard this one...',
 ];
+
+export const JOKE_GO_AHEAD_LINES = [
+  'Go ahead.',
+  "Let's hear it.",
+  'Oh boy...',
+  'Sure, why not.',
+  'Hit us.',
+  "Alright, let's hear it.",
+  'This better be good.',
+  'Go for it.',
+];
+
+const QUESTION_WORDS = ['what', 'why', 'how', 'who', 'when', 'where'] as const;
+
+/** Detect a question word at the start of a joke setup, or null if none found */
+export const detectQuestionWord = (text: string): string | null => {
+  const first = text
+    .trim()
+    .split(/\s+/)[0]
+    ?.toLowerCase()
+    .replace(/[^a-z]/g, '');
+  return QUESTION_WORDS.includes(first as (typeof QUESTION_WORDS)[number])
+    ? first!
+    : null;
+};
+
+export const JOKE_QUESTION_RESPONSES: Record<string, string[]> = {
+  what: ['What?', 'What??', 'Hmm, what?'],
+  why: ['Why?', 'Why??', 'Okay why?'],
+  how: ['How?', 'How??', 'Hmm, how?'],
+  who: ['Who?', 'Who??'],
+  when: ['When?', 'When??'],
+  where: ['Where?', 'Where??'],
+};
 
 export const JOKE_REACTIONS_POSITIVE = [
   'Haha, good one!',

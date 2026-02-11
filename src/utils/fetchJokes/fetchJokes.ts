@@ -7,21 +7,24 @@ type JokeResponse =
 
 type ApiBatch = { error: boolean; jokes: JokeResponse[] };
 
-/** Flatten a joke response into a single string. */
-const flatten = (j: JokeResponse): string =>
-  j.type === 'single' ? j.joke : `${j.setup} ... ${j.delivery}`;
+export type Joke = { setup: string; punchline?: string };
+
+const toJoke = (j: JokeResponse): Joke =>
+  j.type === 'single'
+    ? { setup: j.joke }
+    : { setup: j.setup, punchline: j.delivery };
 
 /**
  * Fetch a batch of safe jokes from JokeAPI.
- * Returns an array of joke strings, or an empty array on failure.
+ * Returns an array of Joke objects, or an empty array on failure.
  */
-export const fetchJokes = async (): Promise<string[]> => {
+export const fetchJokes = async (): Promise<Joke[]> => {
   try {
     const res = await fetch(API_URL);
     if (!res.ok) return [];
     const data = (await res.json()) as ApiBatch;
     if (data.error || !data.jokes) return [];
-    return data.jokes.map(flatten);
+    return data.jokes.map(toJoke);
   } catch {
     return [];
   }
