@@ -49,6 +49,10 @@ export const en = {
     switchToDark: 'Switch to dark mode',
     lightMode: 'Light mode',
     darkMode: 'Dark mode',
+    enableFreeLook: 'Enable free look',
+    disableFreeLook: 'Disable free look',
+    freeLook: 'Free look',
+    lockedView: 'Locked view',
   },
   chat: {
     title: 'Chat History',

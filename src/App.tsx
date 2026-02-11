@@ -14,6 +14,7 @@ import { DrawChoiceModal } from '@/components/ui/DrawChoiceModal';
 import { ChallengeModal } from '@/components/ui/ChallengeModal';
 import { GameEndOverlay } from '@/components/ui/GameEndOverlay';
 import { DisclaimerModal } from '@/components/ui/DisclaimerModal';
+import { FreeLookToggle } from '@/components/ui/FreeLookToggle';
 import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 import { ChatToggle } from '@/components/ui/ChatToggle';
@@ -47,6 +48,8 @@ export const App = () => {
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [disclaimerAcked, setDisclaimerAcked] = useState(false);
+  const [freeLook, setFreeLook] = useState(false);
+  const handleFreeLookToggle = useCallback(() => setFreeLook((prev) => !prev), []);
   const enteredVisitorName = useAppSelector(selectVisitorName);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
     null,
@@ -212,6 +215,7 @@ export const App = () => {
         onChallengeReady={handleChallengeReady}
         entranceEnabled={welcomeDismissed}
         dealingEnabled={disclaimerAcked}
+        freeLook={freeLook}
         deckEnabled={!drawPending && drawChoice === null && !challengeReady}
         playableOverride={
           drawChoice
@@ -266,7 +270,10 @@ export const App = () => {
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <ThemeToggle />
           {disclaimerAcked && (
-            <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
+            <>
+              <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
+              <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
+            </>
           )}
         </div>
         {welcomeDismissed ? (

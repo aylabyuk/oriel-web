@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Vector3 } from 'three';
 import type { PerspectiveCamera } from 'three';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -30,7 +31,53 @@ import {
   EFFECT_VALUES,
   DIALOGUE_ALIGN,
   GAME_ACTIVE_PHASES,
+  DEFAULT_CAMERA_POSITION,
+  DEFAULT_CAMERA_TARGET,
+  DEFAULT_CAMERA_FOV,
 } from './BackgroundScene.constants';
+
+/** Smoothly animate camera back to default when freeLook is toggled off. */
+const CAMERA_LERP_SPEED = 3;
+const _targetPos = new Vector3(...DEFAULT_CAMERA_POSITION);
+const _targetLook = new Vector3(...DEFAULT_CAMERA_TARGET);
+const _currentLook = new Vector3();
+
+const CameraReset = ({ freeLook }: { freeLook: boolean }) => {
+  const { camera } = useThree();
+  const animatingRef = useRef(false);
+  const prevRef = useRef(freeLook);
+
+  useEffect(() => {
+    const was = prevRef.current;
+    prevRef.current = freeLook;
+    if (was && !freeLook) animatingRef.current = true;
+  }, [freeLook]);
+
+  useFrame((_, delta) => {
+    if (!animatingRef.current) return;
+    const alpha = 1 - Math.exp(-CAMERA_LERP_SPEED * delta);
+    camera.position.lerp(_targetPos, alpha);
+
+    const cam = camera as PerspectiveCamera;
+    cam.fov += (DEFAULT_CAMERA_FOV - cam.fov) * alpha;
+    cam.updateProjectionMatrix();
+
+    camera.getWorldDirection(_currentLook);
+    _currentLook.multiplyScalar(2).add(camera.position);
+    _currentLook.lerp(_targetLook, alpha);
+    camera.lookAt(_currentLook);
+
+    if (camera.position.distanceTo(_targetPos) < 0.001) {
+      camera.position.copy(_targetPos);
+      cam.fov = DEFAULT_CAMERA_FOV;
+      cam.updateProjectionMatrix();
+      camera.lookAt(_targetLook);
+      animatingRef.current = false;
+    }
+  });
+
+  return null;
+};
 
 /** Adjust camera FOV based on canvas width for responsive framing. */
 const ResponsiveFov = () => {
@@ -61,6 +108,7 @@ type BackgroundSceneProps = {
   entranceEnabled?: boolean;
   dealingEnabled?: boolean;
   deckEnabled?: boolean;
+  freeLook?: boolean;
   playableOverride?: string[];
   dialogues?: (DialogueBubble | null)[];
 };
@@ -79,6 +127,7 @@ export const BackgroundScene = ({
   entranceEnabled = true,
   dealingEnabled = true,
   deckEnabled = true,
+  freeLook = false,
   playableOverride,
   dialogues,
 }: BackgroundSceneProps) => {
@@ -309,8 +358,9 @@ export const BackgroundScene = ({
 
   return (
     <div className="fixed inset-0 z-0">
-      <Canvas camera={{ position: [0, 1.8, 2.6], fov: 80 }}>
+      <Canvas camera={{ position: [...DEFAULT_CAMERA_POSITION], fov: DEFAULT_CAMERA_FOV }}>
         <ResponsiveFov />
+        <CameraReset freeLook={freeLook} />
         <color
           attach="background"
           args={[mode === 'dark' ? '#000000' : '#e8e4df']}
@@ -377,7 +427,7 @@ export const BackgroundScene = ({
                         }
                         activeColor={unoColorToHex(topDiscard?.color)}
                         faceCenter={isVisitor}
-                        offsetY={isVisitor ? -0.1 : undefined}
+                        offsetY={isVisitor ? -0.1 : 1.2}
                         extraPull={isVisitor ? 0.4 : 0.35}
                         tiltX={isVisitor ? -0.65 : undefined}
                         toast={toasts[i] ?? null}
@@ -396,10 +446,11 @@ export const BackgroundScene = ({
           </Suspense>
         )}
         <OrbitControls
-          target={[0, -0.3, 0]}
-          enablePan={true}
-          enableZoom={true}
-          enabled={true}
+          target={[...DEFAULT_CAMERA_TARGET]}
+          enablePan={freeLook}
+          enableZoom={freeLook}
+          enableRotate={freeLook}
+          enabled={freeLook}
         />
         <EffectComposer>
           <Bloom
