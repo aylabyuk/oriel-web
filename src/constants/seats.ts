@@ -17,10 +17,26 @@ export type Seat = {
  *       Visitor (south)
  */
 export const SEATS: Record<string, Seat> = {
-  south: { position: [0, 0, 1.7], rotation: [-Math.PI / 2, Math.PI, Math.PI], cameraTarget: [0, -0.5, 0] },
-  west: { position: [-1.5, 0, 0], rotation: [-Math.PI / 2, Math.PI, -Math.PI / 2], cameraTarget: [-0.4, -0.5, 0] },
-  north: { position: [0, 0, -1.5], rotation: [-Math.PI / 2, Math.PI, 0], cameraTarget: [0, -0.5, -0.4] },
-  east: { position: [1.5, 0, 0], rotation: [-Math.PI / 2, Math.PI, Math.PI / 2], cameraTarget: [0.4, -0.5, 0] },
+  south: {
+    position: [0, 0, 1.7],
+    rotation: [-Math.PI / 2, Math.PI, Math.PI],
+    cameraTarget: [0, -0.5, 0],
+  },
+  west: {
+    position: [-1.5, 0, 0],
+    rotation: [-Math.PI / 2, Math.PI, -Math.PI / 2],
+    cameraTarget: [-0.4, -0.5, 0],
+  },
+  north: {
+    position: [0, 0, -1.5],
+    rotation: [-Math.PI / 2, Math.PI, 0],
+    cameraTarget: [0, -0.5, -0.4],
+  },
+  east: {
+    position: [1.5, 0, 0],
+    rotation: [-Math.PI / 2, Math.PI, Math.PI / 2],
+    cameraTarget: [0.4, -0.5, 0],
+  },
 };
 
 /** Ordered seat keys matching player order: [visitor, Meio, Dong, Oscar] */

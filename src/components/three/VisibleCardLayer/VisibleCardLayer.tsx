@@ -18,7 +18,14 @@ const seats = SEAT_ORDER.map((key) => SEATS[key]);
 /** Number of deck cards to mount per frame during progressive rendering */
 const DECK_BATCH_SIZE = 15;
 
-export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCardClick, onDeckClick, onDeckReady }: VisibleCardLayerProps) => {
+export const VisibleCardLayer = ({
+  magnet,
+  forceImmediate,
+  playableCardIds,
+  onCardClick,
+  onDeckClick,
+  onDeckReady,
+}: VisibleCardLayerProps) => {
   const [deckLimit, setDeckLimit] = useState(0);
   const deckReadyFiredRef = useRef(false);
 
@@ -26,23 +33,39 @@ export const VisibleCardLayer = ({ magnet, forceImmediate, playableCardIds, onCa
   useEffect(() => {
     if (deckLimit >= magnet.deck.length) return;
     const id = requestAnimationFrame(() => {
-      setDeckLimit((prev) => Math.min(prev + DECK_BATCH_SIZE, magnet.deck.length));
+      setDeckLimit((prev) =>
+        Math.min(prev + DECK_BATCH_SIZE, magnet.deck.length),
+      );
     });
     return () => cancelAnimationFrame(id);
   }, [deckLimit, magnet.deck.length]);
 
   // Signal when all deck cards are mounted
   useEffect(() => {
-    if (magnet.deck.length > 0 && deckLimit >= magnet.deck.length && !deckReadyFiredRef.current) {
+    if (
+      magnet.deck.length > 0 &&
+      deckLimit >= magnet.deck.length &&
+      !deckReadyFiredRef.current
+    ) {
       deckReadyFiredRef.current = true;
       onDeckReady?.();
     }
   }, [deckLimit, magnet.deck.length, onDeckReady]);
 
   const deckClickEnabled = !!onDeckClick;
-  const handleDeckClick = useCallback((_cardId: string) => onDeckClick?.(), [onDeckClick]);
+  const handleDeckClick = useCallback(
+    (_cardId: string) => onDeckClick?.(),
+    [onDeckClick],
+  );
   const targets = useMemo(
-    () => computeAllTargets(magnet, seats, playableCardIds, deckLimit, deckClickEnabled),
+    () =>
+      computeAllTargets(
+        magnet,
+        seats,
+        playableCardIds,
+        deckLimit,
+        deckClickEnabled,
+      ),
     [magnet, playableCardIds, deckLimit, deckClickEnabled],
   );
 

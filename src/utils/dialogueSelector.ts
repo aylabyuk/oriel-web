@@ -110,6 +110,6 @@ export const findAffectedPlayer = (snapshot: GameSnapshot): string | null => {
   );
   if (currentIdx < 0) return null;
   const dirStep = snapshot.direction === 'clockwise' ? -1 : 1;
-  const affectedIdx = ((currentIdx + dirStep) % N + N) % N;
+  const affectedIdx = (((currentIdx + dirStep) % N) + N) % N;
   return snapshot.players[affectedIdx]?.name ?? null;
 };

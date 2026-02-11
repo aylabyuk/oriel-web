@@ -1,8 +1,16 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectEvents, selectSnapshot } from '@/store/slices/game';
-import { createDialogueSelector, findAffectedPlayer } from '@/utils/dialogueSelector';
-import type { AiPersonality, DialogueBubble, DialogueCategory, DialogueHistoryEntry } from '@/types/dialogue';
+import {
+  createDialogueSelector,
+  findAffectedPlayer,
+} from '@/utils/dialogueSelector';
+import type {
+  AiPersonality,
+  DialogueBubble,
+  DialogueCategory,
+  DialogueHistoryEntry,
+} from '@/types/dialogue';
 import type { GameEvent, GameSnapshot, SerializedCard } from '@/types/game';
 import { Value, Color } from 'uno-engine';
 import { fetchJokes } from '@/utils/fetchJokes';
@@ -90,11 +98,21 @@ const COLOR_NAMES: Record<number, string> = {
 };
 
 const VALUE_NAMES: Record<number, string> = {
-  [Value.ZERO]: '0', [Value.ONE]: '1', [Value.TWO]: '2', [Value.THREE]: '3',
-  [Value.FOUR]: '4', [Value.FIVE]: '5', [Value.SIX]: '6', [Value.SEVEN]: '7',
-  [Value.EIGHT]: '8', [Value.NINE]: '9',
-  [Value.DRAW_TWO]: 'Draw Two', [Value.SKIP]: 'Skip', [Value.REVERSE]: 'Reverse',
-  [Value.WILD]: 'Wild', [Value.WILD_DRAW_FOUR]: 'Wild Draw Four',
+  [Value.ZERO]: '0',
+  [Value.ONE]: '1',
+  [Value.TWO]: '2',
+  [Value.THREE]: '3',
+  [Value.FOUR]: '4',
+  [Value.FIVE]: '5',
+  [Value.SIX]: '6',
+  [Value.SEVEN]: '7',
+  [Value.EIGHT]: '8',
+  [Value.NINE]: '9',
+  [Value.DRAW_TWO]: 'Draw Two',
+  [Value.SKIP]: 'Skip',
+  [Value.REVERSE]: 'Reverse',
+  [Value.WILD]: 'Wild',
+  [Value.WILD_DRAW_FOUR]: 'Wild Draw Four',
 };
 
 const formatCard = (card: SerializedCard): string => {
@@ -104,15 +122,26 @@ const formatCard = (card: SerializedCard): string => {
 };
 
 /** Map a game event to a human-readable action message, or null to skip */
-const formatEventAction = (event: GameEvent, snapshot: GameSnapshot): { playerName: string; message: string } | null => {
+const formatEventAction = (
+  event: GameEvent,
+  snapshot: GameSnapshot,
+): { playerName: string; message: string } | null => {
   switch (event.type) {
     case 'card_played': {
       if (!event.card) return null;
       const trigger = event.data?.trigger as string | undefined;
       const cardName = formatCard(event.card);
-      if (trigger === 'skip' || trigger === 'draw_two' || trigger === 'wild_draw_four') {
+      if (
+        trigger === 'skip' ||
+        trigger === 'draw_two' ||
+        trigger === 'wild_draw_four'
+      ) {
         const victim = findAffectedPlayer(snapshot);
-        if (victim) return { playerName: event.playerName, message: `played ${cardName} on ${victim}` };
+        if (victim)
+          return {
+            playerName: event.playerName,
+            message: `played ${cardName} on ${victim}`,
+          };
       }
       return { playerName: event.playerName, message: `played ${cardName}` };
     }
@@ -122,18 +151,32 @@ const formatEventAction = (event: GameEvent, snapshot: GameSnapshot): { playerNa
       return { playerName: event.playerName, message: 'called UNO!' };
     case 'uno_penalty': {
       const count = (event.data?.count as number) ?? 2;
-      return { playerName: event.playerName, message: `caught! Drew ${count} penalty cards` };
+      return {
+        playerName: event.playerName,
+        message: `caught! Drew ${count} penalty cards`,
+      };
     }
     case 'challenge_resolved': {
       const result = event.data?.result as string;
       const bluffer = event.data?.blufferName as string;
-      if (result === 'bluff_caught') return { playerName: bluffer, message: 'bluff was caught! Drew 4 cards' };
-      if (result === 'legit_play') return { playerName: event.playerName, message: 'challenge failed! Drew 6 cards' };
+      if (result === 'bluff_caught')
+        return {
+          playerName: bluffer,
+          message: 'bluff was caught! Drew 4 cards',
+        };
+      if (result === 'legit_play')
+        return {
+          playerName: event.playerName,
+          message: 'challenge failed! Drew 6 cards',
+        };
       return null;
     }
     case 'game_ended': {
       const score = event.data?.score as number | undefined;
-      return { playerName: event.playerName, message: `won the game${score ? ` with ${score} points` : ''}!` };
+      return {
+        playerName: event.playerName,
+        message: `won the game${score ? ` with ${score} points` : ''}!`,
+      };
     }
     default:
       return null;
@@ -168,71 +211,127 @@ const mapEventToCandidates = (
 
       if (trigger === 'skip') {
         if (victim && isAi(victim)) {
-          candidates.push({ personality: victim, category: 'got_skipped', context: { ...ctx, player: event.playerName } });
+          candidates.push({
+            personality: victim,
+            category: 'got_skipped',
+            context: { ...ctx, player: event.playerName },
+          });
         }
         if (isAi(event.playerName)) {
-          candidates.push({ personality: event.playerName, category: 'skipped_someone', context: { ...ctx, player: victim ?? '' } });
+          candidates.push({
+            personality: event.playerName,
+            category: 'skipped_someone',
+            context: { ...ctx, player: victim ?? '' },
+          });
         }
         for (const ai of otherAis(event.playerName)) {
           if (ai !== victim) {
-            candidates.push({ personality: ai, category: 'opponent_got_skipped', context: { ...ctx, player: victim ?? '' } });
+            candidates.push({
+              personality: ai,
+              category: 'opponent_got_skipped',
+              context: { ...ctx, player: victim ?? '' },
+            });
           }
         }
       }
 
       if (trigger === 'draw_two') {
         if (victim && isAi(victim)) {
-          candidates.push({ personality: victim, category: 'got_draw_two', context: { ...ctx, player: event.playerName } });
+          candidates.push({
+            personality: victim,
+            category: 'got_draw_two',
+            context: { ...ctx, player: event.playerName },
+          });
         }
         if (isAi(event.playerName)) {
-          candidates.push({ personality: event.playerName, category: 'hit_someone_draw', context: { ...ctx, player: victim ?? '' } });
+          candidates.push({
+            personality: event.playerName,
+            category: 'hit_someone_draw',
+            context: { ...ctx, player: victim ?? '' },
+          });
         }
         for (const ai of otherAis(event.playerName)) {
           if (ai !== victim) {
-            candidates.push({ personality: ai, category: 'opponent_drew_cards', context: { ...ctx, player: victim ?? '' } });
+            candidates.push({
+              personality: ai,
+              category: 'opponent_drew_cards',
+              context: { ...ctx, player: victim ?? '' },
+            });
           }
         }
       }
 
       if (trigger === 'wild_draw_four') {
         if (victim && isAi(victim)) {
-          candidates.push({ personality: victim, category: 'got_draw_four', context: { ...ctx, player: event.playerName } });
+          candidates.push({
+            personality: victim,
+            category: 'got_draw_four',
+            context: { ...ctx, player: event.playerName },
+          });
         }
         if (isAi(event.playerName)) {
-          candidates.push({ personality: event.playerName, category: 'hit_someone_draw', context: { ...ctx, player: victim ?? '' } });
+          candidates.push({
+            personality: event.playerName,
+            category: 'hit_someone_draw',
+            context: { ...ctx, player: victim ?? '' },
+          });
         }
       }
 
       if (trigger === 'reverse' && isAi(event.playerName)) {
-        candidates.push({ personality: event.playerName, category: 'played_reverse', context: ctx });
+        candidates.push({
+          personality: event.playerName,
+          category: 'played_reverse',
+          context: ctx,
+        });
       }
 
       if (trigger === 'wild' && isAi(event.playerName)) {
-        candidates.push({ personality: event.playerName, category: 'played_wild', context: ctx });
+        candidates.push({
+          personality: event.playerName,
+          category: 'played_wild',
+          context: ctx,
+        });
       }
       break;
     }
 
     case 'card_drawn': {
       if (isAi(event.playerName)) {
-        candidates.push({ personality: event.playerName, category: 'drew_card_self', context: ctx });
+        candidates.push({
+          personality: event.playerName,
+          category: 'drew_card_self',
+          context: ctx,
+        });
       }
       break;
     }
 
     case 'uno_called': {
       if (isAi(event.playerName)) {
-        candidates.push({ personality: event.playerName, category: 'uno_called_self', context: ctx });
+        candidates.push({
+          personality: event.playerName,
+          category: 'uno_called_self',
+          context: ctx,
+        });
       }
       for (const ai of otherAis(event.playerName)) {
-        candidates.push({ personality: ai, category: 'uno_called_opponent', context: { ...ctx, player: event.playerName } });
+        candidates.push({
+          personality: ai,
+          category: 'uno_called_opponent',
+          context: { ...ctx, player: event.playerName },
+        });
       }
       break;
     }
 
     case 'uno_penalty': {
       for (const ai of otherAis(event.playerName)) {
-        candidates.push({ personality: ai, category: 'uno_caught', context: { ...ctx, player: event.playerName } });
+        candidates.push({
+          personality: ai,
+          category: 'uno_caught',
+          context: { ...ctx, player: event.playerName },
+        });
       }
       break;
     }
@@ -240,10 +339,17 @@ const mapEventToCandidates = (
     case 'challenge_resolved': {
       const result = event.data?.result as string;
       if (result === 'accepted') break; // no dialogue for simple accept
-      const category: DialogueCategory = result === 'bluff_caught' ? 'challenge_bluff_caught' : 'challenge_legit';
+      const category: DialogueCategory =
+        result === 'bluff_caught'
+          ? 'challenge_bluff_caught'
+          : 'challenge_legit';
       const blufferName = event.data?.blufferName as string;
       for (const ai of AI_NAMES) {
-        candidates.push({ personality: ai, category, context: { ...ctx, player: blufferName } });
+        candidates.push({
+          personality: ai,
+          category,
+          context: { ...ctx, player: blufferName },
+        });
       }
       break;
     }
@@ -252,11 +358,23 @@ const mapEventToCandidates = (
       const winner = event.playerName;
       for (const ai of AI_NAMES) {
         if (ai === winner) {
-          candidates.push({ personality: ai, category: 'game_won', context: ctx });
+          candidates.push({
+            personality: ai,
+            category: 'game_won',
+            context: ctx,
+          });
         } else if (winner === visitorName) {
-          candidates.push({ personality: ai, category: 'visitor_won', context: ctx });
+          candidates.push({
+            personality: ai,
+            category: 'visitor_won',
+            context: ctx,
+          });
         } else {
-          candidates.push({ personality: ai, category: 'game_lost', context: { ...ctx, player: winner } });
+          candidates.push({
+            personality: ai,
+            category: 'game_lost',
+            context: { ...ctx, player: winner },
+          });
         }
       }
       break;
@@ -268,12 +386,20 @@ const mapEventToCandidates = (
         if (p.name === visitorName) continue;
         if (p.hand.length === 2 || p.hand.length === 3) {
           for (const ai of otherAis(p.name)) {
-            candidates.push({ personality: ai, category: 'low_cards', context: { ...ctx, player: p.name } });
+            candidates.push({
+              personality: ai,
+              category: 'low_cards',
+              context: { ...ctx, player: p.name },
+            });
           }
         }
         if (p.hand.length >= 10) {
           for (const ai of otherAis(p.name)) {
-            candidates.push({ personality: ai, category: 'many_cards', context: { ...ctx, player: p.name } });
+            candidates.push({
+              personality: ai,
+              category: 'many_cards',
+              context: { ...ctx, player: p.name },
+            });
           }
         }
       }
@@ -303,7 +429,10 @@ const scheduleDialogues = (
         next[idx] = { message: text, key: Date.now() };
         return next;
       });
-      setHistory((prev) => [...prev, { kind: 'dialogue', personality, message: text, timestamp: Date.now() }]);
+      setHistory((prev) => [
+        ...prev,
+        { kind: 'dialogue', personality, message: text, timestamp: Date.now() },
+      ]);
     }, delay);
 
     const hideTimer = setTimeout(() => {
@@ -324,10 +453,17 @@ export const useDialogue = () => {
   const processedRef = useRef(0);
   const selectorRef = useRef(createDialogueSelector());
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const [dialogues, setDialogues] = useState<(DialogueBubble | null)[]>([null, null, null, null]);
+  const [dialogues, setDialogues] = useState<(DialogueBubble | null)[]>([
+    null,
+    null,
+    null,
+    null,
+  ]);
   const [history, setHistory] = useState<DialogueHistoryEntry[]>([]);
   const gameStartedRef = useRef(false);
-  const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const jokePoolRef = useRef<string[]>([]);
   const fetchingJokesRef = useRef(false);
 
@@ -375,13 +511,22 @@ export const useDialogue = () => {
     const visitorName = snapshot.players[0]?.name ?? 'Player';
     const ctx = { visitor: visitorName };
     const candidates = shuffle(
-      AI_NAMES.map((ai) => ({ personality: ai, category: 'game_started' as DialogueCategory, context: ctx })),
+      AI_NAMES.map((ai) => ({
+        personality: ai,
+        category: 'game_started' as DialogueCategory,
+        context: ctx,
+      })),
     );
 
     const selected: { personality: AiPersonality; text: string }[] = [];
     for (const c of candidates) {
       if (selected.length >= MAX_REACTORS) break;
-      const text = selectorRef.current.selectLine(c.personality, c.category, c.context, now);
+      const text = selectorRef.current.selectLine(
+        c.personality,
+        c.category,
+        c.context,
+        now,
+      );
       if (text) selected.push({ personality: c.personality, text });
     }
 
@@ -401,13 +546,22 @@ export const useDialogue = () => {
       const now = Date.now();
       const ctx = { visitor: visitorName };
       const candidates = shuffle(
-        AI_NAMES.map((ai) => ({ personality: ai, category: 'visitor_slow' as DialogueCategory, context: ctx })),
+        AI_NAMES.map((ai) => ({
+          personality: ai,
+          category: 'visitor_slow' as DialogueCategory,
+          context: ctx,
+        })),
       );
 
       const selected: { personality: AiPersonality; text: string }[] = [];
       for (const c of candidates) {
         if (selected.length >= 1) break; // Only 1 reactor for slow comments
-        const text = selectorRef.current.selectLine(c.personality, c.category, c.context, now);
+        const text = selectorRef.current.selectLine(
+          c.personality,
+          c.category,
+          c.context,
+          now,
+        );
         if (text) selected.push({ personality: c.personality, text });
       }
 
@@ -430,7 +584,15 @@ export const useDialogue = () => {
       // Log game action to history
       const action = formatEventAction(event, snapshot);
       if (action) {
-        setHistory((prev) => [...prev, { kind: 'action', playerName: action.playerName, message: action.message, timestamp: Date.now() }]);
+        setHistory((prev) => [
+          ...prev,
+          {
+            kind: 'action',
+            playerName: action.playerName,
+            message: action.message,
+            timestamp: Date.now(),
+          },
+        ]);
       }
 
       const candidates = mapEventToCandidates(event, snapshot, visitorName);
@@ -447,60 +609,128 @@ export const useDialogue = () => {
         // Skip if this personality already selected for this event
         if (selected.some((s) => s.personality === c.personality)) continue;
 
-        const text = selectorRef.current.selectLine(c.personality, c.category, c.context, now);
+        const text = selectorRef.current.selectLine(
+          c.personality,
+          c.category,
+          c.context,
+          now,
+        );
         if (text) {
           selected.push({ personality: c.personality, text });
           reactorCount++;
         }
       }
 
-      scheduleDialogues(selected, REACTION_DELAY_BASE, timersRef, setDialogues, setHistory);
+      scheduleDialogues(
+        selected,
+        REACTION_DELAY_BASE,
+        timersRef,
+        setDialogues,
+        setHistory,
+      );
 
       // Occasionally have an AI tell a joke on turn changes
-      if (event.type === 'turn_changed' && jokePoolRef.current.length > 0 && Math.random() < JOKE_CHANCE) {
+      if (
+        event.type === 'turn_changed' &&
+        jokePoolRef.current.length > 0 &&
+        Math.random() < JOKE_CHANCE
+      ) {
         const joke = jokePoolRef.current.pop()!;
         const teller = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
         const reactors = otherAis(teller);
-        const baseT = REACTION_DELAY_BASE + selected.length * STAGGER_INTERVAL + 400;
+        const baseT =
+          REACTION_DELAY_BASE + selected.length * STAGGER_INTERVAL + 400;
         const tellerIdx = AI_INDEX[teller];
-        const intro = JOKE_INTROS[Math.floor(Math.random() * JOKE_INTROS.length)];
+        const intro =
+          JOKE_INTROS[Math.floor(Math.random() * JOKE_INTROS.length)];
 
         // Phase 1 — Intro: "Hey, I got a joke!"
         const introShow = setTimeout(() => {
-          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = { message: intro, key: Date.now() }; return n; });
-          setHistory((prev) => [...prev, { kind: 'dialogue', personality: teller, message: intro, timestamp: Date.now() }]);
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = { message: intro, key: Date.now() };
+            return n;
+          });
+          setHistory((prev) => [
+            ...prev,
+            {
+              kind: 'dialogue',
+              personality: teller,
+              message: intro,
+              timestamp: Date.now(),
+            },
+          ]);
         }, baseT);
         const introHide = setTimeout(() => {
-          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = null; return n; });
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = null;
+            return n;
+          });
         }, baseT + JOKE_INTRO_DURATION);
 
         // Phase 2 — Punchline: stays on screen based on word count
         const readTime = jokeReadTime(joke);
         const jokeStart = baseT + JOKE_PUNCHLINE_DELAY;
         const jokeShow = setTimeout(() => {
-          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = { message: joke, key: Date.now() }; return n; });
-          setHistory((prev) => [...prev, { kind: 'dialogue', personality: teller, message: joke, timestamp: Date.now() }]);
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = { message: joke, key: Date.now() };
+            return n;
+          });
+          setHistory((prev) => [
+            ...prev,
+            {
+              kind: 'dialogue',
+              personality: teller,
+              message: joke,
+              timestamp: Date.now(),
+            },
+          ]);
         }, jokeStart);
         // Joke hides when first reaction appears
         const reactionsStart = jokeStart + readTime;
         const jokeHide = setTimeout(() => {
-          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = null; return n; });
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = null;
+            return n;
+          });
         }, reactionsStart);
 
         // Phase 3 — Reactions from other AIs (after read time)
         for (let r = 0; r < reactors.length; r++) {
           const reactor = reactors[r];
-          const pool = Math.random() < 0.5 ? JOKE_REACTIONS_POSITIVE : JOKE_REACTIONS_NEGATIVE;
+          const pool =
+            Math.random() < 0.5
+              ? JOKE_REACTIONS_POSITIVE
+              : JOKE_REACTIONS_NEGATIVE;
           const line = pool[Math.floor(Math.random() * pool.length)];
           const rIdx = AI_INDEX[reactor];
           const rDelay = reactionsStart + r * JOKE_REACTION_STAGGER;
 
           const rShow = setTimeout(() => {
-            setDialogues((prev) => { const n = [...prev]; n[rIdx] = { message: line, key: Date.now() }; return n; });
-            setHistory((prev) => [...prev, { kind: 'dialogue', personality: reactor, message: line, timestamp: Date.now() }]);
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[rIdx] = { message: line, key: Date.now() };
+              return n;
+            });
+            setHistory((prev) => [
+              ...prev,
+              {
+                kind: 'dialogue',
+                personality: reactor,
+                message: line,
+                timestamp: Date.now(),
+              },
+            ]);
           }, rDelay);
           const rHide = setTimeout(() => {
-            setDialogues((prev) => { const n = [...prev]; n[rIdx] = null; return n; });
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[rIdx] = null;
+              return n;
+            });
           }, rDelay + JOKE_REACTION_DURATION);
 
           timersRef.current.push(rShow, rHide);

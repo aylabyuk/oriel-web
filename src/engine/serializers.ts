@@ -24,9 +24,10 @@ export const serializeCard = (card: Card): SerializedCard => ({
   id: getCardId(card),
 });
 
-export const serializePlayer = (
-  player: { name: string; hand: Card[] },
-): SerializedPlayer => ({
+export const serializePlayer = (player: {
+  name: string;
+  hand: Card[];
+}): SerializedPlayer => ({
   name: player.name,
   cardCount: player.hand.length,
   hand: player.hand.map(serializeCard),

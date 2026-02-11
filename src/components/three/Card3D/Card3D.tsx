@@ -87,9 +87,7 @@ export const Card3D = ({
     frontUrl ? [frontUrl, CARD_BACK_TEXTURE] : [CARD_BACK_TEXTURE],
   );
 
-  const [frontTex, backTex] = frontUrl
-    ? textures
-    : [undefined, textures[0]];
+  const [frontTex, backTex] = frontUrl ? textures : [undefined, textures[0]];
 
   return (
     <group position={position} rotation={rotation}>

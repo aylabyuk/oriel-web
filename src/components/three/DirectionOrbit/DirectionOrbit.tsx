@@ -19,11 +19,7 @@ import {
 } from './useOrbitAnimation';
 
 const ARROW_INDICES = [
-  0, 1, 2,
-  3, 5, 4,
-  0, 3, 1, 1, 3, 4,
-  1, 4, 2, 2, 4, 5,
-  2, 5, 0, 0, 5, 3,
+  0, 1, 2, 3, 5, 4, 0, 3, 1, 1, 3, 4, 1, 4, 2, 2, 4, 5, 2, 5, 0, 0, 5, 3,
 ];
 
 const makeArrowGeo = () => {
@@ -77,7 +73,19 @@ export const DirectionOrbit = ({
 
   const targetHex = unoColorToHex(activeColor);
 
-  const [{ colorR, colorG, colorB, opacity, entranceScale, dirMult, reverseScale, glowBoost }, api] = useSpring(() => {
+  const [
+    {
+      colorR,
+      colorG,
+      colorB,
+      opacity,
+      entranceScale,
+      dirMult,
+      reverseScale,
+      glowBoost,
+    },
+    api,
+  ] = useSpring(() => {
     const c = new ThreeColor(targetHex);
     return {
       colorR: c.r,
@@ -142,16 +150,36 @@ export const DirectionOrbit = ({
   return (
     <animated.group scale={to([entranceScale, reverseScale], (e, r) => e * r)}>
       <mesh ref={arrow1Ref} geometry={arrow1Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
+        <meshBasicMaterial
+          color={targetHex}
+          side={DoubleSide}
+          toneMapped={false}
+          transparent
+        />
       </mesh>
       <mesh ref={tail1Ref} geometry={tail1Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
+        <meshBasicMaterial
+          color={targetHex}
+          side={DoubleSide}
+          toneMapped={false}
+          transparent
+        />
       </mesh>
       <mesh ref={arrow2Ref} geometry={arrow2Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
+        <meshBasicMaterial
+          color={targetHex}
+          side={DoubleSide}
+          toneMapped={false}
+          transparent
+        />
       </mesh>
       <mesh ref={tail2Ref} geometry={tail2Geo}>
-        <meshBasicMaterial color={targetHex} side={DoubleSide} toneMapped={false} transparent />
+        <meshBasicMaterial
+          color={targetHex}
+          side={DoubleSide}
+          toneMapped={false}
+          transparent
+        />
       </mesh>
     </animated.group>
   );

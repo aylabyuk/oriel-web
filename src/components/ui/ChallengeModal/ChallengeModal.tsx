@@ -7,7 +7,12 @@ type ChallengeModalProps = {
   onChallenge: () => void;
 };
 
-export const ChallengeModal = ({ open, blufferName, onAccept, onChallenge }: ChallengeModalProps) => {
+export const ChallengeModal = ({
+  open,
+  blufferName,
+  onAccept,
+  onChallenge,
+}: ChallengeModalProps) => {
   const springs = useSpring({
     opacity: open ? 1 : 0,
     y: open ? 0 : -24,

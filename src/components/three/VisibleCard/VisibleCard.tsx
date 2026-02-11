@@ -84,11 +84,19 @@ export const VisibleCard = ({
       roll: to.roll,
       lift: playable ? PLAYABLE_LIFT : 0,
       glow: playable ? PLAYABLE_GLOW : 0,
-      immediate: (key: string) => (key === 'lift' || key === 'glow') ? false : !!snap,
-      config: (key: string) => (key === 'lift' || key === 'glow') ? PLAYABLE_CONFIG : (springConfig ?? DEFAULT_CONFIG),
+      immediate: (key: string) =>
+        key === 'lift' || key === 'glow' ? false : !!snap,
+      config: (key: string) =>
+        key === 'lift' || key === 'glow'
+          ? PLAYABLE_CONFIG
+          : (springConfig ?? DEFAULT_CONFIG),
     });
 
-    outerRef.current.position.set(springs.px.get(), springs.py.get(), springs.pz.get());
+    outerRef.current.position.set(
+      springs.px.get(),
+      springs.py.get(),
+      springs.pz.get(),
+    );
     outerRef.current.rotation.y = springs.yaw.get();
     tiltRef.current.rotation.x = springs.tilt.get();
     rollRef.current.rotation.z = springs.roll.get();
@@ -96,15 +104,21 @@ export const VisibleCard = ({
     // Deck: pulsing glow + gentle bob; Hand: spring-driven lift + glow
     const t = state.clock.elapsedTime;
     if (deckClickable) {
-      liftRef.current.position.y = DECK_BOB_AMPLITUDE * Math.sin(t * DECK_BOB_SPEED);
+      liftRef.current.position.y =
+        DECK_BOB_AMPLITUDE * Math.sin(t * DECK_BOB_SPEED);
       if (bodyMeshRef.current) {
-        (bodyMeshRef.current.material as MeshStandardMaterial).emissiveIntensity =
-          DECK_GLOW_MIN + DECK_GLOW_RANGE * (0.5 + 0.5 * Math.sin(t * DECK_GLOW_SPEED));
+        (
+          bodyMeshRef.current.material as MeshStandardMaterial
+        ).emissiveIntensity =
+          DECK_GLOW_MIN +
+          DECK_GLOW_RANGE * (0.5 + 0.5 * Math.sin(t * DECK_GLOW_SPEED));
       }
     } else {
       liftRef.current.position.y = springs.lift.get();
       if (bodyMeshRef.current) {
-        (bodyMeshRef.current.material as MeshStandardMaterial).emissiveIntensity = springs.glow.get();
+        (
+          bodyMeshRef.current.material as MeshStandardMaterial
+        ).emissiveIntensity = springs.glow.get();
       }
     }
   });
@@ -112,9 +126,21 @@ export const VisibleCard = ({
   return (
     <group
       ref={outerRef}
-      onClick={(e) => { e.stopPropagation(); if (isInteractive && onCardClick) { document.body.style.cursor = 'auto'; onCardClick(cardId); } }}
-      onPointerOver={(e) => { e.stopPropagation(); if (isInteractive) document.body.style.cursor = 'pointer'; }}
-      onPointerOut={(e) => { e.stopPropagation(); if (isInteractive) document.body.style.cursor = 'auto'; }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isInteractive && onCardClick) {
+          document.body.style.cursor = 'auto';
+          onCardClick(cardId);
+        }
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        if (isInteractive) document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={(e) => {
+        e.stopPropagation();
+        if (isInteractive) document.body.style.cursor = 'auto';
+      }}
     >
       <group ref={tiltRef}>
         <group ref={liftRef}>

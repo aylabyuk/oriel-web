@@ -37,5 +37,10 @@ export type DialogueBubble = {
 };
 
 export type DialogueHistoryEntry =
-  | { kind: 'dialogue'; personality: AiPersonality; message: string; timestamp: number }
+  | {
+      kind: 'dialogue';
+      personality: AiPersonality;
+      message: string;
+      timestamp: number;
+    }
   | { kind: 'action'; playerName: string; message: string; timestamp: number };

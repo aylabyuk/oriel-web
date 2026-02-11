@@ -6,7 +6,11 @@ type DrawChoiceModalProps = {
   onSkip: () => void;
 };
 
-export const DrawChoiceModal = ({ open, onPlay, onSkip }: DrawChoiceModalProps) => {
+export const DrawChoiceModal = ({
+  open,
+  onPlay,
+  onSkip,
+}: DrawChoiceModalProps) => {
   const springs = useSpring({
     opacity: open ? 1 : 0,
     y: open ? 0 : -24,
@@ -23,7 +27,9 @@ export const DrawChoiceModal = ({ open, onPlay, onSkip }: DrawChoiceModalProps) 
         pointerEvents: open ? 'auto' : 'none',
       }}
     >
-      <span className="mr-1 text-sm font-medium text-white/80">Play drawn card?</span>
+      <span className="mr-1 text-sm font-medium text-white/80">
+        Play drawn card?
+      </span>
       <button
         onClick={onPlay}
         className="cursor-pointer rounded-lg bg-white/90 px-4 py-1.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-105 focus:ring-2 focus:ring-white/50 focus:outline-none"

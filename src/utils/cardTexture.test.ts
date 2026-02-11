@@ -10,7 +10,9 @@ describe('getCardFilename', () => {
 
   it('returns correct filename for action cards', () => {
     expect(getCardFilename(Value.SKIP, Color.RED)).toBe('redSkip.png');
-    expect(getCardFilename(Value.REVERSE, Color.GREEN)).toBe('greenReverse.png');
+    expect(getCardFilename(Value.REVERSE, Color.GREEN)).toBe(
+      'greenReverse.png',
+    );
     expect(getCardFilename(Value.DRAW_TWO, Color.BLUE)).toBe('blueDrawTwo.png');
   });
 
@@ -21,7 +23,9 @@ describe('getCardFilename', () => {
 
   it('ignores color for wild cards', () => {
     expect(getCardFilename(Value.WILD, Color.RED)).toBe('wild.png');
-    expect(getCardFilename(Value.WILD_DRAW_FOUR, Color.BLUE)).toBe('drawFour.png');
+    expect(getCardFilename(Value.WILD_DRAW_FOUR, Color.BLUE)).toBe(
+      'drawFour.png',
+    );
   });
 
   it('throws for non-wild card without color', () => {

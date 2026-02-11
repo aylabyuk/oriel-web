@@ -15,7 +15,11 @@ type WildColorPickerProps = {
   onDismiss: () => void;
 };
 
-export const WildColorPicker = ({ open, onColorSelect, onDismiss }: WildColorPickerProps) => {
+export const WildColorPicker = ({
+  open,
+  onColorSelect,
+  onDismiss,
+}: WildColorPickerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const springs = useSpring({
@@ -28,7 +32,10 @@ export const WildColorPicker = ({ open, onColorSelect, onDismiss }: WildColorPic
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         onDismiss();
       }
     };
@@ -52,7 +59,7 @@ export const WildColorPicker = ({ open, onColorSelect, onDismiss }: WildColorPic
           key={c.label}
           aria-label={c.label}
           onClick={() => onColorSelect(c.color)}
-          className="h-10 w-10 rounded-full border-2 border-white/20 transition-transform hover:scale-110 cursor-pointer focus:ring-2 focus:ring-white/50 focus:outline-none"
+          className="h-10 w-10 cursor-pointer rounded-full border-2 border-white/20 transition-transform hover:scale-110 focus:ring-2 focus:ring-white/50 focus:outline-none"
           style={{ backgroundColor: c.hex }}
         />
       ))}

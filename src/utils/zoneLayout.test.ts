@@ -46,8 +46,7 @@ describe('zoneLayout', () => {
       const p0 = getDiscardPilePlacement(0);
       const p1 = getDiscardPilePlacement(1);
       const xzDiffers =
-        p0.position[0] !== p1.position[0] ||
-        p0.position[2] !== p1.position[2];
+        p0.position[0] !== p1.position[0] || p0.position[2] !== p1.position[2];
       expect(xzDiffers).toBe(true);
     });
   });

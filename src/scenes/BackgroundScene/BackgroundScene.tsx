@@ -22,11 +22,7 @@ import type { Toast } from '@/components/three/PlayerLabel/PlayerLabel';
 import { useMagnetState } from '@/hooks/useMagnetState';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import type { DialogueBubble } from '@/types/dialogue';
-import {
-  SEATS,
-  SEAT_ORDER,
-  unoColorToHex,
-} from '@/constants';
+import { SEATS, SEAT_ORDER, unoColorToHex } from '@/constants';
 
 /** Adjust camera FOV based on canvas width for responsive framing. */
 const ResponsiveFov = () => {
@@ -45,10 +41,14 @@ const DEBUG_MAGNETS = false;
 
 const getEffectMessage = (value: Value): string | null => {
   switch (value) {
-    case Value.SKIP: return 'Skipped!';
-    case Value.DRAW_TWO: return 'Draw 2!';
-    case Value.WILD_DRAW_FOUR: return 'Draw 4!';
-    default: return null;
+    case Value.SKIP:
+      return 'Skipped!';
+    case Value.DRAW_TWO:
+      return 'Draw 2!';
+    case Value.WILD_DRAW_FOUR:
+      return 'Draw 4!';
+    default:
+      return null;
   }
 };
 
@@ -60,14 +60,24 @@ const DIALOGUE_ALIGN: Record<string, 'left' | 'right'> = {
 
 /** Phases where gameplay UI (labels, direction orbit) should remain visible */
 const GAME_ACTIVE_PHASES = new Set([
-  'playing', 'play_gap', 'play_lift', 'play_move', 'play_rotate',
-  'draw_lift', 'draw_move', 'draw_gap', 'draw_drop',
+  'playing',
+  'play_gap',
+  'play_lift',
+  'play_move',
+  'play_rotate',
+  'draw_lift',
+  'draw_move',
+  'draw_gap',
+  'draw_drop',
 ]);
 
 type BackgroundSceneProps = {
   showTable?: boolean;
   onStartGame?: () => void;
-  onPlayCard?: (cardId: string, chosenColor?: import('uno-engine').Color) => void;
+  onPlayCard?: (
+    cardId: string,
+    chosenColor?: import('uno-engine').Color,
+  ) => void;
   onDrawCard?: () => void;
   onAnimationIdle?: () => void;
   onWildCardPlayed?: (cardId: string) => void;
@@ -131,10 +141,13 @@ export const BackgroundScene = ({
             );
             if (currentIdx >= 0) {
               const dirStep = snapshot.direction === 'clockwise' ? -1 : 1;
-              const affectedIdx = ((currentIdx + dirStep) % N + N) % N;
+              const affectedIdx = (((currentIdx + dirStep) % N) + N) % N;
               const color = unoColorToHex(topCard.color) ?? '#888';
               setToasts((prev) => {
-                const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
+                const next = Array.from(
+                  { length: N },
+                  (_, i) => prev[i] ?? null,
+                );
                 next[affectedIdx] = { message, color, key: Date.now() };
                 return next;
               });
@@ -149,10 +162,20 @@ export const BackgroundScene = ({
 
       onAnimationIdle?.();
     }
-  }, [magnet.phase, magnet.discardPile, snapshot, onAnimationIdle, onChallengeReady]);
+  }, [
+    magnet.phase,
+    magnet.discardPile,
+    snapshot,
+    onAnimationIdle,
+    onChallengeReady,
+  ]);
 
   // Show toast when a WD4 challenge resolves (pendingChallenge goes non-null → null)
-  const challengeSnapshotRef = useRef<{ blufferName: string; victimName: string; handSizes: number[] } | null>(null);
+  const challengeSnapshotRef = useRef<{
+    blufferName: string;
+    victimName: string;
+    handSizes: number[];
+  } | null>(null);
   useEffect(() => {
     if (snapshot?.pendingChallenge && !challengeSnapshotRef.current) {
       // Save baseline hand sizes when challenge appears
@@ -162,24 +185,38 @@ export const BackgroundScene = ({
         handSizes: snapshot.players.map((p) => p.hand.length),
       };
     }
-    if (!snapshot?.pendingChallenge && challengeSnapshotRef.current && snapshot) {
+    if (
+      !snapshot?.pendingChallenge &&
+      challengeSnapshotRef.current &&
+      snapshot
+    ) {
       const saved = challengeSnapshotRef.current;
       challengeSnapshotRef.current = null;
 
       const N = snapshot.players.length;
-      const blufferIdx = snapshot.players.findIndex((p) => p.name === saved.blufferName);
-      const victimIdx = snapshot.players.findIndex((p) => p.name === saved.victimName);
+      const blufferIdx = snapshot.players.findIndex(
+        (p) => p.name === saved.blufferName,
+      );
+      const victimIdx = snapshot.players.findIndex(
+        (p) => p.name === saved.victimName,
+      );
 
       let message: string;
       let targetIdx: number;
       let color: string;
 
-      if (blufferIdx >= 0 && snapshot.players[blufferIdx].hand.length > saved.handSizes[blufferIdx]) {
+      if (
+        blufferIdx >= 0 &&
+        snapshot.players[blufferIdx].hand.length > saved.handSizes[blufferIdx]
+      ) {
         // Bluffer gained cards → bluff caught
         message = 'Bluff caught!';
         targetIdx = blufferIdx;
         color = '#ef4444';
-      } else if (victimIdx >= 0 && snapshot.players[victimIdx].hand.length > saved.handSizes[victimIdx]) {
+      } else if (
+        victimIdx >= 0 &&
+        snapshot.players[victimIdx].hand.length > saved.handSizes[victimIdx]
+      ) {
         // Victim gained extra cards → challenge failed
         message = 'Challenge failed!';
         targetIdx = victimIdx;
@@ -201,7 +238,10 @@ export const BackgroundScene = ({
 
   // Show toast when UNO callable resolves (unoCallable goes non-null → null)
   // If a player's hand grew, they were caught and penalized.
-  const unoSnapshotRef = useRef<{ callableName: string; handSizes: number[] } | null>(null);
+  const unoSnapshotRef = useRef<{
+    callableName: string;
+    handSizes: number[];
+  } | null>(null);
   useEffect(() => {
     if (snapshot?.unoCallable && !unoSnapshotRef.current) {
       unoSnapshotRef.current = {
@@ -214,13 +254,22 @@ export const BackgroundScene = ({
       unoSnapshotRef.current = null;
 
       const N = snapshot.players.length;
-      const callableIdx = snapshot.players.findIndex((p) => p.name === saved.callableName);
+      const callableIdx = snapshot.players.findIndex(
+        (p) => p.name === saved.callableName,
+      );
 
-      if (callableIdx >= 0 && snapshot.players[callableIdx].hand.length > saved.handSizes[callableIdx]) {
+      if (
+        callableIdx >= 0 &&
+        snapshot.players[callableIdx].hand.length > saved.handSizes[callableIdx]
+      ) {
         // Callable player's hand grew → they were caught
         setToasts((prev) => {
           const next = Array.from({ length: N }, (_, i) => prev[i] ?? null);
-          next[callableIdx] = { message: 'Caught! +2', color: '#ef4444', key: Date.now() };
+          next[callableIdx] = {
+            message: 'Caught! +2',
+            color: '#ef4444',
+            key: Date.now(),
+          };
           return next;
         });
       }
@@ -230,7 +279,10 @@ export const BackgroundScene = ({
   // Auto-clear toasts after CSS animation finishes
   useEffect(() => {
     if (!toasts.some(Boolean)) return;
-    const timer = setTimeout(() => setToasts((prev) => prev.map(() => null)), 2000);
+    const timer = setTimeout(
+      () => setToasts((prev) => prev.map(() => null)),
+      2000,
+    );
     return () => clearTimeout(timer);
   }, [toasts]);
 
@@ -238,27 +290,34 @@ export const BackgroundScene = ({
   // so the orbit color/direction only update after the card lands.
   const topDiscard = magnet.discardPile[magnet.discardPile.length - 1];
   const visitorName = snapshot?.players[0]?.name;
-  const isVisitorTurn = magnet.phase === 'playing'
-    && magnet.currentPlayerName === visitorName
-    && snapshot?.currentPlayerName === visitorName;
+  const isVisitorTurn =
+    magnet.phase === 'playing' &&
+    magnet.currentPlayerName === visitorName &&
+    snapshot?.currentPlayerName === visitorName;
 
-  const handleCardClick = useCallback((cardId: string) => {
-    if (!snapshot) return;
-    const card = snapshot.players[0]?.hand.find((c) => c.id === cardId);
-    if (!card) return;
-    const isWild = card.color == null;
-    if (isWild) {
-      onWildCardPlayed?.(cardId);
-    } else {
-      onPlayCard?.(cardId);
-    }
-  }, [snapshot, onPlayCard, onWildCardPlayed]);
+  const handleCardClick = useCallback(
+    (cardId: string) => {
+      if (!snapshot) return;
+      const card = snapshot.players[0]?.hand.find((c) => c.id === cardId);
+      if (!card) return;
+      const isWild = card.color == null;
+      if (isWild) {
+        onWildCardPlayed?.(cardId);
+      } else {
+        onPlayCard?.(cardId);
+      }
+    },
+    [snapshot, onPlayCard, onWildCardPlayed],
+  );
 
   return (
     <div className="fixed inset-0 z-0">
       <Canvas camera={{ position: [0, 1.8, 2.6], fov: 80 }}>
         <ResponsiveFov />
-        <color attach="background" args={[mode === 'dark' ? '#000000' : '#e8e4df']} />
+        <color
+          attach="background"
+          args={[mode === 'dark' ? '#000000' : '#e8e4df']}
+        />
         <SceneEnvironment />
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
@@ -286,9 +345,21 @@ export const BackgroundScene = ({
               )}
               <VisibleCardLayer
                 magnet={magnet}
-                playableCardIds={isVisitorTurn ? (playableOverride ?? snapshot?.playableCardIds) : undefined}
-                onCardClick={isVisitorTurn ? (playableOverride ? onDrawCardClicked : handleCardClick) : undefined}
-                onDeckClick={isVisitorTurn && deckEnabled ? onDrawCard : undefined}
+                playableCardIds={
+                  isVisitorTurn
+                    ? (playableOverride ?? snapshot?.playableCardIds)
+                    : undefined
+                }
+                onCardClick={
+                  isVisitorTurn
+                    ? playableOverride
+                      ? onDrawCardClicked
+                      : handleCardClick
+                    : undefined
+                }
+                onDeckClick={
+                  isVisitorTurn && deckEnabled ? onDrawCard : undefined
+                }
                 onDeckReady={handleCardsReady}
               />
               {snapshot && GAME_ACTIVE_PHASES.has(magnet.phase) && (
@@ -302,7 +373,11 @@ export const BackgroundScene = ({
                         cardCount={magnet.playerHands[i]?.length}
                         seat={SEATS[SEAT_ORDER[i]]}
                         surfaceY={TABLE_SURFACE_Y}
-                        isActive={magnet.phase === 'playing' && player.name === magnet.currentPlayerName && player.name === snapshot.currentPlayerName}
+                        isActive={
+                          magnet.phase === 'playing' &&
+                          player.name === magnet.currentPlayerName &&
+                          player.name === snapshot.currentPlayerName
+                        }
                         activeColor={unoColorToHex(topDiscard?.color)}
                         faceCenter={isVisitor}
                         offsetY={isVisitor ? -0.1 : undefined}
@@ -323,7 +398,12 @@ export const BackgroundScene = ({
             </Table>
           </Suspense>
         )}
-        <OrbitControls target={[0, -0.3, 0]} enablePan={true} enableZoom={true} enabled={true} />
+        <OrbitControls
+          target={[0, -0.3, 0]}
+          enablePan={true}
+          enableZoom={true}
+          enabled={true}
+        />
         <EffectComposer>
           <Bloom
             luminanceThreshold={mode === 'dark' ? 0.9 : 1.2}

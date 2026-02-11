@@ -38,7 +38,8 @@ export class UnoGame {
   /** Stable seat order: player names rotated so the human is at index 0. */
   private seatOrder: string[];
   /** Pending WD4 challenge state — set after a WD4 is played, cleared on resolution. */
-  private _pendingChallenge: (PendingChallenge & { wasBluff: boolean }) | null = null;
+  private _pendingChallenge: (PendingChallenge & { wasBluff: boolean }) | null =
+    null;
   /** Player who just played to 1 card and needs to call UNO. Cleared on callUno() or next turn. */
   private _unoCallable: string | null = null;
 
@@ -56,9 +57,10 @@ export class UnoGame {
     // array on reverse cards, but we always want the same name→seat mapping.
     const names = this.engine.players.map((p) => p.name);
     const humanIdx = names.indexOf(humanPlayerName);
-    this.seatOrder = humanIdx > 0
-      ? [...names.slice(humanIdx), ...names.slice(0, humanIdx)]
-      : names;
+    this.seatOrder =
+      humanIdx > 0
+        ? [...names.slice(humanIdx), ...names.slice(0, humanIdx)]
+        : names;
 
     this.bindEngineEvents();
   }
@@ -114,19 +116,16 @@ export class UnoGame {
       },
     );
 
-    this.engine.on(
-      'nextplayer',
-      (event: { player: { name: string } }) => {
-        // NOTE: do NOT clear _unoCallable here — cardplay and nextplayer
-        // fire synchronously within engine.play(), so clearing here would
-        // erase it before React ever sees it. The controller manages the
-        // UNO window lifecycle via callUno() and the catch timer.
-        this.emit({
-          type: 'turn_changed',
-          playerName: event.player.name,
-        });
-      },
-    );
+    this.engine.on('nextplayer', (event: { player: { name: string } }) => {
+      // NOTE: do NOT clear _unoCallable here — cardplay and nextplayer
+      // fire synchronously within engine.play(), so clearing here would
+      // erase it before React ever sees it. The controller manages the
+      // UNO window lifecycle via callUno() and the catch timer.
+      this.emit({
+        type: 'turn_changed',
+        playerName: event.player.name,
+      });
+    });
 
     this.engine.on(
       'end',
@@ -192,14 +191,22 @@ export class UnoGame {
     // Apply the penalty directly — engine.uno() has a hand-size check
     // that misfires when the caller has ≤ 2 cards, treating it as a
     // self-call instead of a catch.
-    if (yellingPlayerName && this._unoCallable && yellingPlayerName !== this._unoCallable) {
+    if (
+      yellingPlayerName &&
+      this._unoCallable &&
+      yellingPlayerName !== this._unoCallable
+    ) {
       const targetName = this._unoCallable;
       const target = this.engine.getPlayer(targetName);
       this.engine.draw(target, 2, { silent: true });
       this._unoCallable = null;
 
       this.emit({ type: 'uno_called', playerName: yellingPlayerName });
-      this.emit({ type: 'uno_penalty', playerName: targetName, data: { count: 2 } });
+      this.emit({
+        type: 'uno_penalty',
+        playerName: targetName,
+        data: { count: 2 },
+      });
       return [targetName];
     }
 
@@ -316,9 +323,10 @@ export class UnoGame {
     // Recompute stable seat order for the new engine instance
     const names = this.engine.players.map((p) => p.name);
     const humanIdx = names.indexOf(this.humanPlayerName);
-    this.seatOrder = humanIdx > 0
-      ? [...names.slice(humanIdx), ...names.slice(0, humanIdx)]
-      : names;
+    this.seatOrder =
+      humanIdx > 0
+        ? [...names.slice(humanIdx), ...names.slice(0, humanIdx)]
+        : names;
 
     this.bindEngineEvents();
   }
@@ -396,7 +404,8 @@ export class UnoGame {
 
   /** Get end-of-game info with per-player score breakdown. Returns null if game hasn't ended. */
   getGameEndInfo(): GameEndInfo | null {
-    if (this.phase !== 'ended' || !this.winner || this.score === null) return null;
+    if (this.phase !== 'ended' || !this.winner || this.score === null)
+      return null;
 
     const breakdown: PlayerScoreBreakdown[] = this.seatOrder
       .filter((name) => name !== this.winner)

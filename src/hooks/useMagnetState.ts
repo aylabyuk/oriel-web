@@ -155,23 +155,40 @@ export const useMagnetState = (
 
     const delay = (() => {
       switch (step.type) {
-        case 'deal': return DEAL_INTERVAL;
-        case 'reveal_pickup': return REVEAL_LIFT_DELAY;
-        case 'reveal_turn': return REVEAL_TURN_DELAY;
-        case 'spread_card': return SPREAD_CARD_DELAY;
-        case 'discard_lift': return DISCARD_LIFT_DELAY;
-        case 'discard_flip': return DISCARD_FLIP_DELAY;
-        case 'discard_move': return DISCARD_MOVE_DELAY;
-        case 'discard_drop': return DISCARD_DROP_DELAY;
-        case 'play_gap': return PLAY_GAP_DELAY;
-        case 'play_lift': return PLAY_LIFT_DELAY;
-        case 'play_move': return PLAY_MOVE_DELAY;
-        case 'play_rotate': return PLAY_ROTATE_DELAY;
-        case 'play_drop': return PLAY_DROP_DELAY;
-        case 'draw_lift': return DRAW_LIFT_DELAY;
-        case 'draw_move': return DRAW_MOVE_DELAY;
-        case 'draw_gap': return DRAW_GAP_DELAY;
-        case 'draw_drop': return DRAW_DROP_DELAY;
+        case 'deal':
+          return DEAL_INTERVAL;
+        case 'reveal_pickup':
+          return REVEAL_LIFT_DELAY;
+        case 'reveal_turn':
+          return REVEAL_TURN_DELAY;
+        case 'spread_card':
+          return SPREAD_CARD_DELAY;
+        case 'discard_lift':
+          return DISCARD_LIFT_DELAY;
+        case 'discard_flip':
+          return DISCARD_FLIP_DELAY;
+        case 'discard_move':
+          return DISCARD_MOVE_DELAY;
+        case 'discard_drop':
+          return DISCARD_DROP_DELAY;
+        case 'play_gap':
+          return PLAY_GAP_DELAY;
+        case 'play_lift':
+          return PLAY_LIFT_DELAY;
+        case 'play_move':
+          return PLAY_MOVE_DELAY;
+        case 'play_rotate':
+          return PLAY_ROTATE_DELAY;
+        case 'play_drop':
+          return PLAY_DROP_DELAY;
+        case 'draw_lift':
+          return DRAW_LIFT_DELAY;
+        case 'draw_move':
+          return DRAW_MOVE_DELAY;
+        case 'draw_gap':
+          return DRAW_GAP_DELAY;
+        case 'draw_drop':
+          return DRAW_DROP_DELAY;
       }
     })();
 
@@ -288,7 +305,8 @@ export const useMagnetState = (
     // Detect if a card was played: new discard pile is longer than current
     const newTopCard = snapshot.discardPile[snapshot.discardPile.length - 1];
     const prevDiscardLen = state.discardPile.length;
-    const cardPlayed = newTopCard && snapshot.discardPile.length > prevDiscardLen;
+    const cardPlayed =
+      newTopCard && snapshot.discardPile.length > prevDiscardLen;
 
     if (cardPlayed) {
       // Update card data so wild cards carry the chosen color from the snapshot
@@ -324,7 +342,9 @@ export const useMagnetState = (
       const newHandLen = snapshot.players[pi].hand.length;
       if (newHandLen > prevHandLen) {
         const prevIds = new Set(state.playerHands[pi].map((c) => c.id));
-        const newCards = snapshot.players[pi].hand.filter((c) => !prevIds.has(c.id));
+        const newCards = snapshot.players[pi].hand.filter(
+          (c) => !prevIds.has(c.id),
+        );
 
         if (newCards.length > 0) {
           animatingRef.current = true;
@@ -435,13 +455,15 @@ export const applyStep = (
         ...prev,
         phase: step.phase,
         // Clear animation fields when returning to playing so gaps close
-        ...(step.phase === 'playing' ? {
-          playingPlayerIndex: -1,
-          selectedCardId: null,
-          liftingCardId: null,
-          drawingPlayerIndex: -1,
-          drawInsertIndex: -1,
-        } : {}),
+        ...(step.phase === 'playing'
+          ? {
+              playingPlayerIndex: -1,
+              selectedCardId: null,
+              liftingCardId: null,
+              drawingPlayerIndex: -1,
+              drawInsertIndex: -1,
+            }
+          : {}),
       };
 
     case 'deal': {
@@ -458,7 +480,10 @@ export const applyStep = (
 
     case 'reveal_pickup': {
       const newFronts = prev.playerFronts.map(() => [] as SerializedCard[]);
-      const newStaging = prev.playerStaging.map((s, i) => [...s, ...prev.playerFronts[i]]);
+      const newStaging = prev.playerStaging.map((s, i) => [
+        ...s,
+        ...prev.playerFronts[i],
+      ]);
       return { ...prev, playerFronts: newFronts, playerStaging: newStaging };
     }
 
@@ -572,7 +597,10 @@ export const applyStep = (
         drawFloat: [],
         // Keep drawingPlayerIndex and drawInsertIndex so the gap stays
         // open while the card settles into its slot. Cleared on 'playing'.
-        spreadProgress: Math.max(prev.spreadProgress, ...newHands.map((h) => h.length)),
+        spreadProgress: Math.max(
+          prev.spreadProgress,
+          ...newHands.map((h) => h.length),
+        ),
       };
     }
   }

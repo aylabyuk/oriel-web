@@ -8,10 +8,17 @@ type UnoButtonProps = {
   onPress: () => void;
 };
 
-export const UnoButton = ({ mode, targetName, duration, onPress }: UnoButtonProps) => {
+export const UnoButton = ({
+  mode,
+  targetName,
+  duration,
+  onPress,
+}: UnoButtonProps) => {
   const open = mode !== null;
   const circleRef = useRef<SVGCircleElement>(null);
-  const timerRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
+  const timerRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(
+    null,
+  );
   const startRef = useRef(0);
 
   const springs = useSpring({
@@ -58,9 +65,10 @@ export const UnoButton = ({ mode, targetName, duration, onPress }: UnoButtonProp
 
   const label = mode === 'catch' ? `Catch ${targetName}!` : 'UNO!';
   const ariaLabel = mode === 'catch' ? `Catch ${targetName}` : 'Call UNO';
-  const bgClass = mode === 'catch'
-    ? 'bg-red-500 hover:bg-red-400'
-    : 'bg-amber-500 hover:bg-amber-400';
+  const bgClass =
+    mode === 'catch'
+      ? 'bg-red-500 hover:bg-red-400'
+      : 'bg-amber-500 hover:bg-amber-400';
 
   return (
     // @ts-expect-error animated.div children type mismatch with React 19

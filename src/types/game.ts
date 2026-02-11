@@ -14,7 +14,12 @@ export type SerializedPlayer = {
 
 export type PlayDirection = 'clockwise' | 'counter_clockwise';
 
-export type GamePhase = 'idle' | 'playing' | 'choosing_color' | 'challenging' | 'ended';
+export type GamePhase =
+  | 'idle'
+  | 'playing'
+  | 'choosing_color'
+  | 'challenging'
+  | 'ended';
 
 export type GameSnapshot = {
   phase: GamePhase;

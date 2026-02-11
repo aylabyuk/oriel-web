@@ -23,7 +23,11 @@ type WelcomeScreenProps = {
   onExited?: () => void;
 };
 
-export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: WelcomeScreenProps) => {
+export const WelcomeScreen = ({
+  loading = false,
+  exiting = false,
+  onExited,
+}: WelcomeScreenProps) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -58,10 +62,12 @@ export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: We
 
   return (
     <section className="flex min-h-svh items-center justify-center px-4 py-6">
-      <div className={cn(
-        'flex w-full max-w-md flex-col items-center gap-8',
-        'landscape:max-lg:max-w-2xl landscape:max-lg:flex-row landscape:max-lg:items-center landscape:max-lg:gap-12',
-      )}>
+      <div
+        className={cn(
+          'flex w-full max-w-md flex-col items-center gap-8',
+          'landscape:max-lg:max-w-2xl landscape:max-lg:flex-row landscape:max-lg:items-center landscape:max-lg:gap-12',
+        )}
+      >
         {/* Section 1: Avatar + Welcome */}
         <div
           className={cn(
@@ -75,7 +81,7 @@ export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: We
             src={MY_AVATAR_URL}
             alt="Oriel Absin"
             size="lg"
-            className="mx-auto landscape:max-lg:h-20 landscape:max-lg:w-20 landscape:max-lg:mx-0"
+            className="mx-auto landscape:max-lg:mx-0 landscape:max-lg:h-20 landscape:max-lg:w-20"
           />
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t('welcome.title')}
@@ -89,7 +95,7 @@ export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: We
         <form
           onSubmit={handleSubmit}
           className={cn(
-            'w-full space-y-5 transition-all duration-500 ease-out delay-100 sm:space-y-6',
+            'w-full space-y-5 transition-all delay-100 duration-500 ease-out sm:space-y-6',
             'landscape:max-lg:flex-1',
             visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0',
           )}
@@ -114,7 +120,11 @@ export const WelcomeScreen = ({ loading = false, exiting = false, onExited }: We
             autoComplete="organization"
             disabled={loading}
           />
-          <Button type="submit" className="w-full cursor-pointer" loading={loading}>
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            loading={loading}
+          >
             {t('welcome.startButton')}
           </Button>
         </form>

@@ -22,34 +22,60 @@ export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
   const mode = useAppSelector(selectMode);
   const snapshot = useAppSelector(selectSnapshot);
-  const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer } = useGameController();
+  const {
+    startGame,
+    playCard,
+    drawCard,
+    passAfterDraw,
+    resolveChallenge,
+    tryAutoResolveChallenge,
+    callUno,
+    restartGame,
+    getGameEndInfo,
+    cancelVisitorTimer,
+  } = useGameController();
   const { dialogues, history } = useDialogue();
   const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 640);
   const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
-  const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
+  const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
+    null,
+  );
   const [drawnWildCardId, setDrawnWildCardId] = useState<string | null>(null);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
-  const handleWildCardPlayed = useCallback((cardId: string) => {
-    cancelVisitorTimer();
-    setPendingWildCardId(cardId);
-  }, [cancelVisitorTimer]);
+  const handleWildCardPlayed = useCallback(
+    (cardId: string) => {
+      cancelVisitorTimer();
+      setPendingWildCardId(cardId);
+    },
+    [cancelVisitorTimer],
+  );
   const handleWildDismiss = useCallback(() => {
     setPendingWildCardId(null);
     setDrawnWildCardId(null);
   }, []);
-  const handleWildColorSelect = useCallback((color: Color) => {
-    if (pendingWildCardId) playCard(pendingWildCardId, color);
-    setPendingWildCardId(null);
-    setDrawnWildCardId(null);
-  }, [pendingWildCardId, playCard]);
+  const handleWildColorSelect = useCallback(
+    (color: Color) => {
+      if (pendingWildCardId) playCard(pendingWildCardId, color);
+      setPendingWildCardId(null);
+      setDrawnWildCardId(null);
+    },
+    [pendingWildCardId, playCard],
+  );
 
   // --- Draw-choice flow ---
-  const pendingDrawRef = useRef<{ cardId: string; isPlayable: boolean; isWild: boolean } | null>(null);
+  const pendingDrawRef = useRef<{
+    cardId: string;
+    isPlayable: boolean;
+    isWild: boolean;
+  } | null>(null);
   const [drawPending, setDrawPending] = useState(false);
-  const [drawChoice, setDrawChoice] = useState<{ cardId: string; isWild: boolean } | null>(null);
+  const [drawChoice, setDrawChoice] = useState<{
+    cardId: string;
+    isWild: boolean;
+  } | null>(null);
 
   const handleDrawCard = useCallback(() => {
     const result = drawCard();
@@ -81,7 +107,10 @@ export const App = () => {
     setDrawChoice(null);
   }, [drawChoice, playCard, cancelVisitorTimer]);
 
-  const handleDrawCardClicked = useCallback((_cardId: string) => handleDrawPlay(), [handleDrawPlay]);
+  const handleDrawCardClicked = useCallback(
+    (_cardId: string) => handleDrawPlay(),
+    [handleDrawPlay],
+  );
 
   const handleDrawSkip = useCallback(() => {
     setDrawChoice(null);
@@ -101,7 +130,10 @@ export const App = () => {
 
   // --- Game end ---
   const gameEnded = snapshot?.phase === 'ended';
-  const endInfo = useMemo(() => gameEnded ? getGameEndInfo() : null, [gameEnded, getGameEndInfo]);
+  const endInfo = useMemo(
+    () => (gameEnded ? getGameEndInfo() : null),
+    [gameEnded, getGameEndInfo],
+  );
   const isVisitorWinner = endInfo?.winner === snapshot?.players[0]?.name;
 
   // --- UNO shout / catch flow ---
@@ -114,8 +146,10 @@ export const App = () => {
       ? 'shout'
       : 'catch'
     : null;
-  const unoDuration = unoMode === 'shout' ? UNO_SHOUT_WINDOW : CATCH_WINDOW_DISPLAY;
-  const unoTargetName = unoMode === 'catch' ? unoCallable?.playerName : undefined;
+  const unoDuration =
+    unoMode === 'shout' ? UNO_SHOUT_WINDOW : CATCH_WINDOW_DISPLAY;
+  const unoTargetName =
+    unoMode === 'catch' ? unoCallable?.playerName : undefined;
 
   const handleUnoPress = useCallback(() => {
     cancelVisitorTimer();
@@ -164,12 +198,26 @@ export const App = () => {
         onSceneReady={handleSceneReady}
         onChallengeReady={handleChallengeReady}
         deckEnabled={!drawPending && drawChoice === null && !challengeReady}
-        playableOverride={drawChoice ? [drawChoice.cardId] : drawnWildCardId ? [drawnWildCardId] : undefined}
+        playableOverride={
+          drawChoice
+            ? [drawChoice.cardId]
+            : drawnWildCardId
+              ? [drawnWildCardId]
+              : undefined
+        }
         onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
         dialogues={dialogues}
       />
-      <DrawChoiceModal open={drawChoice !== null} onPlay={handleDrawPlay} onSkip={handleDrawSkip} />
-      <WildColorPicker open={pendingWildCardId != null} onColorSelect={handleWildColorSelect} onDismiss={handleWildDismiss} />
+      <DrawChoiceModal
+        open={drawChoice !== null}
+        onPlay={handleDrawPlay}
+        onSkip={handleDrawSkip}
+      />
+      <WildColorPicker
+        open={pendingWildCardId != null}
+        onColorSelect={handleWildColorSelect}
+        onDismiss={handleWildDismiss}
+      />
       <ChallengeModal
         open={challengeReady}
         blufferName={snapshot?.pendingChallenge?.blufferName ?? ''}
@@ -197,7 +245,9 @@ export const App = () => {
         </div>
         {welcomeDismissed ? (
           <div>
-            <span className="p-4 text-xs font-medium text-neutral-400">orielvinci.com</span>
+            <span className="p-4 text-xs font-medium text-neutral-400">
+              orielvinci.com
+            </span>
           </div>
         ) : (
           <WelcomeScreen

@@ -38,7 +38,15 @@ const RotatingStars = () => {
 
   return (
     <group ref={groupRef}>
-      <Stars radius={20} depth={50} count={3000} factor={3} saturation={0} fade speed={1} />
+      <Stars
+        radius={20}
+        depth={50}
+        count={3000}
+        factor={3}
+        saturation={0}
+        fade
+        speed={1}
+      />
     </group>
   );
 };

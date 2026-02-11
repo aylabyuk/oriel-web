@@ -8,7 +8,12 @@ type GameEndOverlayProps = {
   onPlayAgain: () => void;
 };
 
-export const GameEndOverlay = ({ open, endInfo, isVisitorWinner, onPlayAgain }: GameEndOverlayProps) => {
+export const GameEndOverlay = ({
+  open,
+  endInfo,
+  isVisitorWinner,
+  onPlayAgain,
+}: GameEndOverlayProps) => {
   const springs = useSpring({
     opacity: open ? 1 : 0,
     scale: open ? 1 : 0.9,
@@ -52,15 +57,19 @@ export const GameEndOverlay = ({ open, endInfo, isVisitorWinner, onPlayAgain }: 
 
         <div className="flex flex-col items-center gap-1">
           {/* @ts-expect-error animated.span children type mismatch with React 19 */}
-          <animated.span className="text-4xl font-extrabold tabular-nums text-amber-400">
+          <animated.span className="text-4xl font-extrabold text-amber-400 tabular-nums">
             {scoreSpring.val.to((v) => Math.floor(v))}
           </animated.span>
-          <span className="text-xs font-medium tracking-wide text-white/50 uppercase">Points</span>
+          <span className="text-xs font-medium tracking-wide text-white/50 uppercase">
+            Points
+          </span>
         </div>
 
         {breakdownCount > 0 && (
           <div className="w-full space-y-2">
-            <span className="text-xs font-medium tracking-wide text-white/40 uppercase">Remaining cards</span>
+            <span className="text-xs font-medium tracking-wide text-white/40 uppercase">
+              Remaining cards
+            </span>
             {trail.map((style, i) => {
               const player = endInfo.breakdown[i];
               return (
@@ -68,11 +77,16 @@ export const GameEndOverlay = ({ open, endInfo, isVisitorWinner, onPlayAgain }: 
                 <animated.div
                   key={player.name}
                   className="flex items-center justify-between text-sm text-white/70"
-                  style={{ opacity: style.opacity, transform: style.x.to((x) => `translateX(${x}px)`) }}
+                  style={{
+                    opacity: style.opacity,
+                    transform: style.x.to((x) => `translateX(${x}px)`),
+                  }}
                 >
                   <span>{player.name}</span>
                   <span className="tabular-nums">
-                    {player.cardCount} {player.cardCount === 1 ? 'card' : 'cards'} &middot; {player.points} pts
+                    {player.cardCount}{' '}
+                    {player.cardCount === 1 ? 'card' : 'cards'} &middot;{' '}
+                    {player.points} pts
                   </span>
                 </animated.div>
               );

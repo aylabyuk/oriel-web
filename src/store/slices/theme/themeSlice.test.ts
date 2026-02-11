@@ -1,8 +1,4 @@
-import {
-  themeSlice,
-  setReducedMotion,
-  toggleMode,
-} from '@/store/slices/theme';
+import { themeSlice, setReducedMotion, toggleMode } from '@/store/slices/theme';
 
 const reducer = themeSlice.reducer;
 

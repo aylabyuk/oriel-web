@@ -228,9 +228,15 @@ export const getPlayerHandPlacement = (
 
   return {
     position: [
-      x + perpX * (offset + gapOffset) + (isHuman ? 0 : normalX * depthIdx * CARD_DEPTH),
-      TABLE_SURFACE_Y + CARD_HALF_HEIGHT + (isHuman ? CAMERA_LIFT_Y + depthIdx * CARD_DEPTH : 0),
-      z + perpZ * (offset + gapOffset) + (isHuman ? 0 : normalZ * depthIdx * CARD_DEPTH),
+      x +
+        perpX * (offset + gapOffset) +
+        (isHuman ? 0 : normalX * depthIdx * CARD_DEPTH),
+      TABLE_SURFACE_Y +
+        CARD_HALF_HEIGHT +
+        (isHuman ? CAMERA_LIFT_Y + depthIdx * CARD_DEPTH : 0),
+      z +
+        perpZ * (offset + gapOffset) +
+        (isHuman ? 0 : normalZ * depthIdx * CARD_DEPTH),
     ],
     yaw: angle,
     tilt: isHuman ? CAMERA_TILT_X : 0,
@@ -288,7 +294,10 @@ export const getPlayLiftPlacement = (
 };
 
 /** Play move: card travels laterally to above discard pile, preserving hand orientation */
-export const getPlayMovePlacement = (seat: Seat, isHuman = false): CardPlacement => ({
+export const getPlayMovePlacement = (
+  seat: Seat,
+  isHuman = false,
+): CardPlacement => ({
   position: [
     DISCARD_PILE_POSITION[0],
     TABLE_SURFACE_Y + PLAY_LIFT_HEIGHT,

@@ -12,7 +12,7 @@ export const ChatToggle = ({ open, onClick }: ChatToggleProps) => (
     data-tooltip={open ? 'Close chat' : 'Chat history'}
     onClick={onClick}
     className={cn(
-      'fixed bottom-4 right-4 z-60',
+      'fixed right-4 bottom-4 z-60',
       'flex h-9 w-9 cursor-pointer items-center justify-center',
       'rounded-full text-lg shadow-sm backdrop-blur-sm transition-colors',
       'bg-white/60 hover:bg-white/80 dark:bg-black/60 dark:hover:bg-black/80',
