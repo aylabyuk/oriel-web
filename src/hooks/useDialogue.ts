@@ -389,7 +389,7 @@ const scheduleDialogues = (
   }
 };
 
-export const useDialogue = () => {
+export const useDialogue = (ready: boolean) => {
   const events = useAppSelector(selectEvents);
   const snapshot = useAppSelector(selectSnapshot);
   const processedRef = useRef(0);
@@ -451,10 +451,12 @@ export const useDialogue = () => {
     setHistory([]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
 
-  // Game started dialogue — fires once when snapshot first appears
+  // Game started dialogue — fires once when dealing animation completes
   useEffect(() => {
-    if (!snapshot || gameStartedRef.current) return;
+    if (!snapshot || !ready || gameStartedRef.current) return;
     gameStartedRef.current = true;
+    // Skip events that accumulated during the dealing animation
+    processedRef.current = events.length;
     refillJokes();
 
     const now = Date.now();
@@ -480,15 +482,14 @@ export const useDialogue = () => {
       if (text) selected.push({ personality: c.personality, text });
     }
 
-    // Longer initial delay so the game has time to settle visually
-    scheduleDialogues(selected, 1500, timersRef, setDialogues, setHistory);
-  }, [snapshot]);
+    scheduleDialogues(selected, REACTION_DELAY_BASE, timersRef, setDialogues, setHistory);
+  }, [snapshot, ready]);
 
   // Visitor slow timer — when it's the visitor's turn, start a countdown
   useEffect(() => {
     clearVisitorSlowTimer();
 
-    if (!snapshot) return;
+    if (!snapshot || !ready) return;
     const visitorName = snapshot.players[0]?.name;
     if (!visitorName || snapshot.currentPlayerName !== visitorName) return;
 
@@ -524,7 +525,7 @@ export const useDialogue = () => {
 
   // Process new events
   useEffect(() => {
-    if (!snapshot || events.length <= processedRef.current) return;
+    if (!snapshot || !ready || events.length <= processedRef.current) return;
 
     const newEvents = events.slice(processedRef.current);
     processedRef.current = events.length;

@@ -34,7 +34,8 @@ export const App = () => {
     getGameEndInfo,
     cancelVisitorTimer,
   } = useGameController();
-  const { dialogues, history } = useDialogue();
+  const [dealingComplete, setDealingComplete] = useState(false);
+  const { dialogues, history } = useDialogue(dealingComplete);
   const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 640);
   const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
   const [sceneReady, setSceneReady] = useState(false);
@@ -44,6 +45,7 @@ export const App = () => {
   );
   const [drawnWildCardId, setDrawnWildCardId] = useState<string | null>(null);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
+  const handleDealingComplete = useCallback(() => setDealingComplete(true), []);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
   const handleWildCardPlayed = useCallback(
     (cardId: string) => {
@@ -124,6 +126,7 @@ export const App = () => {
     setDrawChoice(null);
     setDrawPending(false);
     setChallengeReady(false);
+    setDealingComplete(false);
     pendingDrawRef.current = null;
     restartGame();
   }, [restartGame]);
@@ -194,6 +197,7 @@ export const App = () => {
         onPlayCard={playCard}
         onDrawCard={handleDrawCard}
         onAnimationIdle={handleAnimationIdle}
+        onDealingComplete={handleDealingComplete}
         onWildCardPlayed={handleWildCardPlayed}
         onSceneReady={handleSceneReady}
         onChallengeReady={handleChallengeReady}

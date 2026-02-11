@@ -53,6 +53,7 @@ type BackgroundSceneProps = {
   ) => void;
   onDrawCard?: () => void;
   onAnimationIdle?: () => void;
+  onDealingComplete?: () => void;
   onWildCardPlayed?: (cardId: string) => void;
   onDrawCardClicked?: (cardId: string) => void;
   onSceneReady?: () => void;
@@ -68,6 +69,7 @@ export const BackgroundScene = ({
   onPlayCard,
   onDrawCard,
   onAnimationIdle,
+  onDealingComplete,
   onWildCardPlayed,
   onDrawCardClicked,
   onSceneReady,
@@ -96,10 +98,16 @@ export const BackgroundScene = ({
   // Fire callback when animations settle back to 'playing' phase
   // + detect special card effects (skip / +2 / +4) after play animations
   const prevPhaseRef = useRef(magnet.phase);
+  const dealingFiredRef = useRef(false);
   useEffect(() => {
     const prev = prevPhaseRef.current;
     prevPhaseRef.current = magnet.phase;
+    if (magnet.phase === 'idle') dealingFiredRef.current = false;
     if (magnet.phase === 'playing' && prev !== 'playing') {
+      if (!dealingFiredRef.current) {
+        dealingFiredRef.current = true;
+        onDealingComplete?.();
+      }
       if (prev?.startsWith('play') && snapshot) {
         const topCard = magnet.discardPile[magnet.discardPile.length - 1];
         if (topCard && EFFECT_VALUES.has(topCard.value)) {
@@ -141,6 +149,7 @@ export const BackgroundScene = ({
     magnet.discardPile,
     snapshot,
     onAnimationIdle,
+    onDealingComplete,
     onChallengeReady,
     t,
   ]);
