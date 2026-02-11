@@ -5,7 +5,7 @@ import {
   AI_CHILL,
 } from '@/constants/players';
 
-export const DEFAULT_CAMERA_POSITION = [0, 1.8, 2.6] as const;
+export const DEFAULT_CAMERA_POSITION = [0, 2.28, 3.19] as const;
 export const DEFAULT_CAMERA_TARGET = [0, -0.3, 0] as const;
 export const DEFAULT_CAMERA_FOV = 80;
 

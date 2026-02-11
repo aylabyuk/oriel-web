@@ -36,6 +36,20 @@ import {
   DEFAULT_CAMERA_FOV,
 } from './BackgroundScene.constants';
 
+/** Compute the responsive FOV for the current canvas width. */
+const responsiveFov = (width: number) =>
+  width >= 1024 ? 70 : width >= 768 ? 80 : 90;
+
+/** Adjust camera FOV based on canvas width for responsive framing. */
+const ResponsiveFov = () => {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    (camera as PerspectiveCamera).fov = responsiveFov(size.width);
+    camera.updateProjectionMatrix();
+  }, [camera, size.width]);
+  return null;
+};
+
 /** Smoothly animate camera back to default when freeLook is toggled off. */
 const CAMERA_LERP_SPEED = 3;
 const _targetPos = new Vector3(...DEFAULT_CAMERA_POSITION);
@@ -58,10 +72,6 @@ const CameraReset = ({ freeLook }: { freeLook: boolean }) => {
     const alpha = 1 - Math.exp(-CAMERA_LERP_SPEED * delta);
     camera.position.lerp(_targetPos, alpha);
 
-    const cam = camera as PerspectiveCamera;
-    cam.fov += (DEFAULT_CAMERA_FOV - cam.fov) * alpha;
-    cam.updateProjectionMatrix();
-
     camera.getWorldDirection(_currentLook);
     _currentLook.multiplyScalar(2).add(camera.position);
     _currentLook.lerp(_targetLook, alpha);
@@ -69,25 +79,11 @@ const CameraReset = ({ freeLook }: { freeLook: boolean }) => {
 
     if (camera.position.distanceTo(_targetPos) < 0.001) {
       camera.position.copy(_targetPos);
-      cam.fov = DEFAULT_CAMERA_FOV;
-      cam.updateProjectionMatrix();
       camera.lookAt(_targetLook);
       animatingRef.current = false;
     }
   });
 
-  return null;
-};
-
-/** Adjust camera FOV based on canvas width for responsive framing. */
-const ResponsiveFov = () => {
-  const { camera, size } = useThree();
-  useEffect(() => {
-    const w = size.width;
-    const fov = w >= 1024 ? 70 : w >= 768 ? 80 : 90;
-    (camera as PerspectiveCamera).fov = fov;
-    camera.updateProjectionMatrix();
-  }, [camera, size.width]);
   return null;
 };
 
