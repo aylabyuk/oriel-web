@@ -6,22 +6,18 @@ import { Card3D } from '@/components/three/Card3D';
 import type { Value, Color } from 'uno-engine';
 import type { CardPlacement } from '@/utils/zoneLayout';
 import type { SpringConfig } from '@/utils/computeAllTargets';
-
-const DEFAULT_CONFIG: SpringConfig = { tension: 300, friction: 35 };
-/** Gentle spring for playable lift / glow so transitions feel smooth */
-const PLAYABLE_CONFIG: SpringConfig = { tension: 80, friction: 14 };
-
-const PLAYABLE_LIFT = 0.12;
-const PLAYABLE_GLOW_COLOR = '#ffffff';
-const PLAYABLE_GLOW = 0.6;
-
-/** Deck bob: gentle sine-wave hover */
-const DECK_BOB_AMPLITUDE = 0.025;
-const DECK_BOB_SPEED = 3;
-/** Deck glow: pulsing emissive */
-const DECK_GLOW_MIN = 0.15;
-const DECK_GLOW_RANGE = 1;
-const DECK_GLOW_SPEED = 2.5;
+import {
+  DEFAULT_CONFIG,
+  PLAYABLE_CONFIG,
+  PLAYABLE_LIFT,
+  PLAYABLE_GLOW_COLOR,
+  PLAYABLE_GLOW,
+  DECK_BOB_AMPLITUDE,
+  DECK_BOB_SPEED,
+  DECK_GLOW_MIN,
+  DECK_GLOW_RANGE,
+  DECK_GLOW_SPEED,
+} from './VisibleCard.constants';
 
 type VisibleCardProps = {
   cardId: string;

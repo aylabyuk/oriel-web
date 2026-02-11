@@ -2,27 +2,20 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Mesh, BufferAttribute, MeshBasicMaterial } from 'three';
 import type { SpringValue } from '@react-spring/three';
-
-const ORBIT_RADIUS = 1.2;
-const ORBIT_Y = 0.056;
-const ORBIT_SPEED = 1.0; // rad/s — full revolution ~6.3s
-/** HDR multiplier — pushes color above 1.0 so bloom catches it */
-const GLOW_INTENSITY = 2.0;
-
-const ARROW_LENGTH = 0.28;
-const ARROW_HALF_WIDTH = 0.16;
-const ARROW_HALF_HEIGHT = 0.025;
-
-const TAIL_ARC = 1.2; // radians of arc each tail covers (~69°)
-const TAIL_HALF_WIDTH = 0.04;
-const TAIL_HALF_HEIGHT = 0.018;
-
-/** Tail sample count */
-export const TAIL_SAMPLES = 16;
-const TAIL_STEP = TAIL_ARC / (TAIL_SAMPLES - 1);
-
-/** Vertices per tail sample */
-export const VERTS_PER_SAMPLE = 4;
+import {
+  ORBIT_RADIUS,
+  ORBIT_Y,
+  ORBIT_SPEED,
+  GLOW_INTENSITY,
+  ARROW_LENGTH,
+  ARROW_HALF_WIDTH,
+  ARROW_HALF_HEIGHT,
+  TAIL_HALF_WIDTH,
+  TAIL_HALF_HEIGHT,
+  TAIL_SAMPLES,
+  TAIL_STEP,
+  VERTS_PER_SAMPLE,
+} from './DirectionOrbit.constants';
 
 type UseOrbitAnimationArgs = {
   arrow1Ref: React.RefObject<Mesh | null>;

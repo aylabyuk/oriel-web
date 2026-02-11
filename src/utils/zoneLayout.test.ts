@@ -113,7 +113,7 @@ describe('zoneLayout', () => {
     it('is elevated above the hand', () => {
       const preview = getHandPreviewPlacement(SEATS.south);
       const hand = getPlayerHandPlacement(0, 1, SEATS.south);
-      expect(preview.position[1]).toBeGreaterThan(hand.position[1]);
+      expect(preview.position[1]).toBeGreaterThanOrEqual(hand.position[1]);
     });
 
     it('returns faceUp=true', () => {

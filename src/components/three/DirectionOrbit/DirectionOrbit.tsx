@@ -12,15 +12,12 @@ import { useAppSelector } from '@/store/hooks';
 import { selectReducedMotion } from '@/store/slices/theme';
 import { unoColorToHex } from '@/constants';
 import type { PlayDirection } from '@/types/game';
+import { useOrbitAnimation } from './useOrbitAnimation';
 import {
-  useOrbitAnimation,
   TAIL_SAMPLES,
   VERTS_PER_SAMPLE,
-} from './useOrbitAnimation';
-
-const ARROW_INDICES = [
-  0, 1, 2, 3, 5, 4, 0, 3, 1, 1, 3, 4, 1, 4, 2, 2, 4, 5, 2, 5, 0, 0, 5, 3,
-];
+  ARROW_INDICES,
+} from './DirectionOrbit.constants';
 
 const makeArrowGeo = () => {
   const geo = new BufferGeometry();

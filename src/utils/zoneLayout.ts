@@ -2,6 +2,46 @@ import { seededRandom } from '@/utils/seededRandom';
 import { DRAW_PILE_POSITION, DISCARD_PILE_POSITION } from '@/constants/seats';
 import type { Seat } from '@/constants/seats';
 import { TABLE_SURFACE_Y } from '@/components/three/Table/Table';
+import {
+  CARD_DEPTH,
+  CARD_HEIGHT,
+  STACK_OFFSET,
+  PULL_DISTANCE,
+  CARD_SPREAD,
+  FRONT_PULL,
+  FLOAT_HEIGHT,
+  PLAY_LIFT_HEIGHT,
+  SCATTER_XZ,
+  SCATTER_ROT,
+  DECK_ROT_JITTER,
+  CARD_HALF_HEIGHT,
+  OPPONENT_CARD_SPREAD,
+  GAP_EXTRA_VISITOR,
+  GAP_EXTRA_OPPONENT,
+  CAMERA_TILT_X,
+  CAMERA_LIFT_Y,
+} from './zoneLayout.constants';
+
+export {
+  CARD_WIDTH,
+  CARD_HEIGHT,
+  CARD_DEPTH,
+  STACK_OFFSET,
+  PULL_DISTANCE,
+  CARD_SPREAD,
+  FRONT_PULL,
+  FLOAT_HEIGHT,
+  PLAY_LIFT_HEIGHT,
+  SCATTER_XZ,
+  SCATTER_ROT,
+  DECK_ROT_JITTER,
+  CARD_HALF_HEIGHT,
+  OPPONENT_CARD_SPREAD,
+  GAP_EXTRA_VISITOR,
+  GAP_EXTRA_OPPONENT,
+  CAMERA_TILT_X,
+  CAMERA_LIFT_Y,
+} from './zoneLayout.constants';
 
 // --- Types ---
 
@@ -24,30 +64,6 @@ export type CardPlacement = {
   roll: number;
   faceUp: boolean;
 };
-
-// --- Constants (from develop branch) ---
-
-const CARD_DEPTH = 0.003;
-const CARD_HEIGHT = 1.0;
-const STACK_OFFSET = 0.005;
-const PULL_DISTANCE = 1.2;
-const CARD_SPREAD = 0.35;
-const FRONT_PULL = 0.6;
-const FLOAT_HEIGHT = 0.5;
-const PLAY_LIFT_HEIGHT = 1.2;
-const SCATTER_XZ = 0.06;
-const SCATTER_ROT = 0.15;
-const DECK_ROT_JITTER = 0.06;
-const CARD_HALF_HEIGHT = CARD_HEIGHT / 2;
-const OPPONENT_CARD_SPREAD = 0.15;
-/** Extra perpendicular offset per side when neighbors give way. */
-const CARD_WIDTH = 0.7;
-const GAP_EXTRA_VISITOR = CARD_WIDTH / 2 + 0.1;
-const GAP_EXTRA_OPPONENT = CARD_WIDTH + 0.1;
-/** Visitor camera tilt — tilts cards toward the camera (from develop branch) */
-const CAMERA_TILT_X = -0.65;
-/** Small lift for visitor cards above surface */
-const CAMERA_LIFT_Y = 0.1;
 
 // --- Helpers ---
 

@@ -1,37 +1,12 @@
 import { Text } from '@react-three/drei';
-import { Shape, ExtrudeGeometry } from 'three';
 import { unoColorToHex } from '@/constants/colors';
 import type { Color } from 'uno-engine';
-
-const CARD_WIDTH = 0.7;
-const CARD_HEIGHT = 1.0;
-const CARD_DEPTH = 0.003;
-const CARD_RADIUS = 0.04;
-const FACE_OFFSET = CARD_DEPTH / 2 + 0.001;
-
-const createRoundedRectShape = (w: number, h: number, r: number) => {
-  const shape = new Shape();
-  const x = -w / 2;
-  const y = -h / 2;
-  shape.moveTo(x + r, y);
-  shape.lineTo(x + w - r, y);
-  shape.quadraticCurveTo(x + w, y, x + w, y + r);
-  shape.lineTo(x + w, y + h - r);
-  shape.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  shape.lineTo(x + r, y + h);
-  shape.quadraticCurveTo(x, y + h, x, y + h - r);
-  shape.lineTo(x, y + r);
-  shape.quadraticCurveTo(x, y, x + r, y);
-  return shape;
-};
-
-const cardShape = createRoundedRectShape(CARD_WIDTH, CARD_HEIGHT, CARD_RADIUS);
-
-const bodyGeo = new ExtrudeGeometry(cardShape, {
-  depth: CARD_DEPTH,
-  bevelEnabled: false,
-});
-bodyGeo.translate(0, 0, -CARD_DEPTH / 2);
+import {
+  CARD_WIDTH,
+  CARD_HEIGHT,
+  FACE_OFFSET,
+  bodyGeo,
+} from './MagnetCard.constants';
 
 type MagnetCardProps = {
   cardId: string;

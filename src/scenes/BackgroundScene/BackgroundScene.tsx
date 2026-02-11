@@ -24,6 +24,12 @@ import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import type { DialogueBubble } from '@/types/dialogue';
 import { SEATS, SEAT_ORDER, unoColorToHex } from '@/constants';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  DEBUG_MAGNETS,
+  EFFECT_VALUES,
+  DIALOGUE_ALIGN,
+  GAME_ACTIVE_PHASES,
+} from './BackgroundScene.constants';
 
 /** Adjust camera FOV based on canvas width for responsive framing. */
 const ResponsiveFov = () => {
@@ -36,34 +42,6 @@ const ResponsiveFov = () => {
   }, [camera, size.width]);
   return null;
 };
-
-/** Set to true to render the debug magnet card layer alongside visible cards. */
-const DEBUG_MAGNETS = false;
-
-const EFFECT_VALUES = new Set([
-  Value.SKIP,
-  Value.DRAW_TWO,
-  Value.WILD_DRAW_FOUR,
-]);
-
-const DIALOGUE_ALIGN: Record<string, 'left' | 'right'> = {
-  Meio: 'right',
-  Dong: 'left',
-  Oscar: 'left',
-};
-
-/** Phases where gameplay UI (labels, direction orbit) should remain visible */
-const GAME_ACTIVE_PHASES = new Set([
-  'playing',
-  'play_gap',
-  'play_lift',
-  'play_move',
-  'play_rotate',
-  'draw_lift',
-  'draw_move',
-  'draw_gap',
-  'draw_drop',
-]);
 
 type BackgroundSceneProps = {
   showTable?: boolean;

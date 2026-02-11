@@ -1,24 +1,24 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import type { GameSnapshot, SerializedCard, PlayDirection } from '@/types/game';
-
-// --- Timing constants (ms) ---
-const DEAL_INTERVAL = 40;
-const REVEAL_LIFT_DELAY = 200;
-const REVEAL_TURN_DELAY = 200;
-const SPREAD_CARD_DELAY = 15;
-const DISCARD_LIFT_DELAY = 200;
-const DISCARD_FLIP_DELAY = 250;
-const DISCARD_MOVE_DELAY = 250;
-const DISCARD_DROP_DELAY = 150;
-const PLAY_GAP_DELAY = 400;
-const PLAY_LIFT_DELAY = 250;
-const PLAY_MOVE_DELAY = 300;
-const PLAY_ROTATE_DELAY = 200;
-const PLAY_DROP_DELAY = 150;
-const DRAW_LIFT_DELAY = 200;
-const DRAW_MOVE_DELAY = 300;
-const DRAW_GAP_DELAY = 600;
-const DRAW_DROP_DELAY = 300;
+import {
+  DEAL_INTERVAL,
+  REVEAL_LIFT_DELAY,
+  REVEAL_TURN_DELAY,
+  SPREAD_CARD_DELAY,
+  DISCARD_LIFT_DELAY,
+  DISCARD_FLIP_DELAY,
+  DISCARD_MOVE_DELAY,
+  DISCARD_DROP_DELAY,
+  PLAY_GAP_DELAY,
+  PLAY_LIFT_DELAY,
+  PLAY_MOVE_DELAY,
+  PLAY_ROTATE_DELAY,
+  PLAY_DROP_DELAY,
+  DRAW_LIFT_DELAY,
+  DRAW_MOVE_DELAY,
+  DRAW_GAP_DELAY,
+  DRAW_DROP_DELAY,
+} from './useMagnetState.constants';
 
 // --- Types ---
 

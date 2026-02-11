@@ -1,38 +1,25 @@
 import { useRef, useCallback, useEffect } from 'react';
-import { Color } from 'uno-engine';
+import type { Color } from 'uno-engine';
 import type { ChallengeResult, GameEndInfo } from '@/types/game';
 import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent, clearEvents } from '@/store/slices/game';
 import { selectVisitorName } from '@/store/slices/visitor';
-
-const AI_OPPONENTS = ['Meio', 'Dong', 'Oscar'] as const;
-const AI_NAMES = new Set<string>(AI_OPPONENTS);
-
-/** Delay for the card-play animation to finish before next AI move */
-const AI_ANIMATION_WAIT = 1800;
-/** Random additional "thinking" delay range (ms) */
-const AI_THINK_MIN = 1000;
-const AI_THINK_MAX = 3000;
-
-/** Delay range before AI tries to catch visitor forgetting UNO (ms) */
-const AI_CATCH_MIN = 1500;
-const AI_CATCH_MAX = 2500;
-/** Probability that an AI opponent catches a visitor who forgot to call UNO */
-const AI_CATCH_CHANCE = 0.5;
-
-/** Delay range for AI "thinking" before calling UNO on itself (ms) */
-const AI_UNO_THINK_MIN = 300;
-const AI_UNO_THINK_MAX = 800;
-/** Probability that AI remembers to call UNO (forgets = 1 - this) */
-const AI_UNO_SELF_CALL_CHANCE = 0.5;
-/** How long the catch window stays open after an AI forgets (ms) */
-const CATCH_WINDOW_DURATION = 3000;
-
-/** Visitor turn timeout — matches TURN_DURATION_S in PlayerLabel (ms) */
-const VISITOR_TURN_TIMEOUT = 10_000;
-
-const ALL_COLORS = [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW];
+import { AI_NAMES, AI_NAME_SET } from '@/constants/players';
+import {
+  AI_ANIMATION_WAIT,
+  AI_THINK_MIN,
+  AI_THINK_MAX,
+  AI_CATCH_MIN,
+  AI_CATCH_MAX,
+  AI_CATCH_CHANCE,
+  AI_UNO_THINK_MIN,
+  AI_UNO_THINK_MAX,
+  AI_UNO_SELF_CALL_CHANCE,
+  CATCH_WINDOW_DURATION,
+  VISITOR_TURN_TIMEOUT,
+  ALL_COLORS,
+} from './useGameController.constants';
 
 export const useGameController = () => {
   const dispatch = useAppDispatch();
@@ -51,7 +38,7 @@ export const useGameController = () => {
     }
 
     const currentPlayer = game.getCurrentPlayerName();
-    if (!AI_NAMES.has(currentPlayer)) {
+    if (!AI_NAME_SET.has(currentPlayer)) {
       return;
     }
 
@@ -66,7 +53,7 @@ export const useGameController = () => {
       if (!g || g.getSnapshot().phase === 'ended') return;
 
       const playerName = g.getCurrentPlayerName();
-      if (!AI_NAMES.has(playerName)) {
+      if (!AI_NAME_SET.has(playerName)) {
         return;
       }
 
@@ -158,7 +145,7 @@ export const useGameController = () => {
   const startGame = useCallback(() => {
     if (gameRef.current) return;
 
-    const playerNames = [visitorName || 'Player', ...AI_OPPONENTS];
+    const playerNames = [visitorName || 'Player', ...AI_NAMES];
     const game = new UnoGame(playerNames, playerNames[0]);
 
     game.onEvent((event) => {
@@ -183,14 +170,14 @@ export const useGameController = () => {
             if (!g || g.getUnoCallable() !== humanName) return;
             if (Math.random() < AI_CATCH_CHANCE) {
               const catcher =
-                AI_OPPONENTS[Math.floor(Math.random() * AI_OPPONENTS.length)];
+                AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
               g.callUno(catcher);
             }
             // Always close the UNO window when the catch timer expires
             g.setUnoCallable(null);
             dispatch(setSnapshot(g.getSnapshot()));
           }, catchDelay);
-        } else if (AI_NAMES.has(callable)) {
+        } else if (AI_NAME_SET.has(callable)) {
           // AI played to 1 card — clear immediately so App doesn't show
           // the catch button yet, then schedule AI "think" timer
           game.setUnoCallable(null);
@@ -313,7 +300,7 @@ export const useGameController = () => {
     const game = gameRef.current;
     if (!game) return;
     const challenge = game.getPendingChallenge();
-    if (!challenge || !AI_NAMES.has(challenge.victimName)) return;
+    if (!challenge || !AI_NAME_SET.has(challenge.victimName)) return;
 
     const thinkDelay =
       AI_THINK_MIN + Math.random() * (AI_THINK_MAX - AI_THINK_MIN);

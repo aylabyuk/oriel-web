@@ -1,14 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { cn } from '@/utils/cn';
-import type { AiPersonality, DialogueHistoryEntry } from '@/types/dialogue';
+import type { DialogueHistoryEntry } from '@/types/dialogue';
 import { useTranslation } from '@/hooks/useTranslation';
-
-const AVATAR_COLORS: Record<AiPersonality, string> = {
-  Meio: '#e74c3c',
-  Dong: '#3498db',
-  Oscar: '#2ecc71',
-};
+import { AVATAR_COLORS } from '@/constants/players';
 
 type ChatHistoryPanelProps = {
   open: boolean;

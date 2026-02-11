@@ -3,6 +3,7 @@ import { computeAllTargets } from '@/utils/computeAllTargets';
 import { VisibleCard } from '@/components/three/VisibleCard';
 import { SEATS, SEAT_ORDER } from '@/constants';
 import type { MagnetState } from '@/hooks/useMagnetState';
+import { DECK_BATCH_SIZE } from './VisibleCardLayer.constants';
 
 type VisibleCardLayerProps = {
   magnet: MagnetState;
@@ -14,9 +15,6 @@ type VisibleCardLayerProps = {
 };
 
 const seats = SEAT_ORDER.map((key) => SEATS[key]);
-
-/** Number of deck cards to mount per frame during progressive rendering */
-const DECK_BATCH_SIZE = 15;
 
 export const VisibleCardLayer = ({
   magnet,

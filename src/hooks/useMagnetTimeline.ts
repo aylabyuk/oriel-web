@@ -2,27 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { GameSnapshot, SerializedCard } from '@/types/game';
 import type { MagnetState, QueueStep } from '@/hooks/useMagnetState';
 import { applyStep } from '@/hooks/useMagnetState';
-
-const PLAY_INTERVAL = 300;
-
-const EMPTY_STATE: MagnetState = {
-  deck: [],
-  discardPile: [],
-  discardFloat: [],
-  playerFronts: [],
-  playerStaging: [],
-  playerHands: [],
-  phase: 'idle',
-  spreadProgress: 0,
-  playingPlayerIndex: -1,
-  selectedCardId: null,
-  liftingCardId: null,
-  direction: 'clockwise',
-  currentPlayerName: null,
-  drawFloat: [],
-  drawingPlayerIndex: -1,
-  drawInsertIndex: -1,
-};
+import { PLAY_INTERVAL, EMPTY_STATE } from './useMagnetTimeline.constants';
 
 export type MagnetTimeline = {
   state: MagnetState;

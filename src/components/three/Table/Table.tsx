@@ -3,21 +3,22 @@ import { animated, useSpring } from '@react-spring/three';
 import { MeshReflectorMaterial, RoundedBox } from '@react-three/drei';
 import { useAppSelector } from '@/store/hooks';
 import { selectMode } from '@/store/slices/theme';
+import {
+  TABLE_WIDTH,
+  TABLE_HEIGHT,
+  TABLE_DEPTH,
+  TABLE_RADIUS,
+  TABLE_REST_POSITION,
+  tableColorS,
+} from './Table.constants';
 
-const TABLE_WIDTH = 4;
-const TABLE_HEIGHT = 0.1;
-const TABLE_DEPTH = 4;
-const TABLE_RADIUS = 0.05;
-export const TABLE_SURFACE_Y = TABLE_HEIGHT / 2 + 0.001;
-const TABLE_REST_POSITION: [number, number, number] = [0, -1, -2];
+export { TABLE_SURFACE_Y } from './Table.constants';
 
 type TableProps = {
   children?: ReactNode;
   startEntrance?: boolean;
   onReady?: () => void;
 };
-
-const tableColorS = { dark: '#2a2a2a', light: '#c8bfb0' } as const;
 
 export const Table = ({
   children,
