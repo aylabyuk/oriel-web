@@ -24,7 +24,7 @@ export const App = () => {
   const snapshot = useAppSelector(selectSnapshot);
   const { startGame, playCard, drawCard, passAfterDraw, resolveChallenge, tryAutoResolveChallenge, callUno, restartGame, getGameEndInfo, cancelVisitorTimer, devForceEnd, devTrimHand } = useGameController();
   const { dialogues, history } = useDialogue();
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 640);
   const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);

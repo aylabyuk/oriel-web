@@ -191,12 +191,27 @@ export class UnoGame {
 
   /** Call UNO for a player. Returns names of players penalized. */
   callUno(yellingPlayerName?: string): string[] {
+    // Catch: someone else is calling out the unoCallable player.
+    // Apply the penalty directly — engine.uno() has a hand-size check
+    // that misfires when the caller has ≤ 2 cards, treating it as a
+    // self-call instead of a catch.
+    if (yellingPlayerName && this._unoCallable && yellingPlayerName !== this._unoCallable) {
+      const targetName = this._unoCallable;
+      const target = this.engine.getPlayer(targetName);
+      this.engine.draw(target, 2, { silent: true });
+      this._unoCallable = null;
+
+      this.emit({ type: 'uno_called', playerName: yellingPlayerName });
+      this.emit({ type: 'uno_penalty', playerName: targetName, data: { count: 2 } });
+      return [targetName];
+    }
+
+    // Self-call or fallback — delegate to engine
     const yellingPlayer = yellingPlayerName
       ? this.engine.getPlayer(yellingPlayerName)
       : undefined;
     const penalized = this.engine.uno(yellingPlayer);
 
-    // If the callable player called UNO on themselves, they're safe
     if (yellingPlayerName === this._unoCallable) {
       this._unoCallable = null;
     }
