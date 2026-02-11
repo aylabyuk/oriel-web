@@ -14,7 +14,7 @@ import type {
 import type { GameEvent, GameSnapshot, SerializedCard } from '@/types/game';
 import { fetchJokes } from '@/utils/fetchJokes';
 import type { Joke } from '@/utils/fetchJokes';
-import { AI_NAMES, AI_NAME_SET } from '@/constants/players';
+import { AI_NAMES, AI_NAME_SET, toDisplayName } from '@/constants/players';
 import {
   AI_INDEX,
   REACTION_DELAY_BASE,
@@ -62,6 +62,7 @@ const formatEventAction = (
   event: GameEvent,
   snapshot: GameSnapshot,
 ): { playerName: string; message: string } | null => {
+  const name = toDisplayName(event.playerName);
   switch (event.type) {
     case 'card_played': {
       if (!event.card) return null;
@@ -75,26 +76,26 @@ const formatEventAction = (
         const victim = findAffectedPlayer(snapshot);
         if (victim)
           return {
-            playerName: event.playerName,
-            message: `played ${cardName} on ${victim}`,
+            playerName: name,
+            message: `played ${cardName} on ${toDisplayName(victim)}`,
           };
       }
-      return { playerName: event.playerName, message: `played ${cardName}` };
+      return { playerName: name, message: `played ${cardName}` };
     }
     case 'card_drawn':
-      return { playerName: event.playerName, message: 'drew a card' };
+      return { playerName: name, message: 'drew a card' };
     case 'uno_called':
-      return { playerName: event.playerName, message: 'called UNO!' };
+      return { playerName: name, message: 'called UNO!' };
     case 'uno_penalty': {
       const count = (event.data?.count as number) ?? 2;
       return {
-        playerName: event.playerName,
+        playerName: name,
         message: `caught! Drew ${count} penalty cards`,
       };
     }
     case 'challenge_resolved': {
       const result = event.data?.result as string;
-      const bluffer = event.data?.blufferName as string;
+      const bluffer = toDisplayName(event.data?.blufferName as string);
       if (result === 'bluff_caught')
         return {
           playerName: bluffer,
@@ -102,7 +103,7 @@ const formatEventAction = (
         };
       if (result === 'legit_play')
         return {
-          playerName: event.playerName,
+          playerName: name,
           message: 'challenge failed! Drew 6 cards',
         };
       return null;
@@ -110,7 +111,7 @@ const formatEventAction = (
     case 'game_ended': {
       const score = event.data?.score as number | undefined;
       return {
-        playerName: event.playerName,
+        playerName: name,
         message: `won the game${score ? ` with ${score} points` : ''}!`,
       };
     }
@@ -138,7 +139,12 @@ const mapEventToCandidates = (
   visitorName: string,
 ): Candidate[] => {
   const candidates: Candidate[] = [];
-  const ctx = { visitor: visitorName };
+  const displayName = toDisplayName(visitorName);
+  const ctx = { visitor: displayName };
+  const withPlayer = (name: string) => ({
+    ...ctx,
+    player: toDisplayName(name),
+  });
 
   switch (event.type) {
     case 'card_played': {
@@ -150,14 +156,14 @@ const mapEventToCandidates = (
           candidates.push({
             personality: victim,
             category: 'got_skipped',
-            context: { ...ctx, player: event.playerName },
+            context: withPlayer(event.playerName),
           });
         }
         if (isAi(event.playerName)) {
           candidates.push({
             personality: event.playerName,
             category: 'skipped_someone',
-            context: { ...ctx, player: victim ?? '' },
+            context: withPlayer(victim ?? ''),
           });
         }
         for (const ai of otherAis(event.playerName)) {
@@ -165,7 +171,7 @@ const mapEventToCandidates = (
             candidates.push({
               personality: ai,
               category: 'opponent_got_skipped',
-              context: { ...ctx, player: victim ?? '' },
+              context: withPlayer(victim ?? ''),
             });
           }
         }
@@ -176,14 +182,14 @@ const mapEventToCandidates = (
           candidates.push({
             personality: victim,
             category: 'got_draw_two',
-            context: { ...ctx, player: event.playerName },
+            context: withPlayer(event.playerName),
           });
         }
         if (isAi(event.playerName)) {
           candidates.push({
             personality: event.playerName,
             category: 'hit_someone_draw',
-            context: { ...ctx, player: victim ?? '' },
+            context: withPlayer(victim ?? ''),
           });
         }
         for (const ai of otherAis(event.playerName)) {
@@ -191,7 +197,7 @@ const mapEventToCandidates = (
             candidates.push({
               personality: ai,
               category: 'opponent_drew_cards',
-              context: { ...ctx, player: victim ?? '' },
+              context: withPlayer(victim ?? ''),
             });
           }
         }
@@ -202,14 +208,14 @@ const mapEventToCandidates = (
           candidates.push({
             personality: victim,
             category: 'got_draw_four',
-            context: { ...ctx, player: event.playerName },
+            context: withPlayer(event.playerName),
           });
         }
         if (isAi(event.playerName)) {
           candidates.push({
             personality: event.playerName,
             category: 'hit_someone_draw',
-            context: { ...ctx, player: victim ?? '' },
+            context: withPlayer(victim ?? ''),
           });
         }
       }
@@ -255,7 +261,7 @@ const mapEventToCandidates = (
         candidates.push({
           personality: ai,
           category: 'uno_called_opponent',
-          context: { ...ctx, player: event.playerName },
+          context: withPlayer(event.playerName),
         });
       }
       break;
@@ -266,7 +272,7 @@ const mapEventToCandidates = (
         candidates.push({
           personality: ai,
           category: 'uno_caught',
-          context: { ...ctx, player: event.playerName },
+          context: withPlayer(event.playerName),
         });
       }
       break;
@@ -284,7 +290,7 @@ const mapEventToCandidates = (
         candidates.push({
           personality: ai,
           category,
-          context: { ...ctx, player: blufferName },
+          context: withPlayer(blufferName),
         });
       }
       break;
@@ -309,7 +315,7 @@ const mapEventToCandidates = (
           candidates.push({
             personality: ai,
             category: 'game_lost',
-            context: { ...ctx, player: winner },
+            context: withPlayer(winner),
           });
         }
       }
@@ -325,7 +331,7 @@ const mapEventToCandidates = (
             candidates.push({
               personality: ai,
               category: 'low_cards',
-              context: { ...ctx, player: p.name },
+              context: withPlayer(p.name),
             });
           }
         }
@@ -334,7 +340,7 @@ const mapEventToCandidates = (
             candidates.push({
               personality: ai,
               category: 'many_cards',
-              context: { ...ctx, player: p.name },
+              context: withPlayer(p.name),
             });
           }
         }
@@ -453,7 +459,7 @@ export const useDialogue = () => {
 
     const now = Date.now();
     const visitorName = snapshot.players[0]?.name ?? 'Player';
-    const ctx = { visitor: visitorName };
+    const ctx = { visitor: toDisplayName(visitorName) };
     const candidates = shuffle(
       AI_NAMES.map((ai) => ({
         personality: ai,
@@ -489,7 +495,7 @@ export const useDialogue = () => {
     visitorSlowTimerRef.current = setTimeout(() => {
       if (jokeActiveRef.current) return;
       const now = Date.now();
-      const ctx = { visitor: visitorName };
+      const ctx = { visitor: toDisplayName(visitorName) };
       const candidates = shuffle(
         AI_NAMES.map((ai) => ({
           personality: ai,

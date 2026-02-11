@@ -23,6 +23,7 @@ import { useMagnetState } from '@/hooks/useMagnetState';
 import { TABLE_SURFACE_Y } from '@/components/three/Table';
 import type { DialogueBubble } from '@/types/dialogue';
 import { SEATS, SEAT_ORDER, unoColorToHex } from '@/constants';
+import { toDisplayName } from '@/constants/players';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   DEBUG_MAGNETS,
@@ -343,7 +344,7 @@ export const BackgroundScene = ({
                     return (
                       <PlayerLabel
                         key={`label-${player.name}`}
-                        name={player.name}
+                        name={toDisplayName(player.name)}
                         cardCount={magnet.playerHands[i]?.length}
                         seat={SEATS[SEAT_ORDER[i]]}
                         surfaceY={TABLE_SURFACE_Y}
