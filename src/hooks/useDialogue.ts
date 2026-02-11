@@ -403,6 +403,7 @@ export const useDialogue = (ready: boolean) => {
   ]);
   const [history, setHistory] = useState<DialogueHistoryEntry[]>([]);
   const gameStartedRef = useRef(false);
+  const gameCountRef = useRef(0);
   const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -448,16 +449,23 @@ export const useDialogue = (ready: boolean) => {
     gameStartedRef.current = false;
     jokeActiveRef.current = false;
     setDialogues([null, null, null, null]);
-    setHistory([]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
 
   // Game started dialogue — fires once when dealing animation completes
   useEffect(() => {
     if (!snapshot || !ready || gameStartedRef.current) return;
     gameStartedRef.current = true;
+    gameCountRef.current += 1;
     // Skip events that accumulated during the dealing animation
     processedRef.current = events.length;
     refillJokes();
+
+    if (gameCountRef.current > 1) {
+      setHistory((prev) => [
+        ...prev,
+        { kind: 'action', playerName: '', message: 'New game started', timestamp: Date.now() },
+      ]);
+    }
 
     const now = Date.now();
     const visitorName = snapshot.players[0]?.name ?? 'Player';

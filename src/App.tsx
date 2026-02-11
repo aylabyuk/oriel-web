@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { selectHasEnteredWelcome } from '@/store/slices/visitor';
+import {
+  selectHasEnteredWelcome,
+  selectVisitorName,
+} from '@/store/slices/visitor';
 import { selectMode } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
@@ -10,12 +13,14 @@ import { WildColorPicker } from '@/components/ui/WildColorPicker';
 import { DrawChoiceModal } from '@/components/ui/DrawChoiceModal';
 import { ChallengeModal } from '@/components/ui/ChallengeModal';
 import { GameEndOverlay } from '@/components/ui/GameEndOverlay';
+import { DisclaimerModal } from '@/components/ui/DisclaimerModal';
 import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 import { ChatToggle } from '@/components/ui/ChatToggle';
 import { ChatHistoryPanel } from '@/components/ui/ChatHistoryPanel';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { Color } from 'uno-engine';
 
 export const App = () => {
@@ -36,10 +41,13 @@ export const App = () => {
   } = useGameController();
   const [dealingComplete, setDealingComplete] = useState(false);
   const { dialogues, history } = useDialogue(dealingComplete);
+  const { t } = useTranslation();
   const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 640);
   const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [disclaimerAcked, setDisclaimerAcked] = useState(false);
+  const enteredVisitorName = useAppSelector(selectVisitorName);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
     null,
   );
@@ -47,6 +55,7 @@ export const App = () => {
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const handleDealingComplete = useCallback(() => setDealingComplete(true), []);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
+  const handleDisclaimerAck = useCallback(() => setDisclaimerAcked(true), []);
   const handleWildCardPlayed = useCallback(
     (cardId: string) => {
       cancelVisitorTimer();
@@ -201,6 +210,8 @@ export const App = () => {
         onWildCardPlayed={handleWildCardPlayed}
         onSceneReady={handleSceneReady}
         onChallengeReady={handleChallengeReady}
+        entranceEnabled={welcomeDismissed}
+        dealingEnabled={disclaimerAcked}
         deckEnabled={!drawPending && drawChoice === null && !challengeReady}
         playableOverride={
           drawChoice
@@ -211,6 +222,11 @@ export const App = () => {
         }
         onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
         dialogues={dialogues}
+      />
+      <DisclaimerModal
+        open={welcomeDismissed && !disclaimerAcked}
+        visitorName={enteredVisitorName}
+        onAcknowledge={handleDisclaimerAck}
       />
       <DrawChoiceModal
         open={drawChoice !== null}
@@ -240,17 +256,23 @@ export const App = () => {
         duration={unoDuration}
         onPress={handleUnoPress}
       />
-      <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-      <ChatHistoryPanel open={chatOpen} history={history} />
+      {disclaimerAcked && (
+        <>
+          <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+          <ChatHistoryPanel open={chatOpen} history={history} />
+        </>
+      )}
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <ThemeToggle />
-          <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
+          {disclaimerAcked && (
+            <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
+          )}
         </div>
         {welcomeDismissed ? (
           <div>
             <span className="p-4 text-xs font-medium text-neutral-400">
-              orielvinci.com
+              {t('app.siteUrl')}
             </span>
           </div>
         ) : (

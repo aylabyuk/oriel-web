@@ -17,17 +17,27 @@ export { TABLE_SURFACE_Y } from './Table.constants';
 type TableProps = {
   children?: ReactNode;
   startEntrance?: boolean;
+  onLoad?: () => void;
   onReady?: () => void;
 };
 
 export const Table = ({
   children,
   startEntrance = true,
+  onLoad,
   onReady,
 }: TableProps) => {
   const mode = useAppSelector(selectMode);
   const tableColor = tableColorS[mode];
   const firedRef = useRef(false);
+  const loadFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!loadFiredRef.current) {
+      loadFiredRef.current = true;
+      onLoad?.();
+    }
+  }, [onLoad]);
 
   const [{ position }, api] = useSpring(() => ({
     position: [0, -1, 15] as [number, number, number],

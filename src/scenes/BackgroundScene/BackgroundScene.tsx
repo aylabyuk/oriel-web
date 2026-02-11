@@ -58,6 +58,8 @@ type BackgroundSceneProps = {
   onDrawCardClicked?: (cardId: string) => void;
   onSceneReady?: () => void;
   onChallengeReady?: () => void;
+  entranceEnabled?: boolean;
+  dealingEnabled?: boolean;
   deckEnabled?: boolean;
   playableOverride?: string[];
   dialogues?: (DialogueBubble | null)[];
@@ -74,6 +76,8 @@ export const BackgroundScene = ({
   onDrawCardClicked,
   onSceneReady,
   onChallengeReady,
+  entranceEnabled = true,
+  dealingEnabled = true,
   deckEnabled = true,
   playableOverride,
   dialogues,
@@ -81,14 +85,23 @@ export const BackgroundScene = ({
   const snapshot = useAppSelector(selectSnapshot);
   const mode = useAppSelector(selectMode);
   const { t } = useTranslation();
+  const [tableLoaded, setTableLoaded] = useState(false);
   const [tableReady, setTableReady] = useState(false);
   const [cardsReady, setCardsReady] = useState(false);
+  const sceneReadyFiredRef = useRef(false);
+  const handleTableLoaded = useCallback(() => setTableLoaded(true), []);
   const handleTableReady = useCallback(() => setTableReady(true), []);
-  const handleCardsReady = useCallback(() => {
-    setCardsReady(true);
-    onSceneReady?.();
-  }, [onSceneReady]);
-  const magnet = useMagnetState(snapshot, tableReady);
+  const handleCardsReady = useCallback(() => setCardsReady(true), []);
+
+  // Assets loaded — welcome screen can exit
+  useEffect(() => {
+    if (tableLoaded && cardsReady && !sceneReadyFiredRef.current) {
+      sceneReadyFiredRef.current = true;
+      onSceneReady?.();
+    }
+  }, [tableLoaded, cardsReady, onSceneReady]);
+
+  const magnet = useMagnetState(snapshot, tableReady && dealingEnabled);
   const [toasts, setToasts] = useState<(Toast | null)[]>([]);
 
   useEffect(() => {
@@ -306,7 +319,7 @@ export const BackgroundScene = ({
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
           <Suspense fallback={null}>
-            <Table startEntrance={cardsReady} onReady={handleTableReady}>
+            <Table startEntrance={entranceEnabled} onLoad={handleTableLoaded} onReady={handleTableReady}>
               {DEBUG_MAGNETS && (
                 <>
                   <MagnetDeck cards={magnet.deck} />

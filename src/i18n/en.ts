@@ -59,6 +59,18 @@ export const en = {
     closeLabel: 'Close chat history',
     openLabel: 'Open chat history',
   },
+  disclaimer: {
+    greeting: 'Hi {{name}},',
+    body: "Thanks for stopping by! Just a heads up — my AI opponents have... strong personalities. They might trash talk, tease, or say something a little extra. It's all part of the game and meant to be fun, so please don't take anything personally!",
+    landscape:
+      'For the best experience on mobile, try rotating to landscape mode.',
+    closing: 'Warm regards,',
+    signature: 'Oriel',
+    button: "Let's Play",
+  },
+  app: {
+    siteUrl: 'orielvinci.com',
+  },
   status: {
     skipped: 'Skipped!',
     drawTwo: 'Draw 2!',
