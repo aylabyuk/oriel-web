@@ -22,5 +22,8 @@ Thumbs.db
 # Testing
 coverage/
 
+# Personal info (private)
+ideas/personal-info-template.md
+
 # Vite
 *.local
