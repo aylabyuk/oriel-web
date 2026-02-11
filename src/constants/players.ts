@@ -1,6 +1,6 @@
 export const AI_STRATEGIST = 'Meio' as const;
 export const AI_TRASH_TALKER = 'Mark' as const;
-export const AI_CHILL = 'Jap' as const;
+export const AI_CHILL = 'Paul' as const;
 
 export const AI_NAMES = [AI_STRATEGIST, AI_TRASH_TALKER, AI_CHILL] as const;
 export type AiPersonality = (typeof AI_NAMES)[number];

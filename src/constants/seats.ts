@@ -11,7 +11,7 @@ export type Seat = {
  *
  *         Mark (north)
  *
- *  Meio              Jap
+ *  Meio              Paul
  *  (west)            (east)
  *
  *       Visitor (south)
@@ -39,7 +39,7 @@ export const SEATS: Record<string, Seat> = {
   },
 };
 
-/** Ordered seat keys matching player order: [visitor, Meio, Mark, Jap] */
+/** Ordered seat keys matching player order: [visitor, Meio, Mark, Paul] */
 export const SEAT_ORDER = ['south', 'west', 'north', 'east'] as const;
 
 export const DRAW_PILE_POSITION: [number, number, number] = [-0.5, 0, 0];
