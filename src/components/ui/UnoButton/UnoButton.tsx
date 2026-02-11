@@ -73,15 +73,12 @@ export const UnoButton = ({
     mode === 'catch'
       ? t('uno.catchLabel', { name: targetName ?? '' })
       : t('uno.callLabel');
-  const bgClass =
-    mode === 'catch'
-      ? 'bg-red-500 hover:bg-red-400'
-      : 'bg-amber-500 hover:bg-amber-400';
+  const bgClass = 'bg-red-500 hover:bg-red-400';
 
   return (
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 max-lg:portrait:bottom-72"
       style={{
         opacity: springs.opacity,
         scale: pulseSpring.pulse,

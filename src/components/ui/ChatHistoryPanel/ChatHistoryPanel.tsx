@@ -120,19 +120,9 @@ export const ChatHistoryPanel = ({
     return (
       <div
         className={cn(
-          'fixed z-50 flex flex-col',
+          'flex min-h-0 flex-1 flex-col',
           'bg-neutral-900/80 shadow-xl backdrop-blur-sm',
-          'transition-transform duration-300 ease-out',
-          // Landscape: right-side panel
-          'landscape:inset-y-0 landscape:right-0 landscape:w-72 landscape:border-l landscape:border-white/10 landscape:pt-14',
-          // Portrait: bottom sheet
-          'portrait:inset-x-0 portrait:bottom-0 portrait:h-48 portrait:border-t portrait:border-white/10',
-          // Slide in/out
-          open
-            ? 'landscape:translate-x-0 portrait:translate-y-0'
-            : 'landscape:translate-x-full portrait:translate-y-full',
         )}
-        style={{ pointerEvents: open ? 'auto' : 'none' }}
       >
         <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
           <span className="text-xs font-semibold text-white/90">

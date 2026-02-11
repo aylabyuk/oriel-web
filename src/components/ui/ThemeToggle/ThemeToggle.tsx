@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { toggleMode, selectMode } from '@/store/slices/theme';
-import { cn } from '@/utils/cn';
+import { IconButton } from '@/components/ui/IconButton';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export const ThemeToggle = () => {
@@ -10,25 +10,12 @@ export const ThemeToggle = () => {
   const { t } = useTranslation();
 
   return (
-    <button
-      type="button"
-      aria-label={
+    <IconButton
+      ariaLabel={
         isDark ? t('toolbar.switchToLight') : t('toolbar.switchToDark')
       }
-      data-tooltip={isDark ? t('toolbar.lightMode') : t('toolbar.darkMode')}
+      tooltip={isDark ? t('toolbar.lightMode') : t('toolbar.darkMode')}
       onClick={() => dispatch(toggleMode())}
-      className={cn(
-        'relative flex h-9 w-9 cursor-pointer items-center justify-center',
-        'rounded-full text-lg shadow-sm backdrop-blur-sm transition-colors',
-        'bg-white/60 hover:bg-white/80 dark:bg-black/60 dark:hover:bg-black/80',
-        'focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:outline-none',
-        'dark:focus:ring-neutral-500',
-        'after:pointer-events-none after:absolute after:top-full after:mt-2',
-        'after:rounded after:border after:border-white/20 after:bg-black/80 after:px-2 after:py-1',
-        'after:text-xs after:whitespace-nowrap after:text-white after:opacity-0 after:transition-opacity',
-        'after:content-[attr(data-tooltip)]',
-        'hover:after:opacity-100',
-      )}
     >
       {isDark ? (
         <svg
@@ -65,6 +52,6 @@ export const ThemeToggle = () => {
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
       )}
-    </button>
+    </IconButton>
   );
 };

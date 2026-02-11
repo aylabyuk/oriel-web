@@ -18,7 +18,13 @@ import { FreeLookToggle } from '@/components/ui/FreeLookToggle';
 import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
 import { ChatToggle } from '@/components/ui/ChatToggle';
+import { SoundToggle } from '@/components/ui/SoundToggle';
+import { MusicToggle } from '@/components/ui/MusicToggle';
 import { ChatHistoryPanel } from '@/components/ui/ChatHistoryPanel';
+import { RestartConfirmModal } from '@/components/ui/RestartConfirmModal';
+import { FreeLookExplainer } from '@/components/ui/FreeLookExplainer';
+import { HelpButton } from '@/components/ui/HelpButton';
+import { RulesModal } from '@/components/ui/RulesModal';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -50,7 +56,25 @@ export const App = () => {
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [disclaimerAcked, setDisclaimerAcked] = useState(false);
   const [freeLook, setFreeLook] = useState(false);
-  const handleFreeLookToggle = useCallback(() => setFreeLook((prev) => !prev), []);
+  const [freeLookExplainerOpen, setFreeLookExplainerOpen] = useState(false);
+  const handleFreeLookToggle = useCallback(() => {
+    setFreeLook((prev) => {
+      if (!prev) setFreeLookExplainerOpen(true);
+      else setFreeLookExplainerOpen(false);
+      return !prev;
+    });
+  }, []);
+  const handleFreeLookExplainerDismiss = useCallback(() => setFreeLookExplainerOpen(false), []);
+  const [soundOn, setSoundOn] = useState(true);
+  const handleSoundToggle = useCallback(() => setSoundOn((prev) => !prev), []);
+  const [musicOn, setMusicOn] = useState(true);
+  const handleMusicToggle = useCallback(() => setMusicOn((prev) => !prev), []);
+  const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
+  const handleRestartClick = useCallback(() => setRestartConfirmOpen(true), []);
+  const handleRestartCancel = useCallback(() => setRestartConfirmOpen(false), []);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const handleRulesOpen = useCallback(() => setRulesOpen(true), []);
+  const handleRulesClose = useCallback(() => setRulesOpen(false), []);
   const enteredVisitorName = useAppSelector(selectVisitorName);
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
     null,
@@ -134,6 +158,7 @@ export const App = () => {
 
   // --- Play again / restart ---
   const handlePlayAgain = useCallback(() => {
+    setRestartConfirmOpen(false);
     setPendingWildCardId(null);
     setDrawnWildCardId(null);
     setDrawChoice(null);
@@ -230,16 +255,6 @@ export const App = () => {
           dialogues={dialogues}
         />
       </div>
-      {/* Mobile/tablet drawer overlay — hidden on lg+ */}
-      {disclaimerAcked && (
-        <div className="lg:hidden">
-          <ChatHistoryPanel
-            variant="drawer"
-            open={chatOpen}
-            history={history}
-          />
-        </div>
-      )}
       <DisclaimerModal
         open={welcomeDismissed && !disclaimerAcked}
         visitorName={enteredVisitorName}
@@ -267,49 +282,112 @@ export const App = () => {
         isVisitorWinner={isVisitorWinner}
         onPlayAgain={handlePlayAgain}
       />
+      <RestartConfirmModal
+        open={restartConfirmOpen && !gameEnded}
+        onConfirm={handlePlayAgain}
+        onCancel={handleRestartCancel}
+      />
+      <FreeLookExplainer
+        open={freeLookExplainerOpen}
+        onDismiss={handleFreeLookExplainerDismiss}
+      />
+      <RulesModal open={rulesOpen} onClose={handleRulesClose} />
       <UnoButton
         mode={unoMode}
         targetName={unoTargetName}
         duration={unoDuration}
         onPress={handleUnoPress}
       />
-      {/* Desktop floating panel — hidden below lg */}
+      {/* Floating chat panel — desktop + landscape */}
       {disclaimerAcked && (
-        <div className="hidden lg:block">
+        <div className="hidden landscape:block lg:block">
           <ChatHistoryPanel open={chatOpen} history={history} />
         </div>
       )}
-      <div className="relative z-70">
+      {/* Portrait mobile: chat drawer + toolbar flex container */}
+      {disclaimerAcked && (
         <div
           className={cn(
-            'fixed top-4 right-4 z-70 flex items-center gap-2',
-            'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
-            'dark:bg-neutral-900/70',
+            'fixed inset-x-0 bottom-0 z-70 flex flex-col p-2',
+            'lg:hidden landscape:hidden',
+            'transition-transform duration-300 ease-out',
+            chatOpen ? 'translate-y-0' : 'translate-y-full',
           )}
+          style={{ pointerEvents: chatOpen ? 'auto' : 'none' }}
         >
-          <ThemeToggle />
-          {disclaimerAcked && (
-            <>
-              <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
-              <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
-              <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-            </>
-          )}
-        </div>
-        {welcomeDismissed ? (
-          <div>
-            <span className="p-4 text-xs font-medium text-neutral-400">
-              {t('app.siteUrl')}
-            </span>
-          </div>
-        ) : (
-          <WelcomeScreen
-            loading={hasEnteredWelcome}
-            exiting={sceneReady}
-            onExited={handleWelcomeExited}
+          <ChatHistoryPanel
+            open={chatOpen}
+            history={history}
+            variant="drawer"
           />
+          {/* Separator */}
+          <div className="h-px w-full bg-neutral-400/40" />
+          {/* Toolbar */}
+          <div className="flex flex-row items-center justify-center gap-2 p-2">
+            <ThemeToggle />
+            <SoundToggle active={soundOn} onClick={handleSoundToggle} />
+            <MusicToggle active={musicOn} onClick={handleMusicToggle} />
+            <HelpButton onClick={handleRulesOpen} />
+            <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
+            <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
+            <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+          </div>
+        </div>
+      )}
+      {/* Portrait mobile: standalone toolbar (when chat is closed) */}
+      <div
+        className={cn(
+          'fixed bottom-4 left-1/2 z-70 flex -translate-x-1/2 flex-row items-center gap-2',
+          'lg:hidden landscape:hidden',
+          chatOpen && 'hidden',
+        )}
+      >
+        <ThemeToggle />
+        {disclaimerAcked && (
+          <>
+            <SoundToggle active={soundOn} onClick={handleSoundToggle} />
+            <MusicToggle active={musicOn} onClick={handleMusicToggle} />
+            <HelpButton onClick={handleRulesOpen} />
+            <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
+            <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
+            <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+          </>
         )}
       </div>
+      {/* Desktop + landscape toolbar (pill) */}
+      <div
+        className={cn(
+          'fixed z-70 hidden landscape:flex lg:flex',
+          'top-4 right-4 flex-row items-center justify-evenly w-80',
+          'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
+          'dark:bg-neutral-900/70',
+        )}
+      >
+        <ThemeToggle />
+        {disclaimerAcked && (
+          <>
+            <SoundToggle active={soundOn} onClick={handleSoundToggle} />
+            <MusicToggle active={musicOn} onClick={handleMusicToggle} />
+            <HelpButton onClick={handleRulesOpen} />
+            <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
+            <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
+            <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+          </>
+        )}
+      </div>
+      {welcomeDismissed ? (
+        <div>
+          <span className="p-4 text-xs font-medium text-neutral-400">
+            {t('app.siteUrl')}
+          </span>
+        </div>
+      ) : (
+        <WelcomeScreen
+          loading={hasEnteredWelcome}
+          exiting={sceneReady}
+          onExited={handleWelcomeExited}
+        />
+      )}
     </div>
   );
 };

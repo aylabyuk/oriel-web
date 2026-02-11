@@ -1,22 +1,18 @@
 import { IconButton } from '@/components/ui/IconButton';
 import { useTranslation } from '@/hooks/useTranslation';
 
-type FreeLookToggleProps = {
+type MusicToggleProps = {
   active: boolean;
   onClick: () => void;
 };
 
-export const FreeLookToggle = ({ active, onClick }: FreeLookToggleProps) => {
+export const MusicToggle = ({ active, onClick }: MusicToggleProps) => {
   const { t } = useTranslation();
 
   return (
     <IconButton
-      ariaLabel={
-        active
-          ? t('toolbar.disableFreeLook')
-          : t('toolbar.enableFreeLook')
-      }
-      tooltip={active ? t('toolbar.freeLook') : t('toolbar.lockedView')}
+      ariaLabel={active ? t('toolbar.disableMusic') : t('toolbar.enableMusic')}
+      tooltip={active ? t('toolbar.musicOn') : t('toolbar.musicOff')}
       onClick={onClick}
       active={active}
     >
@@ -32,13 +28,15 @@ export const FreeLookToggle = ({ active, onClick }: FreeLookToggleProps) => {
       >
         {active ? (
           <>
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
           </>
         ) : (
           <>
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
             <line x1="1" y1="1" x2="23" y2="23" />
           </>
         )}

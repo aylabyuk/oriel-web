@@ -1,24 +1,18 @@
 import { IconButton } from '@/components/ui/IconButton';
 import { useTranslation } from '@/hooks/useTranslation';
 
-type RestartButtonProps = {
+type HelpButtonProps = {
   onClick: () => void;
-  disabled?: boolean;
 };
 
-export const RestartButton = ({
-  onClick,
-  disabled = false,
-}: RestartButtonProps) => {
+export const HelpButton = ({ onClick }: HelpButtonProps) => {
   const { t } = useTranslation();
-  const label = t('toolbar.restartGame');
 
   return (
     <IconButton
-      ariaLabel={label}
-      tooltip={label}
+      ariaLabel={t('toolbar.openRules')}
+      tooltip={t('toolbar.rules')}
       onClick={onClick}
-      disabled={disabled}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -30,8 +24,9 @@ export const RestartButton = ({
         strokeLinejoin="round"
         className="h-4 w-4"
       >
-        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-        <path d="M21 3v5h-5" />
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     </IconButton>
   );

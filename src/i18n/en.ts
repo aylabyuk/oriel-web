@@ -54,6 +54,16 @@ export const en = {
     disableFreeLook: 'Disable free look',
     freeLook: 'Free look',
     lockedView: 'Locked view',
+    enableSound: 'Enable sound',
+    disableSound: 'Disable sound',
+    soundOn: 'Sound on',
+    soundOff: 'Sound off',
+    enableMusic: 'Enable music',
+    disableMusic: 'Disable music',
+    musicOn: 'Music on',
+    musicOff: 'Music off',
+    openRules: 'How to play',
+    rules: 'Rules',
   },
   chat: {
     title: 'Chat History',
@@ -75,6 +85,79 @@ export const en = {
   },
   app: {
     siteUrl: 'orielvinci.com',
+  },
+  restart: {
+    prompt: 'Restart the game?',
+    confirm: 'Restart',
+    cancel: 'Cancel',
+  },
+  freeLookExplainer: {
+    title: 'Free Look Enabled',
+    dismiss: 'Got it',
+    desktop: {
+      rotate: 'Left-click + drag to rotate',
+      zoom: 'Scroll wheel to zoom',
+      pan: 'Right-click + drag to pan',
+    },
+    mobile: {
+      rotate: 'One finger drag to rotate',
+      zoom: 'Pinch to zoom in / out',
+      pan: 'Two finger drag to pan',
+    },
+  },
+  rules: {
+    title: 'How to Play UNO',
+    close: 'Close',
+    objective: {
+      heading: 'Objective',
+      body: 'Be the first player to get rid of all your cards. Each round, play a card that matches the top of the discard pile by color, number, or symbol. If you can\'t play, you must draw from the deck.',
+    },
+    numberCards: {
+      heading: 'Number Cards',
+      body: 'Each color (red, blue, green, yellow) has cards numbered 0–9. Play a number card when it matches the discard pile\'s color or number.',
+    },
+    actionCards: {
+      heading: 'Action Cards',
+      skip: {
+        name: 'Skip',
+        desc: 'The next player loses their turn.',
+      },
+      reverse: {
+        name: 'Reverse',
+        desc: 'Reverses the direction of play.',
+      },
+      drawTwo: {
+        name: 'Draw Two',
+        desc: 'The next player draws 2 cards and loses their turn.',
+      },
+      body: 'Action cards can be played when they match the discard pile\'s color or symbol.',
+    },
+    wildCards: {
+      heading: 'Wild Cards',
+      wild: {
+        name: 'Wild',
+        desc: 'Play at any time. You choose the next color.',
+      },
+      drawFour: {
+        name: 'Wild Draw Four',
+        desc: 'Play at any time. You choose the next color, and the next player draws 4 cards. But be careful — you can only legally play this if you have no cards matching the current color.',
+      },
+    },
+    unoCall: {
+      heading: 'Calling UNO',
+      body: 'When you\'re down to one card, hit the UNO button before anyone catches you! If another player catches you first, you\'ll draw 2 penalty cards.',
+    },
+    challenge: {
+      heading: 'Challenging a Wild Draw Four',
+      body: 'Think someone played a Wild Draw Four when they had a matching color? Challenge them! If the bluff is caught, they draw 4 cards instead. But if the play was legal, you draw 6 cards as a penalty.',
+    },
+    scoring: {
+      heading: 'Scoring',
+      body: 'When a player goes out, they earn points based on the cards left in opponents\' hands:',
+      numberPoints: 'Number cards: face value (0–9 points)',
+      actionPoints: 'Action cards (Skip, Reverse, Draw Two): 20 points each',
+      wildPoints: 'Wild and Wild Draw Four: 50 points each',
+    },
   },
   status: {
     skipped: 'Skipped!',
