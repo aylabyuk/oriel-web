@@ -21,6 +21,9 @@ export const gameSlice = createSlice({
     pushEvent(state, action: PayloadAction<GameEvent>) {
       state.events.push(action.payload);
     },
+    clearEvents(state) {
+      state.events = [];
+    },
   },
   selectors: {
     selectSnapshot: (state) => state.snapshot,
@@ -28,5 +31,5 @@ export const gameSlice = createSlice({
   },
 });
 
-export const { setSnapshot, pushEvent } = gameSlice.actions;
+export const { setSnapshot, pushEvent, clearEvents } = gameSlice.actions;
 export const { selectSnapshot, selectEvents } = gameSlice.selectors;

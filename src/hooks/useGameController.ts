@@ -3,7 +3,7 @@ import { Color } from 'uno-engine';
 import type { ChallengeResult, GameEndInfo } from '@/types/game';
 import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setSnapshot, pushEvent } from '@/store/slices/game';
+import { setSnapshot, pushEvent, clearEvents } from '@/store/slices/game';
 import { selectVisitorName } from '@/store/slices/visitor';
 
 const AI_OPPONENTS = ['Meio', 'Dong', 'Oscar'] as const;
@@ -364,6 +364,7 @@ export const useGameController = () => {
     gameRef.current = null;
     // Null snapshot triggers useMagnetState to collect cards back to deck
     dispatch(setSnapshot(null));
+    dispatch(clearEvents());
     // After cards settle, start a fresh game which triggers dealing animation
     setTimeout(() => startGame(), RESTART_COLLECT_DELAY);
   }, [dispatch, startGame, cancelVisitorTimer]);
