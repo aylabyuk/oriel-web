@@ -1,0 +1,1 @@
+export { getCardFilename } from './cardTexture';

@@ -1,0 +1,1 @@
+export { fetchJokes } from './fetchJokes';
