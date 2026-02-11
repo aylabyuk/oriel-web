@@ -71,9 +71,8 @@ export const detectQuestionWord = (text: string): string | null => {
     .split(/\s+/)[0]
     ?.toLowerCase()
     .replace(/[^a-z]/g, '');
-  return QUESTION_WORDS.includes(first as (typeof QUESTION_WORDS)[number])
-    ? first!
-    : null;
+  if (!first) return null;
+  return QUESTION_WORDS.find((w) => first.startsWith(w)) ?? null;
 };
 
 export const JOKE_QUESTION_RESPONSES: Record<string, string[]> = {
