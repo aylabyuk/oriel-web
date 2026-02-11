@@ -3,7 +3,9 @@ import { useAppSelector } from '@/store/hooks';
 import { selectEvents, selectSnapshot } from '@/store/slices/game';
 import { createDialogueSelector, findAffectedPlayer } from '@/utils/dialogueSelector';
 import type { AiPersonality, DialogueBubble, DialogueCategory, DialogueHistoryEntry } from '@/types/dialogue';
-import type { GameEvent, GameSnapshot } from '@/types/game';
+import type { GameEvent, GameSnapshot, SerializedCard } from '@/types/game';
+import { Value, Color } from 'uno-engine';
+import { fetchJokes } from '@/utils/fetchJokes';
 
 const AI_NAMES: AiPersonality[] = ['Meio', 'Dong', 'Oscar'];
 const AI_NAME_SET = new Set<string>(AI_NAMES);
@@ -19,11 +21,123 @@ const BUBBLE_DURATION = 3000;
 const MAX_REACTORS = 2;
 /** How long before AIs comment on visitor being slow (ms) */
 const VISITOR_SLOW_THRESHOLD = 6000;
+/** Probability that an AI tells a joke on a turn change */
+const JOKE_CHANCE = 0.12;
+/** Refetch threshold — fetch more jokes when pool drops below this */
+const JOKE_REFETCH_THRESHOLD = 3;
+
+/** Joke sequence timing (ms) */
+const JOKE_INTRO_DURATION = 2500;
+const JOKE_PUNCHLINE_DELAY = 2800;
+const JOKE_REACTION_STAGGER = 1500;
+const JOKE_REACTION_DURATION = 4000;
+/** ms per word for joke read time, with a floor */
+const JOKE_MS_PER_WORD = 400;
+const JOKE_READ_TIME_MIN = 5000;
+
+/** Estimate how long a joke needs to stay on screen based on word count. */
+const jokeReadTime = (text: string): number =>
+  Math.max(JOKE_READ_TIME_MIN, text.split(/\s+/).length * JOKE_MS_PER_WORD);
+
+const JOKE_INTROS = [
+  'Hey, I got a joke!',
+  'Okay okay, listen to this one...',
+  'While we wait... wanna hear a joke?',
+  "Here's one for you all.",
+  'Joke time!',
+  'You guys ready for this?',
+  'Stop me if you heard this one...',
+];
+
+const JOKE_REACTIONS_POSITIVE = [
+  'Haha, good one!',
+  "LOL that's actually funny!",
+  "I'm dead!",
+  'Okay I laughed.',
+  'That got me ngl.',
+  'Classic!',
+  'LMAO!',
+  'Hahaha nice.',
+  'Took me a sec... haha!',
+  'Alright, that was good.',
+];
+
+const JOKE_REACTIONS_NEGATIVE = [
+  'That was terrible.',
+  'Not funny.',
+  'Boo! Stick to cards.',
+  'You are SO corny.',
+  'Cringe.',
+  "I can't believe I heard that.",
+  'Delete that joke.',
+  'Wow... just wow.',
+  'Heard that one a million times.',
+  "That's the worst joke I've ever heard.",
+  'Please never tell a joke again.',
+];
 
 type Candidate = {
   personality: AiPersonality;
   category: DialogueCategory;
   context: { player?: string; visitor?: string };
+};
+
+const COLOR_NAMES: Record<number, string> = {
+  [Color.RED]: 'Red',
+  [Color.BLUE]: 'Blue',
+  [Color.GREEN]: 'Green',
+  [Color.YELLOW]: 'Yellow',
+};
+
+const VALUE_NAMES: Record<number, string> = {
+  [Value.ZERO]: '0', [Value.ONE]: '1', [Value.TWO]: '2', [Value.THREE]: '3',
+  [Value.FOUR]: '4', [Value.FIVE]: '5', [Value.SIX]: '6', [Value.SEVEN]: '7',
+  [Value.EIGHT]: '8', [Value.NINE]: '9',
+  [Value.DRAW_TWO]: 'Draw Two', [Value.SKIP]: 'Skip', [Value.REVERSE]: 'Reverse',
+  [Value.WILD]: 'Wild', [Value.WILD_DRAW_FOUR]: 'Wild Draw Four',
+};
+
+const formatCard = (card: SerializedCard): string => {
+  const valueName = VALUE_NAMES[card.value] ?? '?';
+  if (card.color == null) return valueName;
+  return `${COLOR_NAMES[card.color] ?? ''} ${valueName}`.trim();
+};
+
+/** Map a game event to a human-readable action message, or null to skip */
+const formatEventAction = (event: GameEvent, snapshot: GameSnapshot): { playerName: string; message: string } | null => {
+  switch (event.type) {
+    case 'card_played': {
+      if (!event.card) return null;
+      const trigger = event.data?.trigger as string | undefined;
+      const cardName = formatCard(event.card);
+      if (trigger === 'skip' || trigger === 'draw_two' || trigger === 'wild_draw_four') {
+        const victim = findAffectedPlayer(snapshot);
+        if (victim) return { playerName: event.playerName, message: `played ${cardName} on ${victim}` };
+      }
+      return { playerName: event.playerName, message: `played ${cardName}` };
+    }
+    case 'card_drawn':
+      return { playerName: event.playerName, message: 'drew a card' };
+    case 'uno_called':
+      return { playerName: event.playerName, message: 'called UNO!' };
+    case 'uno_penalty': {
+      const count = (event.data?.count as number) ?? 2;
+      return { playerName: event.playerName, message: `caught! Drew ${count} penalty cards` };
+    }
+    case 'challenge_resolved': {
+      const result = event.data?.result as string;
+      const bluffer = event.data?.blufferName as string;
+      if (result === 'bluff_caught') return { playerName: bluffer, message: 'bluff was caught! Drew 4 cards' };
+      if (result === 'legit_play') return { playerName: event.playerName, message: 'challenge failed! Drew 6 cards' };
+      return null;
+    }
+    case 'game_ended': {
+      const score = event.data?.score as number | undefined;
+      return { playerName: event.playerName, message: `won the game${score ? ` with ${score} points` : ''}!` };
+    }
+    default:
+      return null;
+  }
 };
 
 const isAi = (name: string): name is AiPersonality => AI_NAME_SET.has(name);
@@ -189,7 +303,7 @@ const scheduleDialogues = (
         next[idx] = { message: text, key: Date.now() };
         return next;
       });
-      setHistory((prev) => [...prev, { personality, message: text, timestamp: Date.now() }]);
+      setHistory((prev) => [...prev, { kind: 'dialogue', personality, message: text, timestamp: Date.now() }]);
     }, delay);
 
     const hideTimer = setTimeout(() => {
@@ -214,6 +328,17 @@ export const useDialogue = () => {
   const [history, setHistory] = useState<DialogueHistoryEntry[]>([]);
   const gameStartedRef = useRef(false);
   const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jokePoolRef = useRef<string[]>([]);
+  const fetchingJokesRef = useRef(false);
+
+  const refillJokes = useCallback(() => {
+    if (fetchingJokesRef.current) return;
+    fetchingJokesRef.current = true;
+    fetchJokes().then((jokes) => {
+      jokePoolRef.current.push(...jokes);
+      fetchingJokesRef.current = false;
+    });
+  }, []);
 
   // Clear all pending timers
   const clearTimers = useCallback(() => {
@@ -244,6 +369,7 @@ export const useDialogue = () => {
   useEffect(() => {
     if (!snapshot || gameStartedRef.current) return;
     gameStartedRef.current = true;
+    refillJokes();
 
     const now = Date.now();
     const visitorName = snapshot.players[0]?.name ?? 'Player';
@@ -301,6 +427,12 @@ export const useDialogue = () => {
     const visitorName = snapshot.players[0]?.name ?? 'Player';
 
     for (const event of newEvents) {
+      // Log game action to history
+      const action = formatEventAction(event, snapshot);
+      if (action) {
+        setHistory((prev) => [...prev, { kind: 'action', playerName: action.playerName, message: action.message, timestamp: Date.now() }]);
+      }
+
       const candidates = mapEventToCandidates(event, snapshot, visitorName);
       if (candidates.length === 0) continue;
 
@@ -323,8 +455,62 @@ export const useDialogue = () => {
       }
 
       scheduleDialogues(selected, REACTION_DELAY_BASE, timersRef, setDialogues, setHistory);
+
+      // Occasionally have an AI tell a joke on turn changes
+      if (event.type === 'turn_changed' && jokePoolRef.current.length > 0 && Math.random() < JOKE_CHANCE) {
+        const joke = jokePoolRef.current.pop()!;
+        const teller = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
+        const reactors = otherAis(teller);
+        const baseT = REACTION_DELAY_BASE + selected.length * STAGGER_INTERVAL + 400;
+        const tellerIdx = AI_INDEX[teller];
+        const intro = JOKE_INTROS[Math.floor(Math.random() * JOKE_INTROS.length)];
+
+        // Phase 1 — Intro: "Hey, I got a joke!"
+        const introShow = setTimeout(() => {
+          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = { message: intro, key: Date.now() }; return n; });
+          setHistory((prev) => [...prev, { kind: 'dialogue', personality: teller, message: intro, timestamp: Date.now() }]);
+        }, baseT);
+        const introHide = setTimeout(() => {
+          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = null; return n; });
+        }, baseT + JOKE_INTRO_DURATION);
+
+        // Phase 2 — Punchline: stays on screen based on word count
+        const readTime = jokeReadTime(joke);
+        const jokeStart = baseT + JOKE_PUNCHLINE_DELAY;
+        const jokeShow = setTimeout(() => {
+          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = { message: joke, key: Date.now() }; return n; });
+          setHistory((prev) => [...prev, { kind: 'dialogue', personality: teller, message: joke, timestamp: Date.now() }]);
+        }, jokeStart);
+        // Joke hides when first reaction appears
+        const reactionsStart = jokeStart + readTime;
+        const jokeHide = setTimeout(() => {
+          setDialogues((prev) => { const n = [...prev]; n[tellerIdx] = null; return n; });
+        }, reactionsStart);
+
+        // Phase 3 — Reactions from other AIs (after read time)
+        for (let r = 0; r < reactors.length; r++) {
+          const reactor = reactors[r];
+          const pool = Math.random() < 0.5 ? JOKE_REACTIONS_POSITIVE : JOKE_REACTIONS_NEGATIVE;
+          const line = pool[Math.floor(Math.random() * pool.length)];
+          const rIdx = AI_INDEX[reactor];
+          const rDelay = reactionsStart + r * JOKE_REACTION_STAGGER;
+
+          const rShow = setTimeout(() => {
+            setDialogues((prev) => { const n = [...prev]; n[rIdx] = { message: line, key: Date.now() }; return n; });
+            setHistory((prev) => [...prev, { kind: 'dialogue', personality: reactor, message: line, timestamp: Date.now() }]);
+          }, rDelay);
+          const rHide = setTimeout(() => {
+            setDialogues((prev) => { const n = [...prev]; n[rIdx] = null; return n; });
+          }, rDelay + JOKE_REACTION_DURATION);
+
+          timersRef.current.push(rShow, rHide);
+        }
+
+        timersRef.current.push(introShow, introHide, jokeShow, jokeHide);
+        if (jokePoolRef.current.length < JOKE_REFETCH_THRESHOLD) refillJokes();
+      }
     }
-  }, [events, snapshot]);
+  }, [events, snapshot, refillJokes]);
 
   // Cleanup on unmount
   useEffect(() => {

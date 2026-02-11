@@ -199,13 +199,13 @@ export const App = () => {
         duration={unoDuration}
         onPress={handleUnoPress}
       />
+      <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+      <ChatHistoryPanel open={chatOpen} history={history} />
       <div className="relative z-10">
         <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
           <ThemeToggle />
           <RestartButton onClick={handlePlayAgain} disabled={!snapshot} />
         </div>
-        <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-        <ChatHistoryPanel open={chatOpen} history={history} />
         {welcomeDismissed ? (
           <div>
             <span className="p-4 text-xs font-medium text-neutral-400">orielvinci.com</span>

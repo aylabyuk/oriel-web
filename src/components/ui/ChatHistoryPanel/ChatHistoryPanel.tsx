@@ -37,7 +37,7 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
       className={cn(
-        'fixed bottom-14 right-4 z-50 flex w-64 flex-col sm:w-80',
+        'fixed bottom-14 right-4 z-60 flex w-64 flex-col sm:w-80',
         'rounded-2xl bg-neutral-900/80 shadow-xl backdrop-blur-sm',
         'border border-white/10',
       )}
@@ -63,32 +63,44 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
             No messages yet. AI dialogue will appear here.
           </p>
         ) : (
-          history.map((entry, i) => (
-            <div key={`${entry.timestamp}-${i}`} className="flex items-start gap-2">
-              <div
-                className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white sm:size-6 sm:text-[10px]"
-                style={{ backgroundColor: AVATAR_COLORS[entry.personality] }}
-              >
-                {entry.personality.charAt(0)}
+          history.map((entry, i) =>
+            entry.kind === 'action' ? (
+              <div key={`${entry.timestamp}-${i}`} className="flex items-center gap-2 py-0.5">
+                <span className="text-[10px] text-white/40 sm:text-xs">
+                  <span className="font-semibold text-white/60">{entry.playerName}</span>
+                  {' '}{entry.message}
+                </span>
+                <span className="ml-auto shrink-0 text-[8px] text-white/20 sm:text-[10px]">
+                  {formatTime(entry.timestamp)}
+                </span>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className="text-[10px] font-semibold sm:text-xs"
-                    style={{ color: AVATAR_COLORS[entry.personality] }}
-                  >
-                    {entry.personality}
-                  </span>
-                  <span className="text-[8px] text-white/30 sm:text-[10px]">
-                    {formatTime(entry.timestamp)}
-                  </span>
+            ) : (
+              <div key={`${entry.timestamp}-${i}`} className="flex items-start gap-2">
+                <div
+                  className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white sm:size-6 sm:text-[10px]"
+                  style={{ backgroundColor: AVATAR_COLORS[entry.personality] }}
+                >
+                  {entry.personality.charAt(0)}
                 </div>
-                <p className="text-xs leading-snug text-white/80 sm:text-sm">
-                  {entry.message}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className="text-[10px] font-semibold sm:text-xs"
+                      style={{ color: AVATAR_COLORS[entry.personality] }}
+                    >
+                      {entry.personality}
+                    </span>
+                    <span className="text-[8px] text-white/30 sm:text-[10px]">
+                      {formatTime(entry.timestamp)}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-snug text-white/80 sm:text-sm">
+                    {entry.message}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
+            ),
+          )
         )}
       </div>
     </animated.div>

@@ -70,7 +70,7 @@ export const useGameController = () => {
     aiTimerRef.current = setTimeout(() => {
       aiScheduledRef.current = false;
       const g = gameRef.current;
-      if (!g) return;
+      if (!g || g.getSnapshot().phase === 'ended') return;
 
       const playerName = g.getCurrentPlayerName();
       if (!AI_NAMES.has(playerName)) {
@@ -115,7 +115,7 @@ export const useGameController = () => {
     visitorTimerRef.current = setTimeout(() => {
       visitorTimerRef.current = null;
       const g = gameRef.current;
-      if (!g) return;
+      if (!g || g.getSnapshot().phase === 'ended') return;
       if (g.getCurrentPlayerName() !== humanName) return;
 
       const playable = g.getPlayableCardsForPlayer(humanName);
@@ -235,8 +235,8 @@ export const useGameController = () => {
         }
       }
 
-      // After any event, schedule the next player's move
-      if (event.type === 'turn_changed' || event.type === 'card_played') {
+      // After any event, schedule the next player's move (skip if game ended)
+      if ((event.type === 'turn_changed' || event.type === 'card_played') && snap.phase !== 'ended') {
         scheduleAiPlay();
         scheduleVisitorAutoPlay();
       }
@@ -335,7 +335,11 @@ export const useGameController = () => {
     game.callUno(playerName);
     game.setUnoCallable(null);
     dispatch(setSnapshot(game.getSnapshot()));
-  }, [dispatch]);
+    // Re-schedule play timers — callUno fires uno_called/uno_penalty events
+    // which don't trigger rescheduling in the onEvent handler.
+    scheduleAiPlay();
+    scheduleVisitorAutoPlay();
+  }, [dispatch, scheduleAiPlay, scheduleVisitorAutoPlay]);
 
   /** Delay for card-collect animation before re-dealing (ms) */
   const RESTART_COLLECT_DELAY = 800;
