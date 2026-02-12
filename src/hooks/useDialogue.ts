@@ -543,17 +543,22 @@ export const useDialogue = (ready: boolean) => {
     const visitorName = snapshot.players[0]?.name ?? 'Player';
 
     for (const event of newEvents) {
-      // UNO shout — special red banner entry
+      // UNO shout — red banner only for self-calls (caller has 1 card)
       if (event.type === 'uno_called') {
-        setHistory((prev) => [
-          ...prev,
-          {
-            kind: 'shout',
-            playerName: toDisplayName(event.playerName),
-            message: 'UNO!',
-            timestamp: Date.now(),
-          },
-        ]);
+        const caller = snapshot.players.find(
+          (p) => p.name === event.playerName,
+        );
+        if (caller && caller.hand.length === 1) {
+          setHistory((prev) => [
+            ...prev,
+            {
+              kind: 'shout',
+              playerName: toDisplayName(event.playerName),
+              message: 'UNO!',
+              timestamp: Date.now(),
+            },
+          ]);
+        }
       }
 
       // Log game action to history

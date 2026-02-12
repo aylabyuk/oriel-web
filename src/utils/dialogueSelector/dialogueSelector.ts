@@ -10,6 +10,7 @@ import {
   CATEGORY_PROBABILITY,
   HISTORY_SIZE,
   COOLDOWN_MS,
+  COOLDOWN_BYPASS,
 } from './dialogueSelector.constants';
 
 type SelectorState = {
@@ -34,7 +35,7 @@ export const createDialogueSelector = () => {
     context: LineContext,
     now: number,
   ): string | null => {
-    if (now - state.lastTime[personality] < COOLDOWN_MS) return null;
+    if (!COOLDOWN_BYPASS.has(category) && now - state.lastTime[personality] < COOLDOWN_MS) return null;
     if (Math.random() > CATEGORY_PROBABILITY[category]) return null;
 
     const lines = DIALOGUE_LINES[personality][category];

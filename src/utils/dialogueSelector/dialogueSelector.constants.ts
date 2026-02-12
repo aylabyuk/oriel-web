@@ -30,3 +30,7 @@ export const CATEGORY_PROBABILITY: Record<DialogueCategory, number> = {
 export const HISTORY_SIZE = 5;
 /** Minimum cooldown between dialogue lines from the same AI (ms) */
 export const COOLDOWN_MS = 4000;
+/** Categories that ignore cooldown — must always fire */
+export const COOLDOWN_BYPASS: Set<DialogueCategory> = new Set([
+  'uno_called_self',
+]);
