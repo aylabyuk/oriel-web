@@ -616,7 +616,7 @@ export const useDialogue = (ready: boolean) => {
         jokePoolRef.current.length > 0 &&
         Math.random() < JOKE_CHANCE;
 
-      if (!jokeActiveRef.current && !willTellJoke) {
+      if (event.type === 'uno_called' || (!jokeActiveRef.current && !willTellJoke)) {
         scheduleDialogues(
           selected,
           REACTION_DELAY_BASE,
