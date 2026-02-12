@@ -98,7 +98,7 @@ export const FreeLookExplainer = ({ open, onDismiss }: FreeLookExplainerProps) =
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
       className={cn(
-        'fixed top-8 left-1/2 z-50 -translate-x-1/2',
+        'fixed top-8 left-1/2 z-50 -translate-x-1/2 max-lg:portrait:top-20',
         'w-[min(90vw,360px)] rounded-2xl bg-neutral-900/90 px-5 py-4 shadow-xl backdrop-blur-sm',
       )}
       style={{

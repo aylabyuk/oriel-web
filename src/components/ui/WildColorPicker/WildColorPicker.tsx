@@ -43,7 +43,7 @@ export const WildColorPicker = ({
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
       ref={containerRef}
-      className="fixed top-8 left-1/2 z-50 flex -translate-x-1/2 gap-4 rounded-2xl bg-neutral-900/80 px-6 py-4 backdrop-blur-sm"
+      className="fixed top-8 left-1/2 z-50 flex -translate-x-1/2 gap-4 rounded-2xl bg-neutral-900/80 px-6 py-4 backdrop-blur-sm max-lg:portrait:top-20"
       style={{
         opacity: springs.opacity,
         y: springs.y,
