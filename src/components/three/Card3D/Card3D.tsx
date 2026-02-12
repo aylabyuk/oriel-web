@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import { memo, type RefObject } from 'react';
 import { useTexture } from '@react-three/drei';
 import type { Mesh } from 'three';
 import type { Value, Color } from 'uno-engine';
@@ -23,7 +23,7 @@ type Card3DProps = {
   bodyRef?: RefObject<Mesh | null>;
 };
 
-export const Card3D = ({
+export const Card3D = memo(({
   value,
   color,
   faceUp = true,
@@ -71,4 +71,4 @@ export const Card3D = ({
       </mesh>
     </group>
   );
-};
+});

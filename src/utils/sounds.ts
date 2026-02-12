@@ -23,6 +23,16 @@ export const setSoundEnabled = (v: boolean): void => {
   enabled = v;
 };
 
+/** Disconnect all nodes in the chain when the source finishes playing. */
+const autoDisconnect = (
+  src: AudioScheduledSourceNode,
+  ...chain: AudioNode[]
+): void => {
+  src.onended = () => {
+    for (const n of chain) n.disconnect();
+  };
+};
+
 /** Short filtered noise burst — sounds like a card flick. */
 export const playTick = (): void => {
   if (!enabled) return;
@@ -43,6 +53,7 @@ export const playTick = (): void => {
   gain.connect(ac.destination);
   src.start();
   src.stop(ac.currentTime + 0.03);
+  autoDisconnect(src, src, hp, gain);
 };
 
 /** Quick swoosh — noise with a downward bandpass sweep. */
@@ -67,6 +78,7 @@ export const playSwoosh = (): void => {
   gain.connect(ac.destination);
   src.start();
   src.stop(ac.currentTime + 0.08);
+  autoDisconnect(src, src, bp, gain);
 };
 
 /** Rising shimmer — cards fanning open. Plays once at spread start. */
@@ -92,6 +104,7 @@ export const playFan = (): void => {
   gain.connect(ac.destination);
   src.start();
   src.stop(ac.currentTime + 0.15);
+  autoDisconnect(src, src, bp, gain);
 };
 
 /** Soft slide — neighbors shifting apart or back together. */
@@ -116,6 +129,7 @@ export const playSlide = (): void => {
   gain.connect(ac.destination);
   src.start();
   src.stop(ac.currentTime + 0.04);
+  autoDisconnect(src, src, bp, gain);
 };
 
 /** Low-frequency plop — card landing on the discard pile. */
@@ -135,6 +149,7 @@ export const playPlop = (): void => {
   gain.connect(ac.destination);
   osc.start();
   osc.stop(ac.currentTime + 0.1);
+  autoDisconnect(osc, osc, gain);
 };
 
 /** Per-player two-tone chime — each AI gets a distinct pitch. */
@@ -161,6 +176,7 @@ export const playChat = (personality?: string): void => {
   g1.connect(ac.destination);
   osc1.start(ac.currentTime);
   osc1.stop(ac.currentTime + 0.12);
+  autoDisconnect(osc1, osc1, g1);
 
   // Second tone — staggered for "ding-dong" feel
   const osc2 = ac.createOscillator();
@@ -174,6 +190,7 @@ export const playChat = (personality?: string): void => {
   g2.connect(ac.destination);
   osc2.start(ac.currentTime + 0.05);
   osc2.stop(ac.currentTime + 0.18);
+  autoDisconnect(osc2, osc2, g2);
 };
 
 /** Bluff caught — sharp descending buzz. "Busted!" feel. */
@@ -193,6 +210,7 @@ export const playBluffCaught = (): void => {
   gain.connect(ac.destination);
   osc.start();
   osc.stop(ac.currentTime + 0.2);
+  autoDisconnect(osc, osc, gain);
 };
 
 /** Legit play — low ominous thud. Challenge failed. */
@@ -212,6 +230,7 @@ export const playLegitPlay = (): void => {
   gain.connect(ac.destination);
   osc.start();
   osc.stop(ac.currentTime + 0.25);
+  autoDisconnect(osc, osc, gain);
 };
 
 /** UNO penalty — short double-buzz. "Got you!" */
@@ -232,6 +251,7 @@ export const playUnoPenalty = (): void => {
     gain.connect(ac.destination);
     osc.start(t);
     osc.stop(t + 0.07);
+    autoDisconnect(osc, osc, gain);
   }
 };
 
@@ -252,6 +272,7 @@ export const playUnoShout = (): void => {
   gain.connect(ac.destination);
   osc.start();
   osc.stop(ac.currentTime + 0.12);
+  autoDisconnect(osc, osc, gain);
 };
 
 /** Dramatic hit — WD4 challenge prompt. Suspenseful impact. */
@@ -271,6 +292,7 @@ export const playDramaticHit = (): void => {
   gain.connect(ac.destination);
   osc.start();
   osc.stop(ac.currentTime + 0.4);
+  autoDisconnect(osc, osc, gain);
 
   // Noise burst — impact texture
   const src = ac.createBufferSource();
@@ -286,6 +308,7 @@ export const playDramaticHit = (): void => {
   nGain.connect(ac.destination);
   src.start();
   src.stop(ac.currentTime + 0.15);
+  autoDisconnect(src, src, bp, nGain);
 };
 
 /** Victory fanfare — bright ascending major arpeggio. */
@@ -310,6 +333,7 @@ export const playVictory = (): void => {
     g.connect(ac.destination);
     osc.start(t);
     osc.stop(t + noteDur);
+    autoDisconnect(osc, osc, g);
   }
 
   // Final sustained major chord: C5 + E5 + G5 + C6 together
@@ -325,6 +349,7 @@ export const playVictory = (): void => {
     g.connect(ac.destination);
     osc.start(chordStart);
     osc.stop(chordStart + 0.5);
+    autoDisconnect(osc, osc, g);
   }
 };
 
@@ -350,6 +375,7 @@ export const playDefeat = (): void => {
     g.connect(ac.destination);
     osc.start(t);
     osc.stop(t + noteDur);
+    autoDisconnect(osc, osc, g);
   }
 
   // Final low sustained note — lingering sadness
@@ -364,6 +390,7 @@ export const playDefeat = (): void => {
   g.connect(ac.destination);
   osc.start(endT);
   osc.stop(endT + 0.6);
+  autoDisconnect(osc, osc, g);
 };
 
 /** Gather — all cards rushing back to deck at once. Reverse swoosh + thud. */
@@ -387,6 +414,7 @@ export const playGather = (): void => {
   nGain.connect(ac.destination);
   src.start();
   src.stop(ac.currentTime + 0.18);
+  autoDisconnect(src, src, bp, nGain);
 
   // Low thud at the end — cards stacking
   const osc = ac.createOscillator();
@@ -401,4 +429,5 @@ export const playGather = (): void => {
   tGain.connect(ac.destination);
   osc.start();
   osc.stop(ac.currentTime + 0.22);
+  autoDisconnect(osc, osc, tGain);
 };

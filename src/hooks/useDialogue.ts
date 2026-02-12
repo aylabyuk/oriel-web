@@ -403,7 +403,13 @@ export const useDialogue = (ready: boolean) => {
     null,
     null,
   ]);
-  const [history, setHistory] = useState<DialogueHistoryEntry[]>([]);
+  const [history, setHistoryRaw] = useState<DialogueHistoryEntry[]>([]);
+  const MAX_HISTORY = 200;
+  const setHistory: typeof setHistoryRaw = (update) =>
+    setHistoryRaw((prev) => {
+      const next = typeof update === 'function' ? update(prev) : update;
+      return next.length > MAX_HISTORY ? next.slice(-MAX_HISTORY) : next;
+    });
   const gameStartedRef = useRef(false);
   const gameCountRef = useRef(0);
   const visitorSlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(

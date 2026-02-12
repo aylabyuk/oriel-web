@@ -35,6 +35,8 @@ let lpFilter: BiquadFilterNode | null = null;
 let noiseSource: AudioBufferSourceNode | null = null;
 let schedulerTimer: ReturnType<typeof setInterval> | null = null;
 let playing = false;
+let cachedNoiseBuf: AudioBuffer | null = null;
+let pendingStateChangeListener: (() => void) | null = null;
 
 // Layer cursors
 let padCursor = 0;
@@ -63,6 +65,7 @@ const scheduleArp = (ac: AudioContext, time: number, freq: number): void => {
   g.connect(lpFilter!);
   osc.start(time);
   osc.stop(time + HALF * 0.9);
+  osc.onended = () => { osc.disconnect(); g.disconnect(); };
 };
 
 const scheduleBass = (ac: AudioContext, time: number, freq: number): void => {
@@ -79,6 +82,7 @@ const scheduleBass = (ac: AudioContext, time: number, freq: number): void => {
   g.connect(lpFilter!);
   osc.start(time);
   osc.stop(time + BEAT * 4);
+  osc.onended = () => { osc.disconnect(); g.disconnect(); };
 };
 
 const schedulePad = (ac: AudioContext, time: number, chord: number[]): void => {
@@ -100,19 +104,22 @@ const schedulePad = (ac: AudioContext, time: number, chord: number[]): void => {
     g.connect(lpFilter!);
     osc.start(time);
     osc.stop(time + dur + 0.05);
+    osc.onended = () => { osc.disconnect(); g.disconnect(); };
   }
 };
 
 /* ── Noise texture ─────────────────────────────────────────────────── */
 
 const startNoiseTexture = (ac: AudioContext): void => {
-  const len = ac.sampleRate * 2;
-  const buf = ac.createBuffer(1, len, ac.sampleRate);
-  const data = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  if (!cachedNoiseBuf) {
+    const len = ac.sampleRate * 2;
+    cachedNoiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+    const data = cachedNoiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  }
 
   noiseSource = ac.createBufferSource();
-  noiseSource.buffer = buf;
+  noiseSource.buffer = cachedNoiseBuf;
   noiseSource.loop = true;
 
   const noiseLp = ac.createBiquadFilter();
@@ -206,9 +213,11 @@ export const startMusic = (): void => {
     const onStateChange = () => {
       if (ac.state === 'running' && playing) {
         beginScheduling(ac);
-        ac.removeEventListener('statechange', onStateChange);
       }
+      ac.removeEventListener('statechange', onStateChange);
+      pendingStateChangeListener = null;
     };
+    pendingStateChangeListener = onStateChange;
     ac.addEventListener('statechange', onStateChange);
   }
 };
@@ -224,6 +233,12 @@ export const stopMusic = (): void => {
   }
 
   const ac = getCtx();
+
+  // Remove pending statechange listener if context never resumed
+  if (pendingStateChangeListener) {
+    ac.removeEventListener('statechange', pendingStateChangeListener);
+    pendingStateChangeListener = null;
+  }
 
   // Fade out over 1.5s
   if (masterGain) {

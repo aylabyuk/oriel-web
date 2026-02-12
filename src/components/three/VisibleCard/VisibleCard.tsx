@@ -1,4 +1,4 @@
-import { Suspense, useRef } from 'react';
+import { memo, Suspense, useEffect, useRef } from 'react';
 import { useSpring } from '@react-spring/three';
 import { useFrame } from '@react-three/fiber';
 import type { Group, Mesh, MeshStandardMaterial } from 'three';
@@ -40,7 +40,7 @@ const shortestYaw = (target: number, current: number): number => {
   return current + (diff - Math.round(diff / (2 * Math.PI)) * 2 * Math.PI);
 };
 
-export const VisibleCard = ({
+const VisibleCardInner = ({
   cardId,
   value,
   color,
@@ -70,7 +70,7 @@ export const VisibleCard = ({
     config: DEFAULT_CONFIG,
   }));
 
-  useFrame((state) => {
+  useEffect(() => {
     api.start({
       px: to.position[0],
       py: to.position[1],
@@ -87,7 +87,9 @@ export const VisibleCard = ({
           ? PLAYABLE_CONFIG
           : (springConfig ?? DEFAULT_CONFIG),
     });
+  }, [api, to, snap, springConfig, playable]);
 
+  useFrame((state) => {
     outerRef.current.position.set(
       springs.px.get(),
       springs.py.get(),
@@ -156,3 +158,5 @@ export const VisibleCard = ({
     </group>
   );
 };
+
+export const VisibleCard = memo(VisibleCardInner);
