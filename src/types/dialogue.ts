@@ -25,12 +25,15 @@ export type DialogueCategory =
   | 'game_started'
   | 'visitor_slow'
   | 'drew_card_self'
+  | 'idle'
   | 'personal_info';
 
 export type DialogueLine = {
   text: string;
   /** Probability weight — higher = more likely. Default 1. */
   weight?: number;
+  /** Links this line to a personal-info topic — suppressed once that topic has been shown. */
+  topicKey?: string;
 };
 
 export type DialogueBubble = {

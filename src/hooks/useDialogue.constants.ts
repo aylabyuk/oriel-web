@@ -20,7 +20,7 @@ export const BUBBLE_DURATION = 3000;
 /** Max AI that react to a single event */
 export const MAX_REACTORS = 2;
 /** How long before AIs comment on visitor being slow (ms) */
-export const VISITOR_SLOW_THRESHOLD = 6000;
+export const VISITOR_SLOW_THRESHOLD = 4500;
 /** Probability that an AI shares personal info about Oriel on a turn change */
 export const PERSONAL_INFO_CHANCE = 0.4;
 /** Probability that an AI tells a joke on a turn change */
@@ -121,8 +121,8 @@ export const JOKE_REACTIONS_NEGATIVE = [
 /** Personal info sequence timing (ms) */
 export const PERSONAL_INFO_INTRO_DURATION = 3000;
 export const PERSONAL_INFO_FACT_DELAY = 600;
-export const PERSONAL_INFO_AFFIRM_DELAY = 800;
-export const PERSONAL_INFO_AFFIRM_DURATION = 2500;
+/** Gap between consecutive topic thread entries (ms) */
+export const PERSONAL_INFO_FOLLOWUP_DELAY = 400;
 
 export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
   [AI_STRATEGIST]: [
@@ -157,35 +157,6 @@ export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
   ],
 };
 
-export const PERSONAL_INFO_AFFIRMATIONS: Record<string, string[]> = {
-  [AI_STRATEGIST]: [
-    'Accurate.',
-    'Can verify.',
-    'Correct.',
-    'The data confirms it.',
-    'A factual statement.',
-    'Precisely.',
-    'Well documented.',
-  ],
-  [AI_TRASH_TALKER]: [
-    'FACTS!',
-    'Real talk!',
-    'SO true!',
-    '100%!',
-    "That's what I'm saying!",
-    'No cap!',
-    'REAL!',
-  ],
-  [AI_CHILL]: [
-    'Can confirm.',
-    'True.',
-    'Yep.',
-    'For real.',
-    'Straight up.',
-    'Pretty much.',
-    'Checks out.',
-  ],
-};
 
 export const COLOR_NAMES: Record<number, string> = {
   [Color.RED]: 'Red',

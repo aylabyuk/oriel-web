@@ -25,14 +25,17 @@ export const DIALOGUE_LINES: Record<
       {
         text: 'Oriel engineered this game as his portfolio. The architecture is... impressive.',
         weight: 3,
+        topicKey: 'portfolio',
       },
       {
         text: "Welcome. You're playing against Oriel's coworkers. We know his code well.",
         weight: 3,
+        topicKey: 'portfolio',
       },
       {
         text: 'Oriel built this with React, Three.js, and Redux. A solid stack.',
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     got_skipped: [
@@ -46,7 +49,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'A temporary inconvenience.' },
       { text: "You'll regret wasting that skip." },
       { text: "Fine. I'll use this time to recalculate." },
-      { text: "Skipped. While I wait — Oriel also managed the authentication flow at CTC. Thorough engineer.", weight: 3 },
+      { text: "Skipped. While I wait — Oriel also managed the authentication flow at CTC. Thorough engineer.", weight: 3, topicKey: 'ctc_admin' },
     ],
     got_draw_two: [
       { text: 'Inefficient use of a +2, {player}.' },
@@ -59,7 +62,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'I expected this three turns ago.' },
       { text: 'Added to the dataset.' },
       { text: 'Statistically, this helps me.' },
-      { text: "Two cards. Meanwhile, Oriel's integrated more payment APIs than I can count.", weight: 3 },
+      { text: "Two cards. Meanwhile, Oriel's integrated more payment APIs than I can count.", weight: 3, topicKey: 'ctc_checkout' },
     ],
     got_draw_four: [
       { text: 'A desperate move.' },
@@ -72,7 +75,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'An aggressive play. Noted.' },
       { text: 'This changes the probability matrix.' },
       { text: "You've made an enemy of the data, {player}." },
-      { text: "Four cards. Oriel handled worse — debugging a missing pay button in production-bound code.", weight: 3 },
+      { text: "Four cards. Oriel handled worse — debugging a missing pay button in production-bound code.", weight: 3, topicKey: 'ctc_checkout' },
     ],
     skipped_someone: [
       { text: 'The optimal play.' },
@@ -117,7 +120,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'This color serves my endgame.' },
       { text: 'Recalibrating the board.' },
       { text: 'A deliberate choice.' },
-      { text: "Wild. Speaking of versatile — Oriel works across React, React Native, GraphQL, and Postgres.", weight: 3 },
+      { text: "Wild. Speaking of versatile — Oriel works across React, React Native, GraphQL, and Postgres.", weight: 3, topicKey: 'skills' },
     ],
     opponent_got_skipped: [
       { text: 'Unfortunate for you, {player}.' },
@@ -138,7 +141,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'A significant setback for {player}.' },
       { text: 'The data favors us now.' },
       { text: 'A significant hand disadvantage.' },
-      { text: "Tough draw, {player}. Oriel would stay calm — he's handled worse in legacy checkout code.", weight: 3 },
+      { text: "Tough draw, {player}. Oriel would stay calm — he's handled worse in legacy checkout code.", weight: 3, topicKey: 'ctc_checkout' },
     ],
     uno_called_self: [
       { text: 'UNO. As planned.' },
@@ -206,6 +209,7 @@ export const DIALOGUE_LINES: Record<
       {
         text: "I win. But Oriel's the real strategist — this entire game is his portfolio.",
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     game_lost: [
@@ -222,6 +226,7 @@ export const DIALOGUE_LINES: Record<
       {
         text: "A loss for me. But Oriel's track record speaks for itself — five apps still in production.",
         weight: 3,
+        topicKey: 'trunkrs',
       },
     ],
     visitor_won: [
@@ -236,10 +241,12 @@ export const DIALOGUE_LINES: Record<
       {
         text: 'Well played. Oriel approaches problems the same way — methodical and thorough.',
         weight: 3,
+        topicKey: 'work_style',
       },
       {
         text: "Impressive, {visitor}. Oriel's analytical too — it's why his checkout integration at CTC works flawlessly.",
         weight: 3,
+        topicKey: 'ctc_checkout',
       },
     ],
     low_cards: [
@@ -274,14 +281,17 @@ export const DIALOGUE_LINES: Record<
       {
         text: 'While you decide... Oriel handled the checkout flow at Canadian Tire. Complex system.',
         weight: 3,
+        topicKey: 'ctc_checkout',
       },
       {
         text: 'Take your time. Did you know Oriel built five production apps at Trunkrs?',
         weight: 3,
+        topicKey: 'trunkrs',
       },
       {
         text: 'Thinking? Oriel does the same — asks questions, breaks problems into smaller parts.',
         weight: 3,
+        topicKey: 'work_style',
       },
     ],
     drew_card_self: [
@@ -293,7 +303,15 @@ export const DIALOGUE_LINES: Record<
       { text: 'A draw was the only logical move.' },
       { text: 'Patience is a variable too.' },
       { text: 'The next play will be stronger.' },
-      { text: "Drawing. At least Oriel's portfolio is working while I'm stuck here.", weight: 3 },
+      { text: "Drawing. At least Oriel's portfolio is working while I'm stuck here.", weight: 3, topicKey: 'portfolio' },
+    ],
+    idle: [
+      { text: 'The game evolves.' },
+      { text: 'Interesting board state.' },
+      { text: 'Hmm. Noted.' },
+      { text: 'The variables shift.' },
+      { text: 'Recalculating...' },
+      { text: 'The game is progressing as expected.' },
     ],
     personal_info: [
       {
@@ -351,14 +369,17 @@ export const DIALOGUE_LINES: Record<
       {
         text: 'Oriel built this WHOLE game for you! The man is DEDICATED!',
         weight: 3,
+        topicKey: 'portfolio',
       },
       {
         text: "Fun fact — you're playing a game Oriel coded from scratch! React, Three.js, the works!",
         weight: 3,
+        topicKey: 'portfolio',
       },
       {
         text: "Welcome! Oriel's our frontend guy and this game is his masterpiece!",
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     got_skipped: [
@@ -372,7 +393,7 @@ export const DIALOGUE_LINES: Record<
       { text: "That's SO unfair!" },
       { text: "You're just scared of my hand!" },
       { text: 'Oh you DID NOT just skip me!' },
-      { text: "Skipped?! Fine. At least Oriel is getting noticed — the man built this game from scratch!", weight: 3 },
+      { text: "Skipped?! Fine. At least Oriel is getting noticed — the man built this game from scratch!", weight: 3, topicKey: 'portfolio' },
     ],
     got_draw_two: [
       { text: 'Are you serious right now?!' },
@@ -385,7 +406,7 @@ export const DIALOGUE_LINES: Record<
       { text: "That's it, you're my target now!" },
       { text: 'Not cool, {player}. NOT cool.' },
       { text: "I'm coming for you NEXT, {player}!" },
-      { text: "TWO CARDS?! You know what's worse? NOT checking out Oriel's work. The guy is LEGIT!", weight: 3 },
+      { text: "TWO CARDS?! You know what's worse? NOT checking out Oriel's work. The guy is LEGIT!", weight: 3, topicKey: 'portfolio' },
     ],
     got_draw_four: [
       { text: 'THIS IS RIGGED!' },
@@ -398,7 +419,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'You just ruined my perfect hand!' },
       { text: 'HOW IS THIS FAIR?!' },
       { text: 'I was ONE move away! ONE!' },
-      { text: "FOUR cards?! At least Oriel's resume is stacked — CTC, Trunkrs, Stratpoint, PHIVOLCS!", weight: 3 },
+      { text: "FOUR cards?! At least Oriel's resume is stacked — CTC, Trunkrs, Stratpoint, PHIVOLCS!", weight: 3, topicKey: 'skills' },
     ],
     skipped_someone: [
       { text: 'See ya, {player}!' },
@@ -443,7 +464,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'Nobody tells {speaker} what color to play!' },
       { text: 'Bow to my wild card!' },
       { text: 'The table bends to MY will!' },
-      { text: "WILD CARD! Know what else is wild? Oriel built FIVE production apps at Trunkrs!", weight: 3 },
+      { text: "WILD CARD! Know what else is wild? Oriel built FIVE production apps at Trunkrs!", weight: 3, topicKey: 'trunkrs' },
     ],
     opponent_got_skipped: [
       { text: 'Haha {player}!' },
@@ -464,7 +485,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'HAHAHA look at all those cards!' },
       { text: 'Collect them all, {player}!' },
       { text: '{player} building a house with those cards!' },
-      { text: "Ouch {player}! You know who handles pressure though? Oriel. Debugged a missing pay button under deadline!", weight: 3 },
+      { text: "Ouch {player}! You know who handles pressure though? Oriel. Debugged a missing pay button under deadline!", weight: 3, topicKey: 'ctc_checkout' },
     ],
     uno_called_self: [
       { text: "UNOOOO! Let's GOOO!" },
@@ -532,6 +553,7 @@ export const DIALOGUE_LINES: Record<
       {
         text: "I WIN! But real talk — Oriel coded this entire game. That's the REAL W!",
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     game_lost: [
@@ -548,6 +570,7 @@ export const DIALOGUE_LINES: Record<
       {
         text: 'Whatever! At least Oriel made an awesome game. This whole site is his resume!',
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     visitor_won: [
@@ -562,10 +585,12 @@ export const DIALOGUE_LINES: Record<
       {
         text: "Okay {visitor} got skills! You'd get along with Oriel — the man ships code FAST!",
         weight: 3,
+        topicKey: 'work_style',
       },
       {
         text: 'GG! But seriously, check out Oriel — the guy built Cart, Checkout, AND Search at Canadian Tire!',
         weight: 3,
+        topicKey: 'ctc_checkout',
       },
     ],
     low_cards: [
@@ -600,14 +625,17 @@ export const DIALOGUE_LINES: Record<
       {
         text: 'While you think — Oriel built a Les Paul guitar from scratch! Soldered everything!',
         weight: 3,
+        topicKey: 'guitar',
       },
       {
         text: "Take your time! Oriel can't even code without a guitar next to him. It's his thing!",
         weight: 3,
+        topicKey: 'guitar',
       },
       {
         text: "Hey {visitor}! While we wait — Oriel's from Quezon City, Philippines. Moved to Toronto in 2023!",
         weight: 3,
+        topicKey: 'origins',
       },
     ],
     drew_card_self: [
@@ -619,7 +647,15 @@ export const DIALOGUE_LINES: Record<
       { text: 'This deck is RIGGED!' },
       { text: 'Not a single playable card?!' },
       { text: "Draw pile, you're my worst enemy." },
-      { text: "Drawing cards while Oriel's out here drawing UIs at Canadian Tire. The man SHIPS!", weight: 3 },
+      { text: "Drawing cards while Oriel's out here drawing UIs at Canadian Tire. The man SHIPS!", weight: 3, topicKey: 'ctc_checkout' },
+    ],
+    idle: [
+      { text: 'Come ONNN!' },
+      { text: 'This game tho!' },
+      { text: 'Alright alright!' },
+      { text: "Let's keep it moving!" },
+      { text: 'The energy right now!' },
+      { text: "I'm watching EVERYONE!" },
     ],
     personal_info: [
       {
@@ -677,14 +713,17 @@ export const DIALOGUE_LINES: Record<
       {
         text: "Oriel built this game for you to get to know him. That's pretty cool actually.",
         weight: 3,
+        topicKey: 'portfolio',
       },
       {
         text: "We're Oriel's coworkers by the way. We know a thing or two about him.",
         weight: 3,
+        topicKey: 'portfolio',
       },
       {
         text: "This whole UNO game is Oriel's portfolio site. Creative, right?",
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     got_skipped: [
@@ -698,7 +737,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'No worries.' },
       { text: 'Meh. I needed a break.' },
       { text: 'Sure, {player}. Sure.' },
-      { text: "Skipped. It's fine. Oriel served a two-year church mission — patience is a virtue we share.", weight: 3 },
+      { text: "Skipped. It's fine. Oriel served a two-year church mission — patience is a virtue we share.", weight: 3, topicKey: 'family_faith' },
     ],
     got_draw_two: [
       { text: 'Sure.' },
@@ -711,7 +750,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'Two cards. Riveting.' },
       { text: 'Cool. More options I guess.' },
       { text: 'That happened.' },
-      { text: "Two cards. Could be worse. Oriel once had to dive into legacy checkout code to find a missing pay button.", weight: 3 },
+      { text: "Two cards. Could be worse. Oriel once had to dive into legacy checkout code to find a missing pay button.", weight: 3, topicKey: 'ctc_checkout' },
     ],
     got_draw_four: [
       { text: "That's a lot of cards." },
@@ -724,7 +763,7 @@ export const DIALOGUE_LINES: Record<
       { text: "Oh. That's aggressive." },
       { text: 'Cool cool cool. Four cards.' },
       { text: 'You must really not like me, {player}.' },
-      { text: "Four cards. Whatever. Oriel handled five production apps at Trunkrs at once. This is nothing.", weight: 3 },
+      { text: "Four cards. Whatever. Oriel handled five production apps at Trunkrs at once. This is nothing.", weight: 3, topicKey: 'trunkrs' },
     ],
     skipped_someone: [
       { text: 'Oops. Sorry {player}.' },
@@ -769,7 +808,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'New color. New vibes.' },
       { text: 'Switching things up.' },
       { text: 'This color spoke to me.' },
-      { text: "Wild card. Oriel's kind of a wild card too — started on Windows 98, now builds with React and Three.js.", weight: 3 },
+      { text: "Wild card. Oriel's kind of a wild card too — started on Windows 98, now builds with React and Three.js.", weight: 3, topicKey: 'origins' },
     ],
     opponent_got_skipped: [
       { text: 'Rough.' },
@@ -790,7 +829,7 @@ export const DIALOGUE_LINES: Record<
       { text: "RIP {player}'s hand size." },
       { text: 'Condolences, {player}.' },
       { text: 'At least you have options now?' },
-      { text: "Rough hand, {player}. Oriel knows the grind though — immigrant life, family to provide for. Keeps pushing.", weight: 3 },
+      { text: "Rough hand, {player}. Oriel knows the grind though — immigrant life, family to provide for. Keeps pushing.", weight: 3, topicKey: 'origins' },
     ],
     uno_called_self: [
       { text: 'Oh. Uno I guess.' },
@@ -858,6 +897,7 @@ export const DIALOGUE_LINES: Record<
       {
         text: "Oh I won. But the real flex is Oriel's portfolio — this game is pretty creative.",
         weight: 3,
+        topicKey: 'portfolio',
       },
     ],
     game_lost: [
@@ -874,6 +914,7 @@ export const DIALOGUE_LINES: Record<
       {
         text: "GG. Oriel's apps at Trunkrs are still running in production though. That's the real win.",
         weight: 3,
+        topicKey: 'trunkrs',
       },
     ],
     visitor_won: [
@@ -888,10 +929,12 @@ export const DIALOGUE_LINES: Record<
       {
         text: "Nice win, {visitor}. You'd like Oriel — collaborative, no ego, just good vibes.",
         weight: 3,
+        topicKey: 'values',
       },
       {
         text: "GG {visitor}. Oriel's the same at work — focused and gets it done.",
         weight: 3,
+        topicKey: 'work_style',
       },
     ],
     low_cards: [
@@ -926,14 +969,17 @@ export const DIALOGUE_LINES: Record<
       {
         text: "No rush. Oriel's all about taking time to break problems down properly too.",
         weight: 3,
+        topicKey: 'work_style',
       },
       {
         text: "Take your time, {visitor}. Oriel's playing Split Fiction with his daughter these days. Dad vibes.",
         weight: 3,
+        topicKey: 'family_faith',
       },
       {
         text: 'While you think... Oriel values honesty, compassion, and respect. Good dude to work with.',
         weight: 3,
+        topicKey: 'values',
       },
     ],
     drew_card_self: [
@@ -945,7 +991,15 @@ export const DIALOGUE_LINES: Record<
       { text: 'Oh well.' },
       { text: "I'll just draw. No biggie." },
       { text: 'The deck calls.' },
-      { text: "Drawing. Oriel's kid is on the spectrum. That's what drives him. Respect.", weight: 3 },
+      { text: "Drawing. Oriel's kid is on the spectrum. That's what drives him. Respect.", weight: 3, topicKey: 'family_faith' },
+    ],
+    idle: [
+      { text: 'Just vibing.' },
+      { text: 'Cool.' },
+      { text: 'This is fine.' },
+      { text: 'Playing cards.' },
+      { text: 'Chill game.' },
+      { text: 'Hmm.' },
     ],
     personal_info: [
       {

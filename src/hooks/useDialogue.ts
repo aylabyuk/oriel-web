@@ -16,6 +16,7 @@ import { playChat } from '@/utils/sounds';
 import { fetchJokes } from '@/utils/fetchJokes';
 import type { Joke } from '@/utils/fetchJokes';
 import { AI_NAMES, AI_NAME_SET, toDisplayName } from '@/constants/players';
+import { PERSONAL_INFO_TOPICS } from '@/data/personalInfoTopics';
 import {
   AI_INDEX,
   REACTION_DELAY_BASE,
@@ -26,10 +27,8 @@ import {
   PERSONAL_INFO_CHANCE,
   PERSONAL_INFO_INTRO_DURATION,
   PERSONAL_INFO_FACT_DELAY,
-  PERSONAL_INFO_AFFIRM_DELAY,
-  PERSONAL_INFO_AFFIRM_DURATION,
+  PERSONAL_INFO_FOLLOWUP_DELAY,
   PERSONAL_INFO_INTROS,
-  PERSONAL_INFO_AFFIRMATIONS,
   JOKE_CHANCE,
   JOKE_REFETCH_THRESHOLD,
   JOKE_INTRO_DURATION,
@@ -353,6 +352,14 @@ const mapEventToCandidates = (
           }
         }
       }
+
+      // Idle chatter — pick one random AI to maybe comment on quiet turns
+      const idleAi = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
+      candidates.push({
+        personality: idleAi,
+        category: 'idle',
+        context: ctx,
+      });
       break;
     }
   }
@@ -425,6 +432,7 @@ export const useDialogue = (ready: boolean) => {
   const jokePoolRef = useRef<Joke[]>([]);
   const jokeActiveRef = useRef(false);
   const personalInfoActiveRef = useRef(false);
+  const usedTopicIndicesRef = useRef(new Set<number>());
   const fetchingJokesRef = useRef(false);
 
   const refillJokes = useCallback(() => {
@@ -465,6 +473,7 @@ export const useDialogue = (ready: boolean) => {
     gameStartedRef.current = false;
     jokeActiveRef.current = false;
     personalInfoActiveRef.current = false;
+    usedTopicIndicesRef.current.clear();
     setDialogues([null, null, null, null]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
 
@@ -903,22 +912,44 @@ export const useDialogue = (ready: boolean) => {
       if (willShareInfo) {
         personalInfoActiveRef.current = true;
         clearVisitorSlowTimer();
-        const teller = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
+
+        // Pick an unused topic — skip topics whose key was already shown
+        // (either via a prior topic thread or a weight:3 banter line)
+        const selector = selectorRef.current;
+        let available = PERSONAL_INFO_TOPICS
+          .map((_, i) => i)
+          .filter(
+            (i) =>
+              !usedTopicIndicesRef.current.has(i) &&
+              !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
+          );
+        if (available.length === 0) {
+          usedTopicIndicesRef.current.clear();
+          available = PERSONAL_INFO_TOPICS
+            .map((_, i) => i)
+            .filter((i) => !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey));
+        }
+        if (available.length === 0) {
+          // All topic keys exhausted — full reset
+          available = PERSONAL_INFO_TOPICS.map((_, i) => i);
+        }
+        const topicIndex = available[Math.floor(Math.random() * available.length)];
+        usedTopicIndicesRef.current.add(topicIndex);
+        const topic = PERSONAL_INFO_TOPICS[topicIndex];
+        selector.markTopicShown(topic.topicKey);
+
         const displayVisitor = toDisplayName(visitorName);
-        const ctx = { visitor: displayVisitor };
-        const text = selectorRef.current.selectLine(
-          teller,
-          'personal_info',
-          ctx,
-          now,
-        );
+        const teller = topic.entries[0].personality;
+        const tellerIdx = AI_INDEX[teller];
+        const baseT = REACTION_DELAY_BASE;
+        const infoTimers: ReturnType<typeof setTimeout>[] = [];
 
-        if (text) {
-          const tellerIdx = AI_INDEX[teller];
-          const baseT = REACTION_DELAY_BASE;
-          const infoTimers: ReturnType<typeof setTimeout>[] = [];
+        // Phase 1 — Intro (only 20% of the time — visitor already knows
+        // the AIs share info about Oriel, so skip the preamble most rounds)
+        const showIntro = Math.random() < 0.2;
+        let cursor: number;
 
-          // Phase 1 — Intro: "Hey, since you're here to learn about Oriel..."
+        if (showIntro) {
           const introPool = PERSONAL_INFO_INTROS[teller];
           let introLine = introPool[Math.floor(Math.random() * introPool.length)];
           introLine = introLine.split('{visitor}').join(displayVisitor);
@@ -944,71 +975,49 @@ export const useDialogue = (ready: boolean) => {
             });
           }, introHideT);
           infoTimers.push(introShow, introHide);
-
-          // Phase 2 — Teller shares the actual fact
-          const factStart = introHideT + PERSONAL_INFO_FACT_DELAY;
-          const factReadTime = jokeReadTime(text);
-
-          const factShow = setTimeout(() => {
-            playChat(teller);
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[tellerIdx] = { message: text, key: Date.now() };
-              return n;
-            });
-            setHistory((prev) => [
-              ...prev,
-              { kind: 'dialogue', personality: teller, message: text, timestamp: Date.now() },
-            ]);
-          }, factStart);
-          const factHide = setTimeout(() => {
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[tellerIdx] = null;
-              return n;
-            });
-          }, factStart + factReadTime);
-          infoTimers.push(factShow, factHide);
-
-          // Phase 3 — Another AI affirms
-          const affirmers = otherAis(teller);
-          const affirmer = affirmers[Math.floor(Math.random() * affirmers.length)];
-          const affirmerIdx = AI_INDEX[affirmer];
-          const affirmPool = PERSONAL_INFO_AFFIRMATIONS[affirmer] ?? PERSONAL_INFO_AFFIRMATIONS[AI_NAMES[0]];
-          const affirmLine = affirmPool[Math.floor(Math.random() * affirmPool.length)];
-          const affirmStart = factStart + factReadTime + PERSONAL_INFO_AFFIRM_DELAY;
-
-          const affirmShow = setTimeout(() => {
-            playChat(affirmer);
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[affirmerIdx] = { message: affirmLine, key: Date.now() };
-              return n;
-            });
-            setHistory((prev) => [
-              ...prev,
-              { kind: 'dialogue', personality: affirmer, message: affirmLine, timestamp: Date.now() },
-            ]);
-          }, affirmStart);
-          const affirmHide = setTimeout(() => {
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[affirmerIdx] = null;
-              return n;
-            });
-          }, affirmStart + PERSONAL_INFO_AFFIRM_DURATION);
-          infoTimers.push(affirmShow, affirmHide);
-
-          // Deactivate personal info guard after sequence ends
-          const infoEnd = setTimeout(() => {
-            personalInfoActiveRef.current = false;
-          }, affirmStart + PERSONAL_INFO_AFFIRM_DURATION);
-          infoTimers.push(infoEnd);
-
-          timersRef.current.push(...infoTimers);
+          cursor = introHideT + PERSONAL_INFO_FACT_DELAY;
         } else {
-          personalInfoActiveRef.current = false;
+          // Skip intro — jump straight to topic entries
+          cursor = baseT;
         }
+
+        // Phase 2+ — Topic thread entries (2-3 AIs contributing)
+
+        for (const entry of topic.entries) {
+          const entryIdx = AI_INDEX[entry.personality];
+          const readTime = jokeReadTime(entry.text);
+
+          const entryShow = setTimeout(() => {
+            playChat(entry.personality);
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[entryIdx] = { message: entry.text, key: Date.now() };
+              return n;
+            });
+            setHistory((prev) => [
+              ...prev,
+              { kind: 'dialogue', personality: entry.personality, message: entry.text, timestamp: Date.now() },
+            ]);
+          }, cursor);
+          const entryHide = setTimeout(() => {
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[entryIdx] = null;
+              return n;
+            });
+          }, cursor + readTime);
+          infoTimers.push(entryShow, entryHide);
+
+          cursor += readTime + PERSONAL_INFO_FOLLOWUP_DELAY;
+        }
+
+        // Deactivate personal info guard after last entry hides
+        const infoEnd = setTimeout(() => {
+          personalInfoActiveRef.current = false;
+        }, cursor - PERSONAL_INFO_FOLLOWUP_DELAY);
+        infoTimers.push(infoEnd);
+
+        timersRef.current.push(...infoTimers);
       }
     }
   }, [events, snapshot, refillJokes]);

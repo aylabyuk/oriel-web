@@ -16,6 +16,8 @@ import {
 type SelectorState = {
   history: Record<AiPersonality, string[]>;
   lastTime: Record<AiPersonality, number>;
+  /** Topic keys that have already been shown (via topic threads or banter). */
+  shownTopicKeys: Set<string>;
 };
 
 type LineContext = {
@@ -27,6 +29,7 @@ export const createDialogueSelector = () => {
   const state: SelectorState = {
     history: { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] },
     lastTime: { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 },
+    shownTopicKeys: new Set(),
   };
 
   const selectLine = (
@@ -42,8 +45,11 @@ export const createDialogueSelector = () => {
     if (!lines || lines.length === 0) return null;
 
     const recent = new Set(state.history[personality]);
-    const candidates = lines.filter((l) => !recent.has(l.text));
-    const pool = candidates.length > 0 ? candidates : lines;
+    const candidates = lines.filter(
+      (l) => !recent.has(l.text) && (!l.topicKey || !state.shownTopicKeys.has(l.topicKey)),
+    );
+    const pool = candidates.length > 0 ? candidates : lines.filter((l) => !l.topicKey || !state.shownTopicKeys.has(l.topicKey));
+    if (pool.length === 0) return null;
 
     const totalWeight = pool.reduce((sum, l) => sum + (l.weight ?? 1), 0);
     let roll = Math.random() * totalWeight;
@@ -67,15 +73,29 @@ export const createDialogueSelector = () => {
     }
     state.lastTime[personality] = now;
 
+    // Mark the topic key as shown so the same fact doesn't resurface
+    if (selected.topicKey) {
+      state.shownTopicKeys.add(selected.topicKey);
+    }
+
     return text;
   };
+
+  /** Mark a topic key as shown (called when a topic thread plays). */
+  const markTopicShown = (key: string) => {
+    state.shownTopicKeys.add(key);
+  };
+
+  /** Check if a topic key has already been shown. */
+  const isTopicShown = (key: string): boolean => state.shownTopicKeys.has(key);
 
   const reset = () => {
     state.history = { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] };
     state.lastTime = { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 };
+    state.shownTopicKeys.clear();
   };
 
-  return { selectLine, reset };
+  return { selectLine, markTopicShown, isTopicShown, reset };
 };
 
 /**
