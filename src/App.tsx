@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import {
   selectHasEnteredWelcome,
@@ -30,6 +30,7 @@ import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/utils/cn';
+import { setSoundEnabled, playGather } from '@/utils/sounds';
 import type { Color } from 'uno-engine';
 
 export const App = () => {
@@ -67,6 +68,7 @@ export const App = () => {
   }, [freeLook, toggleFreeLook]);
   const handleFreeLookExplainerDismiss = useCallback(() => setFreeLookExplainerOpen(false), []);
   const [soundOn, handleSoundToggle] = usePersistedState('sound', true);
+  useEffect(() => setSoundEnabled(soundOn), [soundOn]);
   const [musicOn, handleMusicToggle] = usePersistedState('music', true);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const handleRestartClick = useCallback(() => setRestartConfirmOpen(true), []);
@@ -165,6 +167,7 @@ export const App = () => {
     setChallengeReady(false);
     setDealingComplete(false);
     pendingDrawRef.current = null;
+    playGather();
     restartGame();
   }, [restartGame]);
 

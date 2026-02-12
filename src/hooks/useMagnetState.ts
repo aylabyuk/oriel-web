@@ -19,6 +19,7 @@ import {
   DRAW_GAP_DELAY,
   DRAW_DROP_DELAY,
 } from './useMagnetState.constants';
+import { playSwoosh, playFan, playSlide, playPlop } from '@/utils/sounds';
 
 // --- Types ---
 
@@ -148,9 +149,16 @@ export const useMagnetState = (
     // Phase steps are instant — apply and immediately continue so React
     // batches the phase change with the first real step (no intermediate render).
     if (step.type === 'phase') {
+      if (step.phase === 'spreading') setTimeout(playFan, 100);
       // eslint-disable-next-line react-hooks/immutability -- synchronous recursion; processNext is assigned when this executes
       processNext();
       return;
+    }
+
+    if (step.type === 'deal' || step.type === 'draw_lift') playSwoosh();
+    if (step.type === 'play_gap' || step.type === 'play_move' || step.type === 'draw_gap') playSlide();
+    if (step.type === 'play_drop' || step.type === 'discard_drop') {
+      setTimeout(playPlop, 250);
     }
 
     const delay = (() => {
