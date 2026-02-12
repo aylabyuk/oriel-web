@@ -11,7 +11,7 @@ export const CATEGORY_PROBABILITY: Record<DialogueCategory, number> = {
   played_wild: 0.3,
   opponent_got_skipped: 0.3,
   opponent_drew_cards: 0.25,
-  uno_called_self: 0.8,
+  uno_called_self: 1.0,
   uno_called_opponent: 0.7,
   uno_caught: 0.9,
   challenge_bluff_caught: 0.95,

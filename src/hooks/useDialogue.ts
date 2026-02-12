@@ -86,7 +86,7 @@ const formatEventAction = (
     case 'card_drawn':
       return { playerName: name, message: 'drew a card' };
     case 'uno_called':
-      return { playerName: name, message: 'called UNO!' };
+      return null; // handled as 'shout' entry below
     case 'uno_penalty': {
       const count = (event.data?.count as number) ?? 2;
       return {
@@ -543,6 +543,19 @@ export const useDialogue = (ready: boolean) => {
     const visitorName = snapshot.players[0]?.name ?? 'Player';
 
     for (const event of newEvents) {
+      // UNO shout — special red banner entry
+      if (event.type === 'uno_called') {
+        setHistory((prev) => [
+          ...prev,
+          {
+            kind: 'shout',
+            playerName: toDisplayName(event.playerName),
+            message: 'UNO!',
+            timestamp: Date.now(),
+          },
+        ]);
+      }
+
       // Log game action to history
       const action = formatEventAction(event, snapshot);
       if (action) {
@@ -560,13 +573,21 @@ export const useDialogue = (ready: boolean) => {
       const candidates = mapEventToCandidates(event, snapshot, visitorName);
       if (candidates.length === 0) continue;
 
-      // Shuffle so the same AI doesn't always react first
-      shuffle(candidates);
+      // Prioritize self-referencing categories (e.g. UNO shout) before shuffle
+      const priority: string[] = ['uno_called_self'];
+      const prioritized = candidates.filter((c) =>
+        priority.includes(c.category),
+      );
+      const rest = candidates.filter(
+        (c) => !priority.includes(c.category),
+      );
+      shuffle(rest);
+      const ordered = [...prioritized, ...rest];
 
       let reactorCount = 0;
       const selected: { personality: AiPersonality; text: string }[] = [];
 
-      for (const c of candidates) {
+      for (const c of ordered) {
         if (reactorCount >= MAX_REACTORS) break;
         // Skip if this personality already selected for this event
         if (selected.some((s) => s.personality === c.personality)) continue;

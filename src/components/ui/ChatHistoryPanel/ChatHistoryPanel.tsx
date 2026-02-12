@@ -50,7 +50,18 @@ const ChatMessages = ({
         </p>
       ) : (
         history.map((entry, i) =>
-          entry.kind === 'action' ? (
+          entry.kind === 'shout' ? (
+            <div
+              key={`${entry.timestamp}-${i}`}
+              className="flex items-center gap-2 py-1"
+            >
+              <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
+              <span className="text-[11px] font-black tracking-widest text-red-600 sm:text-xs dark:text-red-400">
+                {entry.playerName.toUpperCase()} — {entry.message}
+              </span>
+              <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
+            </div>
+          ) : entry.kind === 'action' ? (
             <div
               key={`${entry.timestamp}-${i}`}
               className="flex items-center gap-2 py-0.5"
