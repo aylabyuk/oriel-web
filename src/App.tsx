@@ -38,6 +38,7 @@ import {
   playVictory,
   playDefeat,
 } from '@/utils/sounds';
+import { setMusicEnabled } from '@/utils/music';
 import type { Color } from 'uno-engine';
 
 export const App = () => {
@@ -77,6 +78,7 @@ export const App = () => {
   const [soundOn, handleSoundToggle] = usePersistedState('sound', true);
   useEffect(() => setSoundEnabled(soundOn), [soundOn]);
   const [musicOn, handleMusicToggle] = usePersistedState('music', true);
+  useEffect(() => setMusicEnabled(musicOn), [musicOn]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const handleRestartClick = useCallback(() => setRestartConfirmOpen(true), []);
   const handleRestartCancel = useCallback(() => setRestartConfirmOpen(false), []);

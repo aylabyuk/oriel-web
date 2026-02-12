@@ -2,7 +2,7 @@ let ctx: AudioContext | null = null;
 let noiseBuffer: AudioBuffer | null = null;
 let enabled = true;
 
-const getCtx = (): AudioContext => {
+export const getCtx = (): AudioContext => {
   if (!ctx) ctx = new AudioContext();
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
