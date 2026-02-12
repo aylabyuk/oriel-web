@@ -1,5 +1,17 @@
 import { useSpring, animated } from '@react-spring/web';
 import { useTranslation } from '@/hooks/useTranslation';
+import {
+  AI_STRATEGIST,
+  AI_TRASH_TALKER,
+  AI_CHILL,
+  AVATAR_COLORS,
+} from '@/constants/players';
+
+const FRIENDS = [
+  { name: AI_STRATEGIST, key: 'meio' as const },
+  { name: AI_TRASH_TALKER, key: 'mark' as const },
+  { name: AI_CHILL, key: 'paul' as const },
+];
 
 type DisclaimerModalProps = {
   open: boolean;
@@ -43,8 +55,29 @@ export const DisclaimerModal = ({
           {t('disclaimer.body')}
         </p>
 
+        <ul className="flex flex-col gap-2.5">
+          {FRIENDS.map(({ name, key }) => (
+            <li key={name} className="flex items-start gap-2.5">
+              <div
+                className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: AVATAR_COLORS[name] }}
+              >
+                {name.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <span className="text-sm font-semibold text-neutral-900 dark:text-white">
+                  {name}
+                </span>
+                <p className="text-xs leading-snug text-neutral-500 dark:text-white/50">
+                  {t(`disclaimer.${key}`)}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
         <p className="text-xs leading-relaxed text-neutral-400 italic dark:text-white/50">
-          {t('disclaimer.landscape')}
+          {t('disclaimer.headsUp')}
         </p>
 
         <div className="text-sm text-neutral-600 dark:text-white/70">

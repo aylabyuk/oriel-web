@@ -85,10 +85,13 @@ export const en = {
   },
   disclaimer: {
     greeting: 'Hi {{name}},',
-    body: "Thanks for stopping by! Just a heads up — my AI opponents have... strong personalities. They might trash talk, tease, or say something a little extra. It's all part of the game and meant to be fun, so please don't take anything personally!",
-    landscape:
-      'For the best experience on mobile, try rotating to landscape mode.',
-    closing: 'Warm regards,',
+    body: "Thanks for stopping by! Before we start, meet my three AI friends who'll be joining us at the table:",
+    meio: "The quiet strategist. Always three moves ahead. Will politely destroy you.",
+    mark: "The loud one. Will absolutely trash talk you. Nothing personal — he does it to everyone.",
+    paul: "The chill guy. Just here for a good time. Might share a joke or two.",
+    headsUp:
+      "Fair warning: they have strong personalities, zero filter, and will 100% gang up on you if it's funny. They'll also share random facts about me between rounds — some true, some... slightly exaggerated. Don't believe everything Mark says.",
+    closing: 'Have fun out there,',
     signature: 'Oriel',
     button: "Let's Play",
   },
