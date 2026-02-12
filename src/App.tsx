@@ -28,6 +28,7 @@ import { RulesModal } from '@/components/ui/RulesModal';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/utils/cn';
 import type { Color } from 'uno-engine';
 
@@ -50,25 +51,23 @@ export const App = () => {
   const [dealingComplete, setDealingComplete] = useState(false);
   const { dialogues, history } = useDialogue(dealingComplete);
   const { t } = useTranslation();
-  const [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 640);
-  const handleChatToggle = useCallback(() => setChatOpen((prev) => !prev), []);
+  const [chatOpen, handleChatToggle] = usePersistedState(
+    'chat',
+    () => window.innerWidth >= 640,
+  );
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [disclaimerAcked, setDisclaimerAcked] = useState(false);
-  const [freeLook, setFreeLook] = useState(false);
+  const [freeLook, toggleFreeLook] = usePersistedState('freeLook', false);
   const [freeLookExplainerOpen, setFreeLookExplainerOpen] = useState(false);
   const handleFreeLookToggle = useCallback(() => {
-    setFreeLook((prev) => {
-      if (!prev) setFreeLookExplainerOpen(true);
-      else setFreeLookExplainerOpen(false);
-      return !prev;
-    });
-  }, []);
+    // freeLook is the current value before toggle
+    setFreeLookExplainerOpen(!freeLook);
+    toggleFreeLook();
+  }, [freeLook, toggleFreeLook]);
   const handleFreeLookExplainerDismiss = useCallback(() => setFreeLookExplainerOpen(false), []);
-  const [soundOn, setSoundOn] = useState(true);
-  const handleSoundToggle = useCallback(() => setSoundOn((prev) => !prev), []);
-  const [musicOn, setMusicOn] = useState(true);
-  const handleMusicToggle = useCallback(() => setMusicOn((prev) => !prev), []);
+  const [soundOn, handleSoundToggle] = usePersistedState('sound', true);
+  const [musicOn, handleMusicToggle] = usePersistedState('music', true);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const handleRestartClick = useCallback(() => setRestartConfirmOpen(true), []);
   const handleRestartCancel = useCallback(() => setRestartConfirmOpen(false), []);
