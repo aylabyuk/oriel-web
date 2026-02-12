@@ -75,6 +75,7 @@ export const en = {
     openLabel: 'Open chat history',
     expand: 'Expand chat',
     collapse: 'Collapse chat',
+    activityLog: 'Activity',
     tabChat: 'Chat',
     tabAbout: 'About Oriel',
     progress: '{{count}} / {{total}} discovered',

@@ -24,14 +24,15 @@ const TabSwitcher = ({
   tab,
   onTabChange,
   compact,
-  aboutHasNew,
+  aboutNewCount,
 }: {
   tab: Tab;
   onTabChange: (tab: Tab) => void;
   compact?: boolean;
-  aboutHasNew?: boolean;
+  aboutNewCount?: number;
 }) => {
   const { t } = useTranslation();
+  const showBadge = !!aboutNewCount && aboutNewCount > 0 && tab !== 'about';
   return (
     <div
       className={cn(
@@ -52,9 +53,9 @@ const TabSwitcher = ({
           )}
         >
           {key === 'chat' ? t('chat.tabChat') : t('chat.tabAbout')}
-          {key === 'about' && aboutHasNew && tab !== 'about' && (
-            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]">
-              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-75" />
+          {key === 'about' && showBadge && (
+            <span className="absolute -top-1.5 -right-2.5 flex min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 py-px text-[8px] font-bold leading-none text-white shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+              {aboutNewCount}
             </span>
           )}
         </button>
@@ -63,10 +64,12 @@ const TabSwitcher = ({
   );
 };
 
+type TopicMessage = { text: string; timestamp: number };
+
 type DiscoveredTopic = {
   topicKey: string;
   label: string;
-  messages: string[];
+  messages: TopicMessage[];
   firstSeen: number;
 };
 
@@ -76,7 +79,7 @@ const useDiscoveredTopics = (
   useMemo(() => {
     const topicMap = new Map<
       string,
-      { messages: string[]; firstSeen: number }
+      { messages: TopicMessage[]; firstSeen: number }
     >();
 
     for (const entry of history) {
@@ -84,12 +87,15 @@ const useDiscoveredTopics = (
       const existing = topicMap.get(entry.topicKey);
       if (existing) {
         // Avoid duplicate messages (e.g. from game restart replaying same topic)
-        if (!existing.messages.includes(entry.message)) {
-          existing.messages.push(entry.message);
+        if (!existing.messages.some((m) => m.text === entry.message)) {
+          existing.messages.push({
+            text: entry.message,
+            timestamp: entry.timestamp,
+          });
         }
       } else {
         topicMap.set(entry.topicKey, {
-          messages: [entry.message],
+          messages: [{ text: entry.message, timestamp: entry.timestamp }],
           firstSeen: entry.timestamp,
         });
       }
@@ -114,7 +120,13 @@ const scrollbarClasses = cn(
   '[&:hover::-webkit-scrollbar-thumb:hover]:bg-neutral-900/40 dark:[&:hover::-webkit-scrollbar-thumb:hover]:bg-white/40',
 );
 
-const AboutMessages = ({ history }: { history: DialogueHistoryEntry[] }) => {
+const AboutMessages = ({
+  history,
+  lastSeenAt,
+}: {
+  history: DialogueHistoryEntry[];
+  lastSeenAt: number;
+}) => {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const topics = useDiscoveredTopics(history);
@@ -178,29 +190,58 @@ const AboutMessages = ({ history }: { history: DialogueHistoryEntry[] }) => {
       </div>
 
       {/* Discovered topics */}
-      {topics.map((topic) => (
-        <div
-          key={topic.topicKey}
-          className="border-l-2 border-emerald-500/50 pl-2.5 dark:border-emerald-400/40"
-        >
-          <p className="text-[11px] font-semibold text-neutral-700 sm:text-xs dark:text-white/80">
-            {topic.label}
-          </p>
-          <ul className="mt-0.5 space-y-0.5">
-            {topic.messages.map((msg, i) => (
-              <li
-                key={i}
-                className="text-[10px] leading-snug text-neutral-500 sm:text-[11px] dark:text-white/50"
-              >
-                <span className="mr-1 text-neutral-300 dark:text-white/20">
-                  &bull;
+      {topics.map((topic) => {
+        const isNewTopic = topic.firstSeen > lastSeenAt;
+        const hasNewMessages = topic.messages.some(
+          (m) => m.timestamp > lastSeenAt,
+        );
+        return (
+          <div
+            key={topic.topicKey}
+            className={cn(
+              'border-l-2 pl-2.5',
+              isNewTopic
+                ? 'border-emerald-500 dark:border-emerald-400'
+                : 'border-emerald-500/50 dark:border-emerald-400/40',
+            )}
+          >
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-700 sm:text-xs dark:text-white/80">
+              {topic.label}
+              {isNewTopic && (
+                <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
+                  NEW
                 </span>
-                {msg}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+              )}
+            </p>
+            <ul className="mt-0.5 space-y-0.5">
+              {topic.messages.map((msg, i) => {
+                const isNew = !isNewTopic && msg.timestamp > lastSeenAt;
+                return (
+                  <li
+                    key={i}
+                    className={cn(
+                      'text-[10px] leading-snug sm:text-[11px]',
+                      isNew || isNewTopic
+                        ? 'text-neutral-700 dark:text-white/70'
+                        : 'text-neutral-500 dark:text-white/50',
+                    )}
+                  >
+                    <span className="mr-1 text-neutral-300 dark:text-white/20">
+                      &bull;
+                    </span>
+                    {msg.text}
+                    {isNew && hasNewMessages && (
+                      <span className="ml-1 rounded bg-emerald-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
+                        NEW
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
 
       {/* Undiscovered placeholders */}
       {undiscoveredCount > 0 &&
@@ -221,12 +262,22 @@ const AboutMessages = ({ history }: { history: DialogueHistoryEntry[] }) => {
 const ChatMessages = ({
   history,
   maxHeight,
+  showActions,
 }: {
   history: DialogueHistoryEntry[];
   maxHeight?: string;
+  showActions: boolean;
 }) => {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const filtered = useMemo(
+    () =>
+      showActions
+        ? history
+        : history.filter((e) => e.kind !== 'action'),
+    [history, showActions],
+  );
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -236,7 +287,7 @@ const ChatMessages = ({
       el.scrollTop = el.scrollHeight;
     });
     return () => cancelAnimationFrame(id);
-  }, [history]);
+  }, [filtered]);
 
   return (
     <div
@@ -247,91 +298,124 @@ const ChatMessages = ({
       )}
       style={maxHeight ? { maxHeight } : undefined}
     >
-      {history.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="text-center text-xs text-neutral-400/60 italic dark:text-white/30">
           {t('chat.empty')}
         </p>
       ) : (
-        history.map((entry, i) => {
-          const prevEntry = history[i - 1];
-          const nextEntry = history[i + 1];
+        filtered.map((entry, i) => {
           const tid = entry.kind === 'dialogue' ? entry.threadId : undefined;
+
+          // Look past action/shout entries to find the previous dialogue
+          let prevDialogue: DialogueHistoryEntry | undefined;
+          for (let j = i - 1; j >= 0; j--) {
+            if (filtered[j].kind === 'dialogue') {
+              prevDialogue = filtered[j];
+              break;
+            }
+          }
           const prevTid =
-            prevEntry?.kind === 'dialogue' ? prevEntry.threadId : undefined;
-          const nextTid =
-            nextEntry?.kind === 'dialogue' ? nextEntry.threadId : undefined;
+            prevDialogue?.kind === 'dialogue'
+              ? prevDialogue.threadId
+              : undefined;
           const isThreadContinuation = !!tid && tid === prevTid;
-          const isThreadEnd = !!tid && tid !== nextTid;
-          const spacing =
-            i === 0 ? '' : isThreadContinuation ? 'mt-1' : 'mt-2 sm:mt-3';
-          const threadBorder =
-            tid && (isThreadContinuation || tid === nextTid)
-              ? 'border-l-2 border-neutral-300/50 dark:border-white/10 ml-1 pl-2'
+
+          // Discord-style: collapse header when same author follows itself in a thread
+          const isSameAuthor =
+            entry.kind === 'dialogue' &&
+            prevDialogue?.kind === 'dialogue' &&
+            entry.personality === prevDialogue.personality;
+          const isCompact = isThreadContinuation && isSameAuthor;
+
+          // Whether this dialogue is a reply (part of a thread but not the first)
+          const isReply =
+            entry.kind === 'dialogue' && !!tid && !isCompact && isThreadContinuation;
+
+          const isGroupStart =
+            i > 0 && !isCompact && !isThreadContinuation;
+
+          const spacing = isCompact
+            ? 'mt-0.5'
+            : isThreadContinuation
+              ? 'mt-1'
               : '';
-          const threadEndRounding =
-            isThreadEnd && !isThreadContinuation
-              ? ''
-              : isThreadEnd
-                ? 'pb-0.5'
-                : '';
+
+          const replyStyle =
+            'ml-3 border-l-2 border-neutral-300/40 pl-2 dark:border-white/10';
+
+          const separator = isGroupStart && (
+            <div className="-mx-3 my-2 h-px bg-neutral-200/60 sm:-mx-4 sm:my-2.5 dark:bg-white/5" />
+          );
 
           return entry.kind === 'shout' ? (
-            <div
-              key={`${entry.timestamp}-${i}`}
-              className={cn('flex items-center gap-2 py-1', spacing)}
-            >
-              <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
-              <span className="text-[11px] font-black tracking-widest text-red-600 sm:text-xs dark:text-red-400">
-                {entry.playerName.toUpperCase()} — {entry.message}
-              </span>
-              <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
+            <div key={`${entry.timestamp}-${i}`}>
+              {separator}
+              <div className={cn('flex items-center gap-2 py-1', spacing)}>
+                <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
+                <span className="text-[11px] font-black tracking-widest text-red-600 sm:text-xs dark:text-red-400">
+                  {entry.playerName.toUpperCase()} — {entry.message}
+                </span>
+                <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
+              </div>
             </div>
           ) : entry.kind === 'action' ? (
+            <div key={`${entry.timestamp}-${i}`}>
+              {separator}
+              <div className={cn('flex items-center gap-2 py-0.5', spacing)}>
+                <span className="text-[10px] text-neutral-500 sm:text-xs dark:text-white/40">
+                  <span className="font-semibold text-neutral-700 dark:text-white/60">
+                    {entry.playerName}
+                  </span>{' '}
+                  {entry.message}
+                </span>
+                <span className="ml-auto shrink-0 text-[8px] text-neutral-400 sm:text-[10px] dark:text-white/20">
+                  {formatTime(entry.timestamp)}
+                </span>
+              </div>
+            </div>
+          ) : isCompact ? (
             <div
               key={`${entry.timestamp}-${i}`}
-              className={cn('flex items-center gap-2 py-0.5', spacing)}
+              className={cn('flex items-start gap-2', spacing, replyStyle)}
             >
-              <span className="text-[10px] text-neutral-500 sm:text-xs dark:text-white/40">
-                <span className="font-semibold text-neutral-700 dark:text-white/60">
-                  {entry.playerName}
-                </span>{' '}
+              {/* Invisible spacer matching avatar width */}
+              <div className="size-5 shrink-0 sm:size-6" />
+              <p className="min-w-0 flex-1 text-xs leading-snug text-neutral-700 sm:text-sm dark:text-white/80">
                 {entry.message}
-              </span>
-              <span className="ml-auto shrink-0 text-[8px] text-neutral-400 sm:text-[10px] dark:text-white/20">
-                {formatTime(entry.timestamp)}
-              </span>
+              </p>
             </div>
           ) : (
-            <div
-              key={`${entry.timestamp}-${i}`}
-              className={cn(
-                'flex items-start gap-2',
-                spacing,
-                threadBorder,
-                threadEndRounding,
-              )}
-            >
+            <div key={`${entry.timestamp}-${i}`}>
+              {separator}
               <div
-                className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white sm:size-6 sm:text-[10px]"
-                style={{ backgroundColor: AVATAR_COLORS[entry.personality] }}
+                className={cn(
+                  'flex items-start gap-2',
+                  spacing,
+                  isReply && replyStyle,
+                )}
               >
-                {entry.personality.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className="text-[10px] font-semibold sm:text-xs"
-                    style={{ color: AVATAR_COLORS[entry.personality] }}
-                  >
-                    {entry.personality}
-                  </span>
-                  <span className="text-[8px] text-neutral-400 sm:text-[10px] dark:text-white/30">
-                    {formatTime(entry.timestamp)}
-                  </span>
+                <div
+                  className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white sm:size-6 sm:text-[10px]"
+                  style={{ backgroundColor: AVATAR_COLORS[entry.personality] }}
+                >
+                  {entry.personality.charAt(0)}
                 </div>
-                <p className="text-xs leading-snug text-neutral-700 sm:text-sm dark:text-white/80">
-                  {entry.message}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className="text-[10px] font-semibold sm:text-xs"
+                      style={{ color: AVATAR_COLORS[entry.personality] }}
+                    >
+                      {entry.personality}
+                    </span>
+                    <span className="text-[8px] text-neutral-400 sm:text-[10px] dark:text-white/30">
+                      {formatTime(entry.timestamp)}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-snug text-neutral-700 sm:text-sm dark:text-white/80">
+                    {entry.message}
+                  </p>
+                </div>
               </div>
             </div>
           );
@@ -345,30 +429,35 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<Tab>('chat');
+  const [showActions, setShowActions] = useState(false);
   const topics = useDiscoveredTopics(history);
-  const totalTopicMessages = topics.reduce(
-    (sum, topic) => sum + topic.messages.length,
+  const lastSeenAtRef = useRef(0);
+  // Snapshot of lastSeenAt captured when opening the About tab — used to render
+  // NEW labels inside AboutMessages so they survive the badge-clearing update.
+  const [aboutViewedAt, setAboutViewedAt] = useState(0);
+  const aboutNewCount = topics.reduce(
+    (sum, topic) =>
+      sum + topic.messages.filter((m) => m.timestamp > lastSeenAtRef.current).length,
     0,
   );
-  const seenMessagesRef = useRef(0);
-  const aboutHasNew = totalTopicMessages > seenMessagesRef.current;
 
-  const handleTabChange = useCallback(
-    (next: Tab) => {
-      setTab(next);
-      if (next === 'about') {
-        seenMessagesRef.current = totalTopicMessages;
-      }
-    },
-    [totalTopicMessages],
-  );
-
-  // Also mark as seen if already on the About tab when new messages arrive
-  useEffect(() => {
-    if (tab === 'about') {
-      seenMessagesRef.current = totalTopicMessages;
+  const handleTabChange = useCallback((next: Tab) => {
+    setTab(next);
+    if (next === 'about') {
+      // Snapshot the old value for rendering NEW labels, then clear the badge
+      setAboutViewedAt(lastSeenAtRef.current);
+      lastSeenAtRef.current = Date.now();
     }
-  }, [tab, totalTopicMessages]);
+  }, []);
+
+  // When already on the About tab and new messages arrive, update the snapshot
+  // so newly arriving messages still show NEW labels, then clear the badge.
+  useEffect(() => {
+    if (tab === 'about' && aboutNewCount > 0) {
+      setAboutViewedAt(lastSeenAtRef.current);
+      lastSeenAtRef.current = Date.now();
+    }
+  }, [tab, aboutNewCount]);
 
   const handleToggleExpand = useCallback(
     () => setExpanded((prev) => !prev),
@@ -403,9 +492,23 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
           <TabSwitcher
             tab={tab}
             onTabChange={handleTabChange}
-            aboutHasNew={aboutHasNew}
+            aboutNewCount={aboutNewCount}
             compact
           />
+          {tab === 'chat' && (
+            <button
+              type="button"
+              onClick={() => setShowActions((p) => !p)}
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[9px] font-medium transition-colors',
+                showActions
+                  ? 'bg-neutral-200/80 text-neutral-600 dark:bg-white/15 dark:text-white/60'
+                  : 'text-neutral-400 hover:text-neutral-500 dark:text-white/25 dark:hover:text-white/40',
+              )}
+            >
+              {t('chat.activityLog')}
+            </button>
+          )}
           <span className="ml-auto text-[10px] text-neutral-400 dark:text-white/40">
             {tab === 'chat'
               ? t('chat.messageCount', { count: history.length })
@@ -416,9 +519,9 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
           </span>
         </div>
         {tab === 'chat' ? (
-          <ChatMessages history={history} />
+          <ChatMessages history={history} showActions={showActions} />
         ) : (
-          <AboutMessages history={history} />
+          <AboutMessages history={history} lastSeenAt={aboutViewedAt} />
         )}
         <button
           type="button"
@@ -446,8 +549,22 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
           <TabSwitcher
             tab={tab}
             onTabChange={handleTabChange}
-            aboutHasNew={aboutHasNew}
+            aboutNewCount={aboutNewCount}
           />
+          {tab === 'chat' && (
+            <button
+              type="button"
+              onClick={() => setShowActions((p) => !p)}
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[9px] font-medium transition-colors sm:text-[10px]',
+                showActions
+                  ? 'bg-neutral-200/80 text-neutral-600 dark:bg-white/15 dark:text-white/60'
+                  : 'text-neutral-400 hover:text-neutral-500 dark:text-white/25 dark:hover:text-white/40',
+              )}
+            >
+              {t('chat.activityLog')}
+            </button>
+          )}
           <span className="ml-auto text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
             {tab === 'chat'
               ? t('chat.messageCount', { count: history.length })
@@ -458,9 +575,9 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
           </span>
         </div>
         {tab === 'chat' ? (
-          <ChatMessages history={history} />
+          <ChatMessages history={history} showActions={showActions} />
         ) : (
-          <AboutMessages history={history} />
+          <AboutMessages history={history} lastSeenAt={aboutViewedAt} />
         )}
       </animated.div>
     </>
