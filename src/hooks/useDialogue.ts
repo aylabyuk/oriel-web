@@ -930,8 +930,16 @@ export const useDialogue = (ready: boolean) => {
             .filter((i) => !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey));
         }
         if (available.length === 0) {
-          // All topic keys exhausted — full reset
-          available = PERSONAL_INFO_TOPICS.map((_, i) => i);
+          // All topics exhausted — fall back to regular banter/jokes
+          personalInfoActiveRef.current = false;
+          scheduleDialogues(
+            selected,
+            REACTION_DELAY_BASE,
+            timersRef,
+            setDialogues,
+            setHistory,
+          );
+          continue;
         }
         const topicIndex = available[Math.floor(Math.random() * available.length)];
         usedTopicIndicesRef.current.add(topicIndex);
@@ -996,7 +1004,7 @@ export const useDialogue = (ready: boolean) => {
             });
             setHistory((prev) => [
               ...prev,
-              { kind: 'dialogue', personality: entry.personality, message: entry.text, timestamp: Date.now() },
+              { kind: 'dialogue', personality: entry.personality, message: entry.text, timestamp: Date.now(), topicKey: topic.topicKey },
             ]);
           }, cursor);
           const entryHide = setTimeout(() => {

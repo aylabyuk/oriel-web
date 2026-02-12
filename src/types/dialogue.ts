@@ -48,6 +48,7 @@ export type DialogueHistoryEntry =
       personality: AiPersonality;
       message: string;
       timestamp: number;
+      topicKey?: string;
     }
   | { kind: 'action'; playerName: string; message: string; timestamp: number }
   | { kind: 'shout'; playerName: string; message: string; timestamp: number };

@@ -1,6 +1,23 @@
 import type { AiPersonality } from '@/constants/players';
 import { AI_STRATEGIST, AI_TRASH_TALKER, AI_CHILL } from '@/constants/players';
 
+export const TOPIC_LABELS: Record<string, string> = {
+  guitar: 'Guitar & Music',
+  ctc_checkout: 'CTC Checkout',
+  trunkrs: 'Trunkrs',
+  origins: 'Origins',
+  phivolcs: 'PHIVOLCS',
+  family_faith: 'Family & Faith',
+  values: 'Values & Character',
+  portfolio: 'This Portfolio',
+  stratpoint: 'Stratpoint & Globe',
+  ctc_admin: 'CTC Admin Tools',
+  skills: 'Skills & Growth',
+  work_style: 'Work Style',
+  ai_tools: 'AI & Modern Tooling',
+  collaboration: 'Collaboration & Team Fit',
+};
+
 export type PersonalInfoThread = {
   topicKey: string;
   entries: { personality: AiPersonality; text: string }[];

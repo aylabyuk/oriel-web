@@ -75,6 +75,12 @@ export const en = {
     openLabel: 'Open chat history',
     expand: 'Expand chat',
     collapse: 'Collapse chat',
+    tabChat: 'Chat',
+    tabAbout: 'About Oriel',
+    progress: '{{count}} / {{total}} discovered',
+    undiscovered: 'Keep playing to discover more...',
+    aboutEmpty:
+      'AI opponents will share facts about Oriel as you play. Check back soon!',
   },
   disclaimer: {
     greeting: 'Hi {{name}},',

@@ -1,18 +1,221 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { cn } from '@/utils/cn';
 import type { DialogueHistoryEntry } from '@/types/dialogue';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AVATAR_COLORS } from '@/constants/players';
+import { TOPIC_LABELS, PERSONAL_INFO_TOPICS } from '@/data/personalInfoTopics';
 
 type ChatHistoryPanelProps = {
   open: boolean;
   history: DialogueHistoryEntry[];
 };
 
+type Tab = 'chat' | 'about';
+
+const TOPIC_COUNT = PERSONAL_INFO_TOPICS.length;
+
 const formatTime = (ts: number): string => {
   const d = new Date(ts);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const TabSwitcher = ({
+  tab,
+  onTabChange,
+  compact,
+  aboutHasNew,
+}: {
+  tab: Tab;
+  onTabChange: (tab: Tab) => void;
+  compact?: boolean;
+  aboutHasNew?: boolean;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div
+      className={cn(
+        'flex rounded-lg bg-neutral-200/60 p-0.5 dark:bg-white/10',
+        compact ? 'gap-0.5' : 'gap-1',
+      )}
+    >
+      {(['chat', 'about'] as const).map((key) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onTabChange(key)}
+          className={cn(
+            'relative cursor-pointer rounded-md px-2 py-1 text-[10px] font-medium transition-colors sm:text-xs',
+            tab === key
+              ? 'bg-white text-neutral-800 shadow-sm dark:bg-white/20 dark:text-white'
+              : 'text-neutral-500 hover:text-neutral-700 dark:text-white/40 dark:hover:text-white/60',
+          )}
+        >
+          {key === 'chat' ? t('chat.tabChat') : t('chat.tabAbout')}
+          {key === 'about' && aboutHasNew && tab !== 'about' && (
+            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-75" />
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+type DiscoveredTopic = {
+  topicKey: string;
+  label: string;
+  messages: string[];
+  firstSeen: number;
+};
+
+const useDiscoveredTopics = (
+  history: DialogueHistoryEntry[],
+): DiscoveredTopic[] =>
+  useMemo(() => {
+    const topicMap = new Map<
+      string,
+      { messages: string[]; firstSeen: number }
+    >();
+
+    for (const entry of history) {
+      if (entry.kind !== 'dialogue' || !entry.topicKey) continue;
+      const existing = topicMap.get(entry.topicKey);
+      if (existing) {
+        // Avoid duplicate messages (e.g. from game restart replaying same topic)
+        if (!existing.messages.includes(entry.message)) {
+          existing.messages.push(entry.message);
+        }
+      } else {
+        topicMap.set(entry.topicKey, {
+          messages: [entry.message],
+          firstSeen: entry.timestamp,
+        });
+      }
+    }
+
+    return Array.from(topicMap.entries())
+      .sort(([, a], [, b]) => a.firstSeen - b.firstSeen)
+      .map(([key, data]) => ({
+        topicKey: key,
+        label: TOPIC_LABELS[key] ?? key,
+        messages: data.messages,
+        firstSeen: data.firstSeen,
+      }));
+  }, [history]);
+
+const scrollbarClasses = cn(
+  '[&::-webkit-scrollbar]:w-1.5',
+  '[&::-webkit-scrollbar-track]:bg-transparent',
+  '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-neutral-900/0 dark:[&::-webkit-scrollbar-thumb]:bg-white/0',
+  '[&::-webkit-scrollbar-thumb]:transition-colors [&::-webkit-scrollbar-thumb]:duration-300',
+  '[&:hover::-webkit-scrollbar-thumb]:bg-neutral-900/20 dark:[&:hover::-webkit-scrollbar-thumb]:bg-white/20',
+  '[&:hover::-webkit-scrollbar-thumb:hover]:bg-neutral-900/40 dark:[&:hover::-webkit-scrollbar-thumb:hover]:bg-white/40',
+);
+
+const AboutMessages = ({ history }: { history: DialogueHistoryEntry[] }) => {
+  const { t } = useTranslation();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const topics = useDiscoveredTopics(history);
+  const discoveredCount = topics.length;
+  const undiscoveredCount = TOPIC_COUNT - discoveredCount;
+  const totalMessages = topics.reduce((sum, t) => sum + t.messages.length, 0);
+  const prevMessagesRef = useRef(totalMessages);
+
+  // Auto-scroll when any new topic message arrives
+  useEffect(() => {
+    if (totalMessages > prevMessagesRef.current) {
+      const el = scrollRef.current;
+      if (el) {
+        const id = requestAnimationFrame(() => {
+          el.scrollTop = el.scrollHeight;
+        });
+        prevMessagesRef.current = totalMessages;
+        return () => cancelAnimationFrame(id);
+      }
+    }
+    prevMessagesRef.current = totalMessages;
+  }, [totalMessages]);
+
+  if (discoveredCount === 0) {
+    return (
+      <div
+        ref={scrollRef}
+        className={cn(
+          'flex flex-1 flex-col items-center justify-center px-4 py-6',
+          scrollbarClasses,
+        )}
+      >
+        <p className="text-center text-xs text-neutral-400/60 italic dark:text-white/30">
+          {t('chat.aboutEmpty')}
+        </p>
+      </div>
+    );
+  }
+
+  const pct = Math.round((discoveredCount / TOPIC_COUNT) * 100);
+
+  return (
+    <div
+      ref={scrollRef}
+      className={cn(
+        'flex-1 space-y-3 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3',
+        scrollbarClasses,
+      )}
+    >
+      {/* Progress bar */}
+      <div className="space-y-1">
+        <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-white/10">
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
+          {t('chat.progress', { count: discoveredCount, total: TOPIC_COUNT })}
+        </p>
+      </div>
+
+      {/* Discovered topics */}
+      {topics.map((topic) => (
+        <div
+          key={topic.topicKey}
+          className="border-l-2 border-emerald-500/50 pl-2.5 dark:border-emerald-400/40"
+        >
+          <p className="text-[11px] font-semibold text-neutral-700 sm:text-xs dark:text-white/80">
+            {topic.label}
+          </p>
+          <ul className="mt-0.5 space-y-0.5">
+            {topic.messages.map((msg, i) => (
+              <li
+                key={i}
+                className="text-[10px] leading-snug text-neutral-500 sm:text-[11px] dark:text-white/50"
+              >
+                <span className="mr-1 text-neutral-300 dark:text-white/20">
+                  &bull;
+                </span>
+                {msg}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+
+      {/* Undiscovered placeholders */}
+      {undiscoveredCount > 0 &&
+        Array.from({ length: undiscoveredCount }).map((_, i) => (
+          <div
+            key={`locked-${i}`}
+            className="border-l-2 border-neutral-200 pl-2.5 dark:border-white/10"
+          >
+            <p className="text-[10px] text-neutral-400/50 italic sm:text-[11px] dark:text-white/20">
+              {t('chat.undiscovered')}
+            </p>
+          </div>
+        ))}
+    </div>
+  );
 };
 
 const ChatMessages = ({
@@ -40,12 +243,7 @@ const ChatMessages = ({
       ref={scrollRef}
       className={cn(
         'flex-1 space-y-2 overflow-y-auto px-3 py-2 sm:space-y-3 sm:px-4 sm:py-3',
-        '[&::-webkit-scrollbar]:w-1.5',
-        '[&::-webkit-scrollbar-track]:bg-transparent',
-        '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-neutral-900/0 dark:[&::-webkit-scrollbar-thumb]:bg-white/0',
-        '[&::-webkit-scrollbar-thumb]:transition-colors [&::-webkit-scrollbar-thumb]:duration-300',
-        '[&:hover::-webkit-scrollbar-thumb]:bg-neutral-900/20 dark:[&:hover::-webkit-scrollbar-thumb]:bg-white/20',
-        '[&:hover::-webkit-scrollbar-thumb:hover]:bg-neutral-900/40 dark:[&:hover::-webkit-scrollbar-thumb:hover]:bg-white/40',
+        scrollbarClasses,
       )}
       style={maxHeight ? { maxHeight } : undefined}
     >
@@ -122,6 +320,32 @@ export const ChatHistoryPanel = ({
 }: ChatHistoryPanelProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const [tab, setTab] = useState<Tab>('chat');
+  const topics = useDiscoveredTopics(history);
+  const totalTopicMessages = topics.reduce(
+    (sum, topic) => sum + topic.messages.length,
+    0,
+  );
+  const seenMessagesRef = useRef(0);
+  const aboutHasNew = totalTopicMessages > seenMessagesRef.current;
+
+  const handleTabChange = useCallback(
+    (next: Tab) => {
+      setTab(next);
+      if (next === 'about') {
+        seenMessagesRef.current = totalTopicMessages;
+      }
+    },
+    [totalTopicMessages],
+  );
+
+  // Also mark as seen if already on the About tab when new messages arrive
+  useEffect(() => {
+    if (tab === 'about') {
+      seenMessagesRef.current = totalTopicMessages;
+    }
+  }, [tab, totalTopicMessages]);
+
   const handleToggleExpand = useCallback(
     () => setExpanded((prev) => !prev),
     [],
@@ -154,14 +378,21 @@ export const ChatHistoryPanel = ({
         }}
       >
         <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 dark:border-white/10">
-          <span className="text-xs font-semibold text-neutral-800 dark:text-white/90">
-            {t('chat.title')}
-          </span>
+          <TabSwitcher tab={tab} onTabChange={handleTabChange} aboutHasNew={aboutHasNew} compact />
           <span className="ml-auto text-[10px] text-neutral-400 dark:text-white/40">
-            {t('chat.messageCount', { count: history.length })}
+            {tab === 'chat'
+              ? t('chat.messageCount', { count: history.length })
+              : t('chat.progress', {
+                  count: topics.length,
+                  total: TOPIC_COUNT,
+                })}
           </span>
         </div>
-        <ChatMessages history={history} />
+        {tab === 'chat' ? (
+          <ChatMessages history={history} />
+        ) : (
+          <AboutMessages history={history} />
+        )}
         <button
           type="button"
           onClick={handleToggleExpand}
@@ -185,14 +416,21 @@ export const ChatHistoryPanel = ({
         }}
       >
         <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 sm:px-4 sm:py-3 dark:border-white/10">
-          <span className="text-xs font-semibold text-neutral-800 sm:text-sm dark:text-white/90">
-            {t('chat.title')}
-          </span>
+          <TabSwitcher tab={tab} onTabChange={handleTabChange} aboutHasNew={aboutHasNew} />
           <span className="ml-auto text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
-            {t('chat.messageCount', { count: history.length })}
+            {tab === 'chat'
+              ? t('chat.messageCount', { count: history.length })
+              : t('chat.progress', {
+                  count: topics.length,
+                  total: TOPIC_COUNT,
+                })}
           </span>
         </div>
-        <ChatMessages history={history} />
+        {tab === 'chat' ? (
+          <ChatMessages history={history} />
+        ) : (
+          <AboutMessages history={history} />
+        )}
       </animated.div>
     </>
   );
