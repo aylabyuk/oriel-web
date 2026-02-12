@@ -24,6 +24,7 @@ export const CATEGORY_PROBABILITY: Record<DialogueCategory, number> = {
   game_started: 1.0,
   visitor_slow: 0.7,
   drew_card_self: 0.35,
+  personal_info: 1.0,
 };
 
 /** How many recent lines to track per personality to avoid repeats */
@@ -33,4 +34,5 @@ export const COOLDOWN_MS = 4000;
 /** Categories that ignore cooldown — must always fire */
 export const COOLDOWN_BYPASS: Set<DialogueCategory> = new Set([
   'uno_called_self',
+  'personal_info',
 ]);

@@ -21,8 +21,10 @@ export const BUBBLE_DURATION = 3000;
 export const MAX_REACTORS = 2;
 /** How long before AIs comment on visitor being slow (ms) */
 export const VISITOR_SLOW_THRESHOLD = 6000;
+/** Probability that an AI shares personal info about Oriel on a turn change */
+export const PERSONAL_INFO_CHANCE = 0.4;
 /** Probability that an AI tells a joke on a turn change */
-export const JOKE_CHANCE = 0.12;
+export const JOKE_CHANCE = 0.08;
 /** Refetch threshold — fetch more jokes when pool drops below this */
 export const JOKE_REFETCH_THRESHOLD = 3;
 
@@ -115,6 +117,75 @@ export const JOKE_REACTIONS_NEGATIVE = [
   "That's the worst joke I've ever heard.",
   'Please never tell a joke again.',
 ];
+
+/** Personal info sequence timing (ms) */
+export const PERSONAL_INFO_INTRO_DURATION = 3000;
+export const PERSONAL_INFO_FACT_DELAY = 600;
+export const PERSONAL_INFO_AFFIRM_DELAY = 800;
+export const PERSONAL_INFO_AFFIRM_DURATION = 2500;
+
+export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
+  [AI_STRATEGIST]: [
+    "Since we're playing — might as well tell you about Oriel.",
+    "You're here to learn about Oriel, right? Let me share something.",
+    'While we wait — here\'s something about our frontend dev.',
+    'Fun fact about the guy who built this game.',
+    "Since {visitor} came here to know Oriel — here's a data point.",
+    "Let me optimize your visit — here's something about Oriel.",
+    'You should know this about Oriel.',
+    "Here's a relevant piece of intel about our colleague.",
+  ],
+  [AI_TRASH_TALKER]: [
+    'Hey {visitor}, wanna know something about Oriel?',
+    "Okay but real talk — let me tell you about Oriel!",
+    "YO, fun fact about the dude who made this game!",
+    "While we play — let's talk about Oriel for a sec!",
+    "Since you're here, lemme put you on about our boy Oriel.",
+    'Hey {visitor}! You came here for Oriel right? Listen to THIS!',
+    'Okay okay — Oriel fact incoming!',
+    "You gotta hear this about Oriel!",
+  ],
+  [AI_CHILL]: [
+    "Oh by the way {visitor} — you're here for Oriel right? Here's something.",
+    "Since we're just vibing... wanna hear about Oriel?",
+    'You came to learn about Oriel? Cool. Here\'s one.',
+    'Random Oriel fact while we play.',
+    'So about the guy who built this game...',
+    "Oh right — you're here to get to know Oriel. Here you go.",
+    "Here's something about Oriel. Since that's why you're here and all.",
+    'Oriel fact. No big deal.',
+  ],
+};
+
+export const PERSONAL_INFO_AFFIRMATIONS: Record<string, string[]> = {
+  [AI_STRATEGIST]: [
+    'Accurate.',
+    'Can verify.',
+    'Correct.',
+    'The data confirms it.',
+    'A factual statement.',
+    'Precisely.',
+    'Well documented.',
+  ],
+  [AI_TRASH_TALKER]: [
+    'FACTS!',
+    'Real talk!',
+    'SO true!',
+    '100%!',
+    "That's what I'm saying!",
+    'No cap!',
+    'REAL!',
+  ],
+  [AI_CHILL]: [
+    'Can confirm.',
+    'True.',
+    'Yep.',
+    'For real.',
+    'Straight up.',
+    'Pretty much.',
+    'Checks out.',
+  ],
+};
 
 export const COLOR_NAMES: Record<number, string> = {
   [Color.RED]: 'Red',

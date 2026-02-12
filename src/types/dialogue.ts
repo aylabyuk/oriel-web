@@ -24,7 +24,8 @@ export type DialogueCategory =
   | 'many_cards'
   | 'game_started'
   | 'visitor_slow'
-  | 'drew_card_self';
+  | 'drew_card_self'
+  | 'personal_info';
 
 export type DialogueLine = {
   text: string;

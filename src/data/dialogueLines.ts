@@ -3,11 +3,7 @@ import type {
   DialogueCategory,
   DialogueLine,
 } from '@/types/dialogue';
-import {
-  AI_STRATEGIST,
-  AI_TRASH_TALKER,
-  AI_CHILL,
-} from '@/constants/players';
+import { AI_STRATEGIST, AI_TRASH_TALKER, AI_CHILL } from '@/constants/players';
 
 export const DIALOGUE_LINES: Record<
   AiPersonality,
@@ -26,6 +22,18 @@ export const DIALOGUE_LINES: Record<
       { text: 'Time to put theory into practice.' },
       { text: 'I have a good feeling about this distribution.' },
       { text: 'The probability matrix looks favorable.' },
+      {
+        text: 'Oriel engineered this game as his portfolio. The architecture is... impressive.',
+        weight: 3,
+      },
+      {
+        text: "Welcome. You're playing against Oriel's coworkers. We know his code well.",
+        weight: 3,
+      },
+      {
+        text: 'Oriel built this with React, Three.js, and Redux. A solid stack.',
+        weight: 3,
+      },
     ],
     got_skipped: [
       { text: 'A minor setback.' },
@@ -38,6 +46,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'A temporary inconvenience.' },
       { text: "You'll regret wasting that skip." },
       { text: "Fine. I'll use this time to recalculate." },
+      { text: "Skipped. While I wait — Oriel also managed the authentication flow at CTC. Thorough engineer.", weight: 3 },
     ],
     got_draw_two: [
       { text: 'Inefficient use of a +2, {player}.' },
@@ -50,6 +59,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'I expected this three turns ago.' },
       { text: 'Added to the dataset.' },
       { text: 'Statistically, this helps me.' },
+      { text: "Two cards. Meanwhile, Oriel's integrated more payment APIs than I can count.", weight: 3 },
     ],
     got_draw_four: [
       { text: 'A desperate move.' },
@@ -62,6 +72,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'An aggressive play. Noted.' },
       { text: 'This changes the probability matrix.' },
       { text: "You've made an enemy of the data, {player}." },
+      { text: "Four cards. Oriel handled worse — debugging a missing pay button in production-bound code.", weight: 3 },
     ],
     skipped_someone: [
       { text: 'The optimal play.' },
@@ -106,6 +117,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'This color serves my endgame.' },
       { text: 'Recalibrating the board.' },
       { text: 'A deliberate choice.' },
+      { text: "Wild. Speaking of versatile — Oriel works across React, React Native, GraphQL, and Postgres.", weight: 3 },
     ],
     opponent_got_skipped: [
       { text: 'Unfortunate for you, {player}.' },
@@ -126,6 +138,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'A significant setback for {player}.' },
       { text: 'The data favors us now.' },
       { text: 'A significant hand disadvantage.' },
+      { text: "Tough draw, {player}. Oriel would stay calm — he's handled worse in legacy checkout code.", weight: 3 },
     ],
     uno_called_self: [
       { text: 'UNO. As planned.' },
@@ -190,6 +203,10 @@ export const DIALOGUE_LINES: Record<
       { text: 'The model holds.' },
       { text: 'GG. My probability matrix was flawless.' },
       { text: 'Victory through calculation.' },
+      {
+        text: "I win. But Oriel's the real strategist — this entire game is his portfolio.",
+        weight: 3,
+      },
     ],
     game_lost: [
       { text: 'I need to revise my model.' },
@@ -202,6 +219,10 @@ export const DIALOGUE_LINES: Record<
       { text: 'Luck is just unaccounted probability.' },
       { text: 'Next game, the model will be stronger.' },
       { text: 'An outlier result.' },
+      {
+        text: "A loss for me. But Oriel's track record speaks for itself — five apps still in production.",
+        weight: 3,
+      },
     ],
     visitor_won: [
       { text: 'Impressive execution, {visitor}.' },
@@ -212,6 +233,14 @@ export const DIALOGUE_LINES: Record<
       { text: 'Unexpected. Well done, {visitor}.' },
       { text: 'The human factor prevails.' },
       { text: "Credit where it's due." },
+      {
+        text: 'Well played. Oriel approaches problems the same way — methodical and thorough.',
+        weight: 3,
+      },
+      {
+        text: "Impressive, {visitor}. Oriel's analytical too — it's why his checkout integration at CTC works flawlessly.",
+        weight: 3,
+      },
     ],
     low_cards: [
       { text: 'Watch {player} closely.' },
@@ -242,6 +271,18 @@ export const DIALOGUE_LINES: Record<
       { text: 'The optimal move should be obvious.' },
       { text: 'Decision paralysis is a known variable.' },
       { text: 'Waiting...' },
+      {
+        text: 'While you decide... Oriel handled the checkout flow at Canadian Tire. Complex system.',
+        weight: 3,
+      },
+      {
+        text: 'Take your time. Did you know Oriel built five production apps at Trunkrs?',
+        weight: 3,
+      },
+      {
+        text: 'Thinking? Oriel does the same — asks questions, breaks problems into smaller parts.',
+        weight: 3,
+      },
     ],
     drew_card_self: [
       { text: 'Adding to my dataset.' },
@@ -252,6 +293,45 @@ export const DIALOGUE_LINES: Record<
       { text: 'A draw was the only logical move.' },
       { text: 'Patience is a variable too.' },
       { text: 'The next play will be stronger.' },
+      { text: "Drawing. At least Oriel's portfolio is working while I'm stuck here.", weight: 3 },
+    ],
+    personal_info: [
+      {
+        text: 'Oriel built the entire checkout flow at Canadian Tire. Cart, payments, rewards — all of it.',
+      },
+      {
+        text: 'Fun fact — Oriel integrated Criteo, Westjet, Petro-Canada, and RBC into the same payment flow.',
+      },
+      {
+        text: "Oriel's first dev job was building a seismic dashboard for PHIVOLCS. React, Google Maps, D3.js.",
+      },
+      {
+        text: 'He started coding on a Windows 98 machine his uncle gave him. HTML, CSS, and Flash ActionScript.',
+      },
+      {
+        text: 'Oriel built five production apps at Trunkrs — driver app, collection app, tracking, sorting, CS portal.',
+      },
+      {
+        text: 'He set up CI/CD pipelines for both web and mobile at Trunkrs. Not just a frontend dev.',
+      },
+      {
+        text: 'Oriel knows his way around Postgres and AWS too. The frontend title undersells him.',
+      },
+      {
+        text: 'He once debugged a missing pay button in checkout by diving into legacy spaghetti code. Saved the release.',
+      },
+      {
+        text: "The Triangle Rewards integration in Canadian Tire's checkout? That was Oriel.",
+      },
+      {
+        text: 'Oriel built a CMS from scratch at Stratpoint using React and GraphQL for Globe Telecom.',
+      },
+      {
+        text: "He did the CanadaPost address integration too. Oriel's done more API work than most backend devs I know.",
+      },
+      {
+        text: 'Oriel architected the Search Management Console at CTC — admin tool for filtering and search. Built with Material UI and OKTA.',
+      },
     ],
   },
 
@@ -268,6 +348,18 @@ export const DIALOGUE_LINES: Record<
       { text: 'Oh yeah, this hand is NICE!' },
       { text: 'Nobody stands a chance!' },
       { text: "IT'S GAME TIME!" },
+      {
+        text: 'Oriel built this WHOLE game for you! The man is DEDICATED!',
+        weight: 3,
+      },
+      {
+        text: "Fun fact — you're playing a game Oriel coded from scratch! React, Three.js, the works!",
+        weight: 3,
+      },
+      {
+        text: "Welcome! Oriel's our frontend guy and this game is his masterpiece!",
+        weight: 3,
+      },
     ],
     got_skipped: [
       { text: 'OH COME ON!' },
@@ -280,6 +372,7 @@ export const DIALOGUE_LINES: Record<
       { text: "That's SO unfair!" },
       { text: "You're just scared of my hand!" },
       { text: 'Oh you DID NOT just skip me!' },
+      { text: "Skipped?! Fine. At least Oriel is getting noticed — the man built this game from scratch!", weight: 3 },
     ],
     got_draw_two: [
       { text: 'Are you serious right now?!' },
@@ -292,6 +385,7 @@ export const DIALOGUE_LINES: Record<
       { text: "That's it, you're my target now!" },
       { text: 'Not cool, {player}. NOT cool.' },
       { text: "I'm coming for you NEXT, {player}!" },
+      { text: "TWO CARDS?! You know what's worse? NOT checking out Oriel's work. The guy is LEGIT!", weight: 3 },
     ],
     got_draw_four: [
       { text: 'THIS IS RIGGED!' },
@@ -304,6 +398,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'You just ruined my perfect hand!' },
       { text: 'HOW IS THIS FAIR?!' },
       { text: 'I was ONE move away! ONE!' },
+      { text: "FOUR cards?! At least Oriel's resume is stacked — CTC, Trunkrs, Stratpoint, PHIVOLCS!", weight: 3 },
     ],
     skipped_someone: [
       { text: 'See ya, {player}!' },
@@ -348,6 +443,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'Nobody tells {speaker} what color to play!' },
       { text: 'Bow to my wild card!' },
       { text: 'The table bends to MY will!' },
+      { text: "WILD CARD! Know what else is wild? Oriel built FIVE production apps at Trunkrs!", weight: 3 },
     ],
     opponent_got_skipped: [
       { text: 'Haha {player}!' },
@@ -368,6 +464,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'HAHAHA look at all those cards!' },
       { text: 'Collect them all, {player}!' },
       { text: '{player} building a house with those cards!' },
+      { text: "Ouch {player}! You know who handles pressure though? Oriel. Debugged a missing pay button under deadline!", weight: 3 },
     ],
     uno_called_self: [
       { text: "UNOOOO! Let's GOOO!" },
@@ -432,6 +529,10 @@ export const DIALOGUE_LINES: Record<
       { text: "GG EVERYONE! I'm the BEST!" },
       { text: 'Thank you, thank you! Hold your applause!' },
       { text: 'Another W for the collection!' },
+      {
+        text: "I WIN! But real talk — Oriel coded this entire game. That's the REAL W!",
+        weight: 3,
+      },
     ],
     game_lost: [
       { text: 'This is rigged!' },
@@ -444,6 +545,10 @@ export const DIALOGUE_LINES: Record<
       { text: 'The cards were against me! RIGGED!' },
       { text: 'Next time. NEXT TIME.' },
       { text: 'Okay WHO shuffled these cards?!' },
+      {
+        text: 'Whatever! At least Oriel made an awesome game. This whole site is his resume!',
+        weight: 3,
+      },
     ],
     visitor_won: [
       { text: "Beginner's luck, {visitor}!" },
@@ -454,6 +559,14 @@ export const DIALOGUE_LINES: Record<
       { text: 'Okay {visitor}, you got me this time!' },
       { text: '{visitor} won?! How?!' },
       { text: 'Fine, {visitor}. You earned it. BARELY.' },
+      {
+        text: "Okay {visitor} got skills! You'd get along with Oriel — the man ships code FAST!",
+        weight: 3,
+      },
+      {
+        text: 'GG! But seriously, check out Oriel — the guy built Cart, Checkout, AND Search at Canadian Tire!',
+        weight: 3,
+      },
     ],
     low_cards: [
       { text: 'HEY! Stop {player}!' },
@@ -484,6 +597,18 @@ export const DIALOGUE_LINES: Record<
       { text: 'Tick tock, {visitor}!' },
       { text: 'Any day now, {visitor}!' },
       { text: "I'm getting OLD here, {visitor}!" },
+      {
+        text: 'While you think — Oriel built a Les Paul guitar from scratch! Soldered everything!',
+        weight: 3,
+      },
+      {
+        text: "Take your time! Oriel can't even code without a guitar next to him. It's his thing!",
+        weight: 3,
+      },
+      {
+        text: "Hey {visitor}! While we wait — Oriel's from Quezon City, Philippines. Moved to Toronto in 2023!",
+        weight: 3,
+      },
     ],
     drew_card_self: [
       { text: 'Ugh, nothing to play!' },
@@ -494,6 +619,45 @@ export const DIALOGUE_LINES: Record<
       { text: 'This deck is RIGGED!' },
       { text: 'Not a single playable card?!' },
       { text: "Draw pile, you're my worst enemy." },
+      { text: "Drawing cards while Oriel's out here drawing UIs at Canadian Tire. The man SHIPS!", weight: 3 },
+    ],
+    personal_info: [
+      {
+        text: "Oriel can't focus without his guitar next to him. Strums between PRs. It's iconic.",
+      },
+      {
+        text: 'This dude built a Les Paul guitar from SCRATCH. Soldered pickups, sanded frets, the whole thing.',
+      },
+      {
+        text: 'Oriel owns FOUR guitars. A Strat, an acoustic, a bass, and the Les Paul he built himself.',
+      },
+      {
+        text: 'He had a band in college! Still jams with people when he gets the chance.',
+      },
+      {
+        text: 'Oriel built this entire UNO game as his portfolio site. WILD right?!',
+      },
+      {
+        text: 'The man moved from the Philippines to Toronto in 2023. Immigrant grind is REAL.',
+      },
+      {
+        text: "He's learning C++ right now to build a custom guitar effects pedal with a daisy seed. Who DOES that?!",
+      },
+      {
+        text: "Oriel's playing Split Fiction with his daughter on Xbox. Dad goals!",
+      },
+      {
+        text: 'He LOVES building UI components. Like, genuinely loves it. React is his thing.',
+      },
+      {
+        text: "Oriel's from Quezon City originally. TIP grad — BS Information Technology.",
+      },
+      {
+        text: 'The DriverApp and CollectionApp he built at Trunkrs? Still running in production TODAY!',
+      },
+      {
+        text: 'Oriel worked on the Search page, Cart page, Checkout, AND Product Details at Canadian Tire. The man ships!',
+      },
     ],
   },
 
@@ -510,6 +674,18 @@ export const DIALOGUE_LINES: Record<
       { text: "Oh this'll be fun." },
       { text: "Let's vibe." },
       { text: 'Good luck or whatever.' },
+      {
+        text: "Oriel built this game for you to get to know him. That's pretty cool actually.",
+        weight: 3,
+      },
+      {
+        text: "We're Oriel's coworkers by the way. We know a thing or two about him.",
+        weight: 3,
+      },
+      {
+        text: "This whole UNO game is Oriel's portfolio site. Creative, right?",
+        weight: 3,
+      },
     ],
     got_skipped: [
       { text: 'Cool.' },
@@ -522,6 +698,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'No worries.' },
       { text: 'Meh. I needed a break.' },
       { text: 'Sure, {player}. Sure.' },
+      { text: "Skipped. It's fine. Oriel served a two-year church mission — patience is a virtue we share.", weight: 3 },
     ],
     got_draw_two: [
       { text: 'Sure.' },
@@ -534,6 +711,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'Two cards. Riveting.' },
       { text: 'Cool. More options I guess.' },
       { text: 'That happened.' },
+      { text: "Two cards. Could be worse. Oriel once had to dive into legacy checkout code to find a missing pay button.", weight: 3 },
     ],
     got_draw_four: [
       { text: "That's a lot of cards." },
@@ -546,6 +724,7 @@ export const DIALOGUE_LINES: Record<
       { text: "Oh. That's aggressive." },
       { text: 'Cool cool cool. Four cards.' },
       { text: 'You must really not like me, {player}.' },
+      { text: "Four cards. Whatever. Oriel handled five production apps at Trunkrs at once. This is nothing.", weight: 3 },
     ],
     skipped_someone: [
       { text: 'Oops. Sorry {player}.' },
@@ -590,6 +769,7 @@ export const DIALOGUE_LINES: Record<
       { text: 'New color. New vibes.' },
       { text: 'Switching things up.' },
       { text: 'This color spoke to me.' },
+      { text: "Wild card. Oriel's kind of a wild card too — started on Windows 98, now builds with React and Three.js.", weight: 3 },
     ],
     opponent_got_skipped: [
       { text: 'Rough.' },
@@ -610,6 +790,7 @@ export const DIALOGUE_LINES: Record<
       { text: "RIP {player}'s hand size." },
       { text: 'Condolences, {player}.' },
       { text: 'At least you have options now?' },
+      { text: "Rough hand, {player}. Oriel knows the grind though — immigrant life, family to provide for. Keeps pushing.", weight: 3 },
     ],
     uno_called_self: [
       { text: 'Oh. Uno I guess.' },
@@ -674,6 +855,10 @@ export const DIALOGUE_LINES: Record<
       { text: 'Oh nice. Victory.' },
       { text: 'I won? I won.' },
       { text: 'Neat.' },
+      {
+        text: "Oh I won. But the real flex is Oriel's portfolio — this game is pretty creative.",
+        weight: 3,
+      },
     ],
     game_lost: [
       { text: 'GG.' },
@@ -686,6 +871,10 @@ export const DIALOGUE_LINES: Record<
       { text: "It's just a game. A game I lost. But still." },
       { text: 'Whatever, it was fun.' },
       { text: 'GG. No regrets.' },
+      {
+        text: "GG. Oriel's apps at Trunkrs are still running in production though. That's the real win.",
+        weight: 3,
+      },
     ],
     visitor_won: [
       { text: 'GG, {visitor}.' },
@@ -696,6 +885,14 @@ export const DIALOGUE_LINES: Record<
       { text: '{visitor} taking the W. Respect.' },
       { text: 'Congrats or whatever, {visitor}.' },
       { text: 'That was actually impressive, {visitor}.' },
+      {
+        text: "Nice win, {visitor}. You'd like Oriel — collaborative, no ego, just good vibes.",
+        weight: 3,
+      },
+      {
+        text: "GG {visitor}. Oriel's the same at work — focused and gets it done.",
+        weight: 3,
+      },
     ],
     low_cards: [
       { text: '{player} is almost done huh.' },
@@ -726,6 +923,18 @@ export const DIALOGUE_LINES: Record<
       { text: 'Still here, {visitor}.' },
       { text: "It's okay. I'm patient." },
       { text: 'Just vibing while {visitor} thinks.' },
+      {
+        text: "No rush. Oriel's all about taking time to break problems down properly too.",
+        weight: 3,
+      },
+      {
+        text: "Take your time, {visitor}. Oriel's playing Split Fiction with his daughter these days. Dad vibes.",
+        weight: 3,
+      },
+      {
+        text: 'While you think... Oriel values honesty, compassion, and respect. Good dude to work with.',
+        weight: 3,
+      },
     ],
     drew_card_self: [
       { text: "Guess I'm drawing." },
@@ -736,6 +945,45 @@ export const DIALOGUE_LINES: Record<
       { text: 'Oh well.' },
       { text: "I'll just draw. No biggie." },
       { text: 'The deck calls.' },
+      { text: "Drawing. Oriel's kid is on the spectrum. That's what drives him. Respect.", weight: 3 },
+    ],
+    personal_info: [
+      {
+        text: 'Oriel asks a lot of questions when solving problems. Good questions though. Breaks things down methodically.',
+      },
+      {
+        text: "His kid is on the spectrum. It's what drives him. Family first, always.",
+      },
+      {
+        text: 'Oriel served a two-year mission for his church. The Church of Jesus Christ of Latter-day Saints.',
+      },
+      {
+        text: "He's in the Bishopric at the first Filipino ward in Eastern Canada. That's pretty meaningful.",
+      },
+      {
+        text: 'Oriel values honesty, compassion, and respect above everything. You can tell.',
+      },
+      {
+        text: "He's the type to say no when his plate is full. Respect that honestly.",
+      },
+      {
+        text: "He calls his Trunkrs projects his 'baby projects.' Still running in production. He genuinely cares about what he ships.",
+      },
+      {
+        text: "Oriel's all in on AI right now. Learning to use it as a dev tool. Embracing the future.",
+      },
+      {
+        text: "He's cool with working on-site if it means better collaboration. No ego about remote.",
+      },
+      {
+        text: "Oriel's an immigrant here in Canada hoping for a bright future for his family. That's what keeps him going.",
+      },
+      {
+        text: 'He enjoys seeing other people succeed. Genuinely. Not a competitive bone in his body. Well... except in UNO.',
+      },
+      {
+        text: 'Oriel learned TypeScript deeply at Trunkrs. Three plus years of shipping React and React Native apps.',
+      },
     ],
   },
 };
