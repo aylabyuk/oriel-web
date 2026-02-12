@@ -30,7 +30,14 @@ import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/utils/cn';
-import { setSoundEnabled, playGather } from '@/utils/sounds';
+import {
+  setSoundEnabled,
+  playGather,
+  playUnoShout,
+  playDramaticHit,
+  playVictory,
+  playDefeat,
+} from '@/utils/sounds';
 import type { Color } from 'uno-engine';
 
 export const App = () => {
@@ -179,6 +186,12 @@ export const App = () => {
   );
   const isVisitorWinner = endInfo?.winner === snapshot?.players[0]?.name;
 
+  useEffect(() => {
+    if (!gameEnded) return;
+    if (isVisitorWinner) playVictory();
+    else playDefeat();
+  }, [gameEnded, isVisitorWinner]);
+
   // --- UNO shout / catch flow ---
   const UNO_SHOUT_WINDOW = 2500;
   const CATCH_WINDOW_DISPLAY = 3000;
@@ -197,6 +210,7 @@ export const App = () => {
   const handleUnoPress = useCallback(() => {
     cancelVisitorTimer();
     if (!visitorName) return;
+    playUnoShout();
     callUno(visitorName);
   }, [visitorName, callUno, cancelVisitorTimer]);
 
@@ -209,6 +223,7 @@ export const App = () => {
     // If the victim is the human player, show the modal
     const visitorName = snapshot?.players[0]?.name;
     if (pending.victimName === visitorName) {
+      playDramaticHit();
       setChallengeReady(true);
     } else {
       // AI victim — auto-decide

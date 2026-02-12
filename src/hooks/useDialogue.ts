@@ -12,6 +12,7 @@ import type {
   DialogueHistoryEntry,
 } from '@/types/dialogue';
 import type { GameEvent, GameSnapshot, SerializedCard } from '@/types/game';
+import { playChat } from '@/utils/sounds';
 import { fetchJokes } from '@/utils/fetchJokes';
 import type { Joke } from '@/utils/fetchJokes';
 import { AI_NAMES, AI_NAME_SET, toDisplayName } from '@/constants/players';
@@ -366,6 +367,7 @@ const scheduleDialogues = (
     const idx = AI_INDEX[personality];
 
     const showTimer = setTimeout(() => {
+      playChat(personality);
       setDialogues((prev) => {
         const next = [...prev];
         next[idx] = { message: text, key: Date.now() };
@@ -617,6 +619,7 @@ export const useDialogue = (ready: boolean) => {
 
         // Phase 1 — Intro: "Hey, I got a joke!"
         const introShow = setTimeout(() => {
+          playChat(teller);
           setDialogues((prev) => {
             const n = [...prev];
             n[tellerIdx] = { message: intro, key: Date.now() };
@@ -646,6 +649,7 @@ export const useDialogue = (ready: boolean) => {
             Math.floor(Math.random() * JOKE_GO_AHEAD_LINES.length)
           ];
         const goAheadShow = setTimeout(() => {
+          playChat(prompter);
           setDialogues((prev) => {
             const n = [...prev];
             n[prompterIdx] = { message: goAheadLine, key: Date.now() };
@@ -675,6 +679,7 @@ export const useDialogue = (ready: boolean) => {
         const setupReadTime = jokeReadTime(joke.setup);
 
         const setupShow = setTimeout(() => {
+          playChat(teller);
           setDialogues((prev) => {
             const n = [...prev];
             n[tellerIdx] = { message: joke.setup, key: Date.now() };
@@ -718,6 +723,7 @@ export const useDialogue = (ready: boolean) => {
               setupStart + setupReadTime + JOKE_QUESTION_PROMPT_DELAY;
 
             const questionShow = setTimeout(() => {
+              playChat(prompter);
               setDialogues((prev) => {
                 const n = [...prev];
                 n[prompterIdx] = { message: questionLine, key: Date.now() };
@@ -755,6 +761,7 @@ export const useDialogue = (ready: boolean) => {
           reactionsStart = punchlineStart + punchlineReadTime;
 
           const punchlineShow = setTimeout(() => {
+            playChat(teller);
             setDialogues((prev) => {
               const n = [...prev];
               n[tellerIdx] = { message: punchlineText, key: Date.now() };
@@ -803,6 +810,7 @@ export const useDialogue = (ready: boolean) => {
           const rDelay = reactionsStart + r * JOKE_REACTION_STAGGER;
 
           const rShow = setTimeout(() => {
+            playChat(reactor);
             setDialogues((prev) => {
               const n = [...prev];
               n[rIdx] = { message: line, key: Date.now() };

@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent, clearEvents } from '@/store/slices/game';
 import { selectVisitorName } from '@/store/slices/visitor';
 import { AI_NAMES, AI_NAME_SET, sanitizeVisitorName } from '@/constants/players';
+import { playBluffCaught, playLegitPlay, playUnoPenalty } from '@/utils/sounds';
 import {
   AI_ANIMATION_WAIT,
   AI_THINK_MIN,
@@ -153,6 +154,8 @@ export const useGameController = () => {
       const snap = game.getSnapshot();
       dispatch(setSnapshot(snap));
 
+      if (event.type === 'uno_penalty') playUnoPenalty();
+
       // Don't schedule AI play while a WD4 challenge is pending
       if (snap.pendingChallenge) return;
 
@@ -286,6 +289,8 @@ export const useGameController = () => {
       const game = gameRef.current;
       if (!game) return null;
       const result = game.resolveChallenge(accept);
+      if (result === 'bluff_caught') playBluffCaught();
+      else if (result === 'legit_play') playLegitPlay();
       dispatch(setSnapshot(game.getSnapshot()));
       // Resume scheduling after resolution
       scheduleAiPlay();
@@ -309,7 +314,9 @@ export const useGameController = () => {
       if (!g) return;
       // AI challenges 60% of the time
       const shouldChallenge = Math.random() < 0.6;
-      g.resolveChallenge(!shouldChallenge);
+      const result = g.resolveChallenge(!shouldChallenge);
+      if (result === 'bluff_caught') playBluffCaught();
+      else if (result === 'legit_play') playLegitPlay();
       dispatch(setSnapshot(g.getSnapshot()));
       scheduleAiPlay();
     }, thinkDelay);

@@ -137,6 +137,235 @@ export const playPlop = (): void => {
   osc.stop(ac.currentTime + 0.1);
 };
 
+/** Per-player two-tone chime — each AI gets a distinct pitch. */
+const CHAT_TONES: Record<string, [number, number]> = {
+  Meio: [523, 659], // C5 → E5 (major third) — composed
+  Mark: [659, 831], // E5 → G#5 (major third) — punchy
+  Paul: [784, 988], // G5 → B5 (major third) — mellow
+};
+const CHAT_DEFAULT: [number, number] = [880, 1175];
+
+export const playChat = (personality?: string): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+  const [f1, f2] = (personality && CHAT_TONES[personality]) || CHAT_DEFAULT;
+
+  // First tone
+  const osc1 = ac.createOscillator();
+  osc1.type = 'sine';
+  osc1.frequency.value = f1;
+  const g1 = ac.createGain();
+  g1.gain.setValueAtTime(0.1, ac.currentTime);
+  g1.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12);
+  osc1.connect(g1);
+  g1.connect(ac.destination);
+  osc1.start(ac.currentTime);
+  osc1.stop(ac.currentTime + 0.12);
+
+  // Second tone — staggered for "ding-dong" feel
+  const osc2 = ac.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.value = f2;
+  const g2 = ac.createGain();
+  g2.gain.setValueAtTime(0.001, ac.currentTime);
+  g2.gain.linearRampToValueAtTime(0.08, ac.currentTime + 0.06);
+  g2.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.18);
+  osc2.connect(g2);
+  g2.connect(ac.destination);
+  osc2.start(ac.currentTime + 0.05);
+  osc2.stop(ac.currentTime + 0.18);
+};
+
+/** Bluff caught — sharp descending buzz. "Busted!" feel. */
+export const playBluffCaught = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // Rapid descending tone — exposed!
+  const osc = ac.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(600, ac.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(150, ac.currentTime + 0.15);
+  const gain = ac.createGain();
+  gain.gain.setValueAtTime(0.12, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start();
+  osc.stop(ac.currentTime + 0.2);
+};
+
+/** Legit play — low ominous thud. Challenge failed. */
+export const playLegitPlay = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // Deep thud — bad news
+  const osc = ac.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(200, ac.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(60, ac.currentTime + 0.2);
+  const gain = ac.createGain();
+  gain.gain.setValueAtTime(0.18, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.25);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start();
+  osc.stop(ac.currentTime + 0.25);
+};
+
+/** UNO penalty — short double-buzz. "Got you!" */
+export const playUnoPenalty = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // Two quick buzz pulses
+  for (let i = 0; i < 2; i++) {
+    const t = ac.currentTime + i * 0.1;
+    const osc = ac.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = 320;
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.1, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + 0.07);
+  }
+};
+
+/** UNO shout — punchy rising burst. Urgent button-slam feel. */
+export const playUnoShout = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // Sharp rising tone
+  const osc = ac.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(250, ac.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(800, ac.currentTime + 0.08);
+  const gain = ac.createGain();
+  gain.gain.setValueAtTime(0.14, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start();
+  osc.stop(ac.currentTime + 0.12);
+};
+
+/** Dramatic hit — WD4 challenge prompt. Suspenseful impact. */
+export const playDramaticHit = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // Low impact tone
+  const osc = ac.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(120, ac.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(50, ac.currentTime + 0.3);
+  const gain = ac.createGain();
+  gain.gain.setValueAtTime(0.2, ac.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.4);
+  osc.connect(gain);
+  gain.connect(ac.destination);
+  osc.start();
+  osc.stop(ac.currentTime + 0.4);
+
+  // Noise burst — impact texture
+  const src = ac.createBufferSource();
+  src.buffer = getNoiseBuffer();
+  const bp = ac.createBiquadFilter();
+  bp.type = 'lowpass';
+  bp.frequency.value = 600;
+  const nGain = ac.createGain();
+  nGain.gain.setValueAtTime(0.15, ac.currentTime);
+  nGain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.15);
+  src.connect(bp);
+  bp.connect(nGain);
+  nGain.connect(ac.destination);
+  src.start();
+  src.stop(ac.currentTime + 0.15);
+};
+
+/** Victory fanfare — bright ascending major arpeggio. */
+export const playVictory = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // C major arpeggio: C5 → E5 → G5 → C6, then final sustained chord
+  const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+  const noteGap = 0.1;
+  const noteDur = 0.15;
+
+  for (let i = 0; i < notes.length; i++) {
+    const t = ac.currentTime + i * noteGap;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = notes[i];
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + noteDur);
+    osc.connect(g);
+    g.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + noteDur);
+  }
+
+  // Final sustained major chord: C5 + E5 + G5 + C6 together
+  const chordStart = ac.currentTime + notes.length * noteGap;
+  for (const freq of notes) {
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.08, chordStart);
+    g.gain.exponentialRampToValueAtTime(0.001, chordStart + 0.5);
+    osc.connect(g);
+    g.connect(ac.destination);
+    osc.start(chordStart);
+    osc.stop(chordStart + 0.5);
+  }
+};
+
+/** Defeat — descending minor arpeggio. Melancholy but gentle. */
+export const playDefeat = (): void => {
+  if (!enabled) return;
+  const ac = getCtx();
+
+  // C minor descending: C5 → Ab4 → Eb4 → C4
+  const notes = [523, 415, 311, 262]; // C5, Ab4, Eb4, C4
+  const noteGap = 0.15;
+  const noteDur = 0.25;
+
+  for (let i = 0; i < notes.length; i++) {
+    const t = ac.currentTime + i * noteGap;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = notes[i];
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + noteDur);
+    osc.connect(g);
+    g.connect(ac.destination);
+    osc.start(t);
+    osc.stop(t + noteDur);
+  }
+
+  // Final low sustained note — lingering sadness
+  const endT = ac.currentTime + notes.length * noteGap;
+  const osc = ac.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = 262; // C4
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0.08, endT);
+  g.gain.exponentialRampToValueAtTime(0.001, endT + 0.6);
+  osc.connect(g);
+  g.connect(ac.destination);
+  osc.start(endT);
+  osc.stop(endT + 0.6);
+};
+
 /** Gather — all cards rushing back to deck at once. Reverse swoosh + thud. */
 export const playGather = (): void => {
   if (!enabled) return;
