@@ -26,9 +26,14 @@ const ChatMessages = ({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [history.length]);
+    const el = scrollRef.current;
+    if (!el) return;
+    // Defer so the DOM has painted the new content before we measure scrollHeight
+    const id = requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [history]);
 
   return (
     <div

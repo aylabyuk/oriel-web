@@ -101,34 +101,38 @@ export const useGameController = () => {
 
       const playable = g.getPlayableCardsForPlayer(humanName);
 
-      if (playable.length > 0) {
-        const card = playable[Math.floor(Math.random() * playable.length)];
-        const chosenColor = card.isWildCard()
-          ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
-          : undefined;
-        try {
-          g.playCard(card, chosenColor);
-        } catch {
-          g.draw();
-          g.pass();
-        }
-      } else {
-        g.draw();
-        // Check if drawn card is playable
-        const nowPlayable = g.getPlayableCards();
-        if (nowPlayable.length > 0) {
-          const card = nowPlayable[0];
+      try {
+        if (playable.length > 0) {
+          const card = playable[Math.floor(Math.random() * playable.length)];
           const chosenColor = card.isWildCard()
             ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
             : undefined;
           try {
             g.playCard(card, chosenColor);
           } catch {
+            g.draw();
             g.pass();
           }
         } else {
-          g.pass();
+          g.draw();
+          // Check if drawn card is playable
+          const nowPlayable = g.getPlayableCards();
+          if (nowPlayable.length > 0) {
+            const card = nowPlayable[0];
+            const chosenColor = card.isWildCard()
+              ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
+              : undefined;
+            try {
+              g.playCard(card, chosenColor);
+            } catch {
+              g.pass();
+            }
+          } else {
+            g.pass();
+          }
         }
+      } catch {
+        // Auto-play failed — game will recover on next turn_changed event
       }
     }, AI_ANIMATION_WAIT + VISITOR_TURN_TIMEOUT);
   }, [visitorName, cancelVisitorTimer]);

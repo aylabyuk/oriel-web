@@ -87,7 +87,7 @@ export type QueueStep =
   | { type: 'draw_move' }
   | { type: 'draw_gap'; insertIndex: number }
   | { type: 'draw_drop' }
-  | { type: 'phase'; phase: MagnetPhase };
+  | { type: 'phase'; phase: MagnetPhase; currentPlayerName?: string | null; direction?: PlayDirection };
 
 /**
  * Manages card zone assignments over time for the Magnet Card system.
@@ -336,7 +336,12 @@ export const useMagnetState = (
           { type: 'phase', phase: 'play_rotate' },
           { type: 'play_rotate' },
           { type: 'play_drop' },
-          { type: 'phase', phase: 'playing' },
+          {
+            type: 'phase',
+            phase: 'playing',
+            currentPlayerName: snapshot.currentPlayerName,
+            direction: snapshot.direction,
+          },
         ];
         queueRef.current = steps;
         processNext();
@@ -381,7 +386,12 @@ export const useMagnetState = (
             steps.push({ type: 'phase', phase: 'draw_drop' });
             steps.push({ type: 'draw_drop' });
           }
-          steps.push({ type: 'phase', phase: 'playing' });
+          steps.push({
+            type: 'phase',
+            phase: 'playing',
+            currentPlayerName: snapshot.currentPlayerName,
+            direction: snapshot.direction,
+          });
           queueRef.current = steps;
           processNext();
           return;
@@ -471,6 +481,14 @@ export const applyStep = (
               drawingPlayerIndex: -1,
               drawInsertIndex: -1,
             }
+          : {}),
+        // Apply deferred metadata when provided (syncs currentPlayer/direction
+        // at the end of each animation so isVisitorTurn is correct immediately)
+        ...(step.currentPlayerName !== undefined
+          ? { currentPlayerName: step.currentPlayerName }
+          : {}),
+        ...(step.direction !== undefined
+          ? { direction: step.direction }
           : {}),
       };
 
