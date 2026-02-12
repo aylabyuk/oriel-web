@@ -124,21 +124,33 @@ const VisibleCardInner = ({
   return (
     <group
       ref={outerRef}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (isInteractive && onCardClick) {
-          document.body.style.cursor = 'auto';
-          onCardClick(cardId);
-        }
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        if (isInteractive) document.body.style.cursor = 'pointer';
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-        if (isInteractive) document.body.style.cursor = 'auto';
-      }}
+      onClick={
+        isInteractive
+          ? (e) => {
+              e.stopPropagation();
+              if (onCardClick) {
+                document.body.style.cursor = 'auto';
+                onCardClick(cardId);
+              }
+            }
+          : undefined
+      }
+      onPointerOver={
+        isInteractive
+          ? (e) => {
+              e.stopPropagation();
+              document.body.style.cursor = 'pointer';
+            }
+          : undefined
+      }
+      onPointerOut={
+        isInteractive
+          ? (e) => {
+              e.stopPropagation();
+              document.body.style.cursor = 'auto';
+            }
+          : undefined
+      }
     >
       <group ref={tiltRef}>
         <group ref={liftRef}>
