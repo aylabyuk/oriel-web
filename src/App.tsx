@@ -302,8 +302,8 @@ export const App = () => {
       {disclaimerAcked && (
         <ChatHistoryPanel open={chatOpen} history={history} />
       )}
-      {/* Toolbar (pill) — hidden on welcome screen */}
-      {welcomeDismissed && (
+      {/* Toolbar (pill) — shown after disclaimer acknowledged */}
+      {disclaimerAcked && (
         <div
           className={cn(
             'fixed top-4 z-70 flex flex-row items-center justify-evenly w-80',
@@ -316,16 +316,12 @@ export const App = () => {
           )}
         >
           <ThemeToggle />
-          {disclaimerAcked && (
-            <>
-              <SoundToggle active={soundOn} onClick={handleSoundToggle} />
-              <MusicToggle active={musicOn} onClick={handleMusicToggle} />
-              <HelpButton onClick={handleRulesOpen} />
-              <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
-              <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
-              <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-            </>
-          )}
+          <SoundToggle active={soundOn} onClick={handleSoundToggle} />
+          <MusicToggle active={musicOn} onClick={handleMusicToggle} />
+          <HelpButton onClick={handleRulesOpen} />
+          <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
+          <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
+          <ChatToggle open={chatOpen} onClick={handleChatToggle} />
         </div>
       )}
       {welcomeDismissed ? (

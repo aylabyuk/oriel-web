@@ -7,8 +7,20 @@ type ThemeState = {
   reducedMotion: boolean;
 };
 
+const THEME_STORAGE_KEY = 'oriel-theme-mode';
+
+const getStoredMode = (): ThemeMode => {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {
+    // localStorage unavailable (SSR, private browsing, etc.)
+  }
+  return 'dark';
+};
+
 const initialState: ThemeState = {
-  mode: 'dark',
+  mode: getStoredMode(),
   reducedMotion: false,
 };
 
@@ -21,6 +33,11 @@ export const themeSlice = createSlice({
     },
     toggleMode(state) {
       state.mode = state.mode === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, state.mode);
+      } catch {
+        // localStorage unavailable
+      }
     },
   },
   selectors: {

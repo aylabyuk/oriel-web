@@ -43,7 +43,7 @@ export const WildColorPicker = ({
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
       ref={containerRef}
-      className="fixed top-8 left-1/2 z-50 flex -translate-x-1/2 gap-4 rounded-2xl bg-neutral-900/80 px-6 py-4 backdrop-blur-sm max-lg:portrait:top-20"
+      className="fixed top-8 left-1/2 z-50 flex -translate-x-1/2 gap-4 rounded-2xl bg-white/80 px-6 py-4 backdrop-blur-sm max-lg:portrait:top-20 dark:bg-neutral-900/80"
       style={{
         opacity: springs.opacity,
         y: springs.y,
@@ -57,7 +57,7 @@ export const WildColorPicker = ({
             key={label}
             aria-label={label}
             onClick={() => onColorSelect(c.color)}
-            className="h-10 w-10 cursor-pointer rounded-full border-2 border-white/20 transition-transform hover:scale-110 focus:ring-2 focus:ring-white/50 focus:outline-none"
+            className="h-10 w-10 cursor-pointer rounded-full border-2 border-neutral-300 transition-transform hover:scale-110 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:border-white/20 dark:focus:ring-white/50"
             style={{ backgroundColor: c.hex }}
           />
         );

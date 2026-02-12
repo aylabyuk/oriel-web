@@ -2,7 +2,7 @@ export const en = {
   welcome: {
     title: "Hey, I'm Oriel.",
     subtitle:
-      "Senior Frontend Developer. Let's play a round of UNO — I'll tell you about myself along the way.",
+      "A Senior Software Developer who built his portfolio as a card game. Grab a seat — let's play.",
     nameLabel: 'Your Name',
     namePlaceholder: 'What should I call you?',
     companyLabel: 'Company',
@@ -112,11 +112,11 @@ export const en = {
     close: 'Close',
     objective: {
       heading: 'Objective',
-      body: 'Be the first player to get rid of all your cards. Each round, play a card that matches the top of the discard pile by color, number, or symbol. If you can\'t play, you must draw from the deck.',
+      body: "Be the first player to get rid of all your cards. Each round, play a card that matches the top of the discard pile by color, number, or symbol. If you can't play, you must draw from the deck.",
     },
     numberCards: {
       heading: 'Number Cards',
-      body: 'Each color (red, blue, green, yellow) has cards numbered 0–9. Play a number card when it matches the discard pile\'s color or number.',
+      body: "Each color (red, blue, green, yellow) has cards numbered 0–9. Play a number card when it matches the discard pile's color or number.",
     },
     actionCards: {
       heading: 'Action Cards',
@@ -132,7 +132,7 @@ export const en = {
         name: 'Draw Two',
         desc: 'The next player draws 2 cards and loses their turn.',
       },
-      body: 'Action cards can be played when they match the discard pile\'s color or symbol.',
+      body: "Action cards can be played when they match the discard pile's color or symbol.",
     },
     wildCards: {
       heading: 'Wild Cards',
@@ -147,7 +147,7 @@ export const en = {
     },
     unoCall: {
       heading: 'Calling UNO',
-      body: 'When you\'re down to one card, hit the UNO button before anyone catches you! If another player catches you first, you\'ll draw 2 penalty cards.',
+      body: "When you're down to one card, hit the UNO button before anyone catches you! If another player catches you first, you'll draw 2 penalty cards.",
     },
     challenge: {
       heading: 'Challenging a Wild Draw Four',
@@ -155,7 +155,7 @@ export const en = {
     },
     scoring: {
       heading: 'Scoring',
-      body: 'When a player goes out, they earn points based on the cards left in opponents\' hands:',
+      body: "When a player goes out, they earn points based on the cards left in opponents' hands:",
       numberPoints: 'Number cards: face value (0–9 points)',
       actionPoints: 'Action cards (Skip, Reverse, Draw Two): 20 points each',
       wildPoints: 'Wild and Wild Draw Four: 50 points each',

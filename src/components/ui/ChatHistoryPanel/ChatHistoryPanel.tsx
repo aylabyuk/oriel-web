@@ -37,15 +37,15 @@ const ChatMessages = ({
         'flex-1 space-y-2 overflow-y-auto px-3 py-2 sm:space-y-3 sm:px-4 sm:py-3',
         '[&::-webkit-scrollbar]:w-1.5',
         '[&::-webkit-scrollbar-track]:bg-transparent',
-        '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/0',
+        '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-neutral-900/0 dark:[&::-webkit-scrollbar-thumb]:bg-white/0',
         '[&::-webkit-scrollbar-thumb]:transition-colors [&::-webkit-scrollbar-thumb]:duration-300',
-        '[&:hover::-webkit-scrollbar-thumb]:bg-white/20',
-        '[&:hover::-webkit-scrollbar-thumb:hover]:bg-white/40',
+        '[&:hover::-webkit-scrollbar-thumb]:bg-neutral-900/20 dark:[&:hover::-webkit-scrollbar-thumb]:bg-white/20',
+        '[&:hover::-webkit-scrollbar-thumb:hover]:bg-neutral-900/40 dark:[&:hover::-webkit-scrollbar-thumb:hover]:bg-white/40',
       )}
       style={maxHeight ? { maxHeight } : undefined}
     >
       {history.length === 0 ? (
-        <p className="text-center text-xs text-white/30 italic">
+        <p className="text-center text-xs text-neutral-400/60 italic dark:text-white/30">
           {t('chat.empty')}
         </p>
       ) : (
@@ -55,13 +55,13 @@ const ChatMessages = ({
               key={`${entry.timestamp}-${i}`}
               className="flex items-center gap-2 py-0.5"
             >
-              <span className="text-[10px] text-white/40 sm:text-xs">
-                <span className="font-semibold text-white/60">
+              <span className="text-[10px] text-neutral-500 sm:text-xs dark:text-white/40">
+                <span className="font-semibold text-neutral-700 dark:text-white/60">
                   {entry.playerName}
                 </span>{' '}
                 {entry.message}
               </span>
-              <span className="ml-auto shrink-0 text-[8px] text-white/20 sm:text-[10px]">
+              <span className="ml-auto shrink-0 text-[8px] text-neutral-400 sm:text-[10px] dark:text-white/20">
                 {formatTime(entry.timestamp)}
               </span>
             </div>
@@ -84,11 +84,11 @@ const ChatMessages = ({
                   >
                     {entry.personality}
                   </span>
-                  <span className="text-[8px] text-white/30 sm:text-[10px]">
+                  <span className="text-[8px] text-neutral-400 sm:text-[10px] dark:text-white/30">
                     {formatTime(entry.timestamp)}
                   </span>
                 </div>
-                <p className="text-xs leading-snug text-white/80 sm:text-sm">
+                <p className="text-xs leading-snug text-neutral-700 sm:text-sm dark:text-white/80">
                   {entry.message}
                 </p>
               </div>
@@ -125,8 +125,8 @@ export const ChatHistoryPanel = ({
       <animated.div
         className={cn(
           'fixed inset-x-0 bottom-0 z-60 flex flex-col pb-4',
-          'bg-neutral-900/80 shadow-xl backdrop-blur-sm',
-          'border-t border-white/10',
+          'bg-white/80 shadow-xl backdrop-blur-sm dark:bg-neutral-900/80',
+          'border-t border-neutral-200 dark:border-white/10',
           'lg:hidden landscape:hidden',
         )}
         style={{
@@ -137,11 +137,11 @@ export const ChatHistoryPanel = ({
           pointerEvents: open ? 'auto' : 'none',
         }}
       >
-        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
-          <span className="text-xs font-semibold text-white/90">
+        <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 dark:border-white/10">
+          <span className="text-xs font-semibold text-neutral-800 dark:text-white/90">
             {t('chat.title')}
           </span>
-          <span className="ml-auto text-[10px] text-white/40">
+          <span className="ml-auto text-[10px] text-neutral-400 dark:text-white/40">
             {t('chat.messageCount', { count: history.length })}
           </span>
         </div>
@@ -149,7 +149,7 @@ export const ChatHistoryPanel = ({
         <button
           type="button"
           onClick={handleToggleExpand}
-          className="mx-3 mt-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white/80"
+          className="mx-3 mt-1 rounded-lg border border-neutral-200 bg-neutral-100/60 px-3 py-1.5 text-[10px] font-medium text-neutral-500 transition-colors hover:bg-neutral-200/80 hover:text-neutral-700 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white/80"
         >
           {expanded ? t('chat.collapse') : t('chat.expand')}
         </button>
@@ -159,8 +159,8 @@ export const ChatHistoryPanel = ({
       <animated.div
         className={cn(
           'fixed right-4 top-16 bottom-6 z-60 flex w-64 flex-col sm:w-80',
-          'rounded-2xl bg-neutral-900/80 shadow-xl backdrop-blur-sm',
-          'border border-white/10',
+          'rounded-2xl bg-white/80 shadow-xl backdrop-blur-sm dark:bg-neutral-900/80',
+          'border border-neutral-200 dark:border-white/10',
           'hidden landscape:flex lg:flex',
         )}
         style={{
@@ -168,11 +168,11 @@ export const ChatHistoryPanel = ({
           pointerEvents: open ? 'auto' : 'none',
         }}
       >
-        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2 sm:px-4 sm:py-3">
-          <span className="text-xs font-semibold text-white/90 sm:text-sm">
+        <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 sm:px-4 sm:py-3 dark:border-white/10">
+          <span className="text-xs font-semibold text-neutral-800 sm:text-sm dark:text-white/90">
             {t('chat.title')}
           </span>
-          <span className="ml-auto text-[10px] text-white/40 sm:text-xs">
+          <span className="ml-auto text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
             {t('chat.messageCount', { count: history.length })}
           </span>
         </div>

@@ -81,8 +81,8 @@ const ControlRow = ({
   label: string;
 }) => (
   <div className="flex items-center gap-2.5">
-    <div className="text-white/60">{icon}</div>
-    <span className="text-xs leading-tight text-white/70">{label}</span>
+    <div className="text-neutral-500 dark:text-white/60">{icon}</div>
+    <span className="text-xs leading-tight text-neutral-600 dark:text-white/70">{label}</span>
   </div>
 );
 
@@ -99,7 +99,7 @@ export const FreeLookExplainer = ({ open, onDismiss }: FreeLookExplainerProps) =
     <animated.div
       className={cn(
         'fixed top-8 left-1/2 z-50 -translate-x-1/2 max-lg:portrait:top-20',
-        'w-[min(90vw,360px)] rounded-2xl bg-neutral-900/90 px-5 py-4 shadow-xl backdrop-blur-sm',
+        'w-[min(90vw,360px)] rounded-2xl bg-white/90 px-5 py-4 shadow-xl backdrop-blur-sm dark:bg-neutral-900/90',
       )}
       style={{
         opacity: springs.opacity,
@@ -107,7 +107,7 @@ export const FreeLookExplainer = ({ open, onDismiss }: FreeLookExplainerProps) =
         pointerEvents: open ? 'auto' : 'none',
       }}
     >
-      <p className="mb-3 text-center text-sm font-semibold text-white/90">
+      <p className="mb-3 text-center text-sm font-semibold text-neutral-800 dark:text-white/90">
         {t('freeLookExplainer.title')}
       </p>
 
@@ -127,7 +127,7 @@ export const FreeLookExplainer = ({ open, onDismiss }: FreeLookExplainerProps) =
 
       <button
         onClick={onDismiss}
-        className="mt-3 w-full cursor-pointer rounded-lg border border-white/20 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white focus:ring-2 focus:ring-white/50 focus:outline-none"
+        className="mt-3 w-full cursor-pointer rounded-lg border border-neutral-300 py-1.5 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-800 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:border-white/20 dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/50"
       >
         {t('freeLookExplainer.dismiss')}
       </button>

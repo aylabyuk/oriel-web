@@ -51,10 +51,10 @@ export const GameEndOverlay = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
       <animated.div
-        className="relative z-10 flex w-80 flex-col items-center gap-5 rounded-3xl bg-neutral-900/90 px-8 py-8 backdrop-blur-md"
+        className="relative z-10 flex w-80 flex-col items-center gap-5 rounded-3xl bg-white/90 px-8 py-8 backdrop-blur-md dark:bg-neutral-900/90"
         style={{ scale: springs.scale }}
       >
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
           {isVisitorWinner
             ? t('game.youWin')
             : t('game.playerWins', { name: endInfo.winner })}
@@ -65,14 +65,14 @@ export const GameEndOverlay = ({
           <animated.span className="text-4xl font-extrabold text-amber-400 tabular-nums">
             {scoreSpring.val.to((v) => Math.floor(v))}
           </animated.span>
-          <span className="text-xs font-medium tracking-wide text-white/50 uppercase">
+          <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-white/50">
             {t('game.points')}
           </span>
         </div>
 
         {breakdownCount > 0 && (
           <div className="w-full space-y-2">
-            <span className="text-xs font-medium tracking-wide text-white/40 uppercase">
+            <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-white/40">
               {t('game.remainingCards')}
             </span>
             {trail.map((style, i) => {
@@ -81,7 +81,7 @@ export const GameEndOverlay = ({
                 // @ts-expect-error animated.div children type mismatch with React 19
                 <animated.div
                   key={player.name}
-                  className="flex items-center justify-between text-sm text-white/70"
+                  className="flex items-center justify-between text-sm text-neutral-600 dark:text-white/70"
                   style={{
                     opacity: style.opacity,
                     transform: style.x.to((x) => `translateX(${x}px)`),
@@ -101,7 +101,7 @@ export const GameEndOverlay = ({
 
         <button
           onClick={onPlayAgain}
-          className="mt-1 w-full cursor-pointer rounded-xl bg-white/90 px-6 py-2.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-105 focus:ring-2 focus:ring-white/50 focus:outline-none"
+          className="mt-1 w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"
         >
           {t('game.playAgain')}
         </button>
