@@ -298,83 +298,36 @@ export const App = () => {
         duration={unoDuration}
         onPress={handleUnoPress}
       />
-      {/* Floating chat panel — desktop + landscape */}
+      {/* Floating chat panel */}
       {disclaimerAcked && (
-        <div className="hidden landscape:block lg:block">
-          <ChatHistoryPanel open={chatOpen} history={history} />
-        </div>
+        <ChatHistoryPanel open={chatOpen} history={history} />
       )}
-      {/* Portrait mobile: chat drawer + toolbar flex container */}
-      {disclaimerAcked && (
+      {/* Toolbar (pill) — hidden on welcome screen */}
+      {welcomeDismissed && (
         <div
           className={cn(
-            'fixed inset-x-0 bottom-0 z-70 flex flex-col p-2',
-            'lg:hidden landscape:hidden',
-            'transition-transform duration-300 ease-out',
-            chatOpen ? 'translate-y-0' : 'translate-y-full',
+            'fixed top-4 z-70 flex flex-row items-center justify-evenly w-80',
+            'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
+            'dark:bg-neutral-900/70',
+            // Portrait mobile: centered
+            'max-lg:portrait:left-1/2 max-lg:portrait:-translate-x-1/2',
+            // Landscape + desktop: top-right
+            'landscape:right-4 lg:right-4',
           )}
-          style={{ pointerEvents: chatOpen ? 'auto' : 'none' }}
         >
-          <ChatHistoryPanel
-            open={chatOpen}
-            history={history}
-            variant="drawer"
-          />
-          {/* Separator */}
-          <div className="h-px w-full bg-neutral-400/40" />
-          {/* Toolbar */}
-          <div className="flex flex-row items-center justify-center gap-2 p-2">
-            <ThemeToggle />
-            <SoundToggle active={soundOn} onClick={handleSoundToggle} />
-            <MusicToggle active={musicOn} onClick={handleMusicToggle} />
-            <HelpButton onClick={handleRulesOpen} />
-            <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
-            <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
-            <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-          </div>
+          <ThemeToggle />
+          {disclaimerAcked && (
+            <>
+              <SoundToggle active={soundOn} onClick={handleSoundToggle} />
+              <MusicToggle active={musicOn} onClick={handleMusicToggle} />
+              <HelpButton onClick={handleRulesOpen} />
+              <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
+              <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
+              <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+            </>
+          )}
         </div>
       )}
-      {/* Portrait mobile: standalone toolbar (when chat is closed) */}
-      <div
-        className={cn(
-          'fixed bottom-4 left-1/2 z-70 flex -translate-x-1/2 flex-row items-center gap-2',
-          'lg:hidden landscape:hidden',
-          chatOpen && 'hidden',
-        )}
-      >
-        <ThemeToggle />
-        {disclaimerAcked && (
-          <>
-            <SoundToggle active={soundOn} onClick={handleSoundToggle} />
-            <MusicToggle active={musicOn} onClick={handleMusicToggle} />
-            <HelpButton onClick={handleRulesOpen} />
-            <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
-            <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
-            <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-          </>
-        )}
-      </div>
-      {/* Desktop + landscape toolbar (pill) */}
-      <div
-        className={cn(
-          'fixed z-70 hidden landscape:flex lg:flex',
-          'top-4 right-4 flex-row items-center justify-evenly w-80',
-          'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
-          'dark:bg-neutral-900/70',
-        )}
-      >
-        <ThemeToggle />
-        {disclaimerAcked && (
-          <>
-            <SoundToggle active={soundOn} onClick={handleSoundToggle} />
-            <MusicToggle active={musicOn} onClick={handleMusicToggle} />
-            <HelpButton onClick={handleRulesOpen} />
-            <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
-            <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
-            <ChatToggle open={chatOpen} onClick={handleChatToggle} />
-          </>
-        )}
-      </div>
       {welcomeDismissed ? (
         <div>
           <span className="p-4 text-xs font-medium text-neutral-400">

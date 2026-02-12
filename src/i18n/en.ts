@@ -73,6 +73,8 @@ export const en = {
     openChat: 'Chat history',
     closeLabel: 'Close chat history',
     openLabel: 'Open chat history',
+    expand: 'Expand chat',
+    collapse: 'Collapse chat',
   },
   disclaimer: {
     greeting: 'Hi {{name}},',

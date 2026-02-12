@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 import { cn } from '@/utils/cn';
 import type { DialogueHistoryEntry } from '@/types/dialogue';
@@ -8,8 +8,6 @@ import { AVATAR_COLORS } from '@/constants/players';
 type ChatHistoryPanelProps = {
   open: boolean;
   history: DialogueHistoryEntry[];
-  /** 'panel' = desktop floating overlay, 'drawer' = mobile inline drawer */
-  variant?: 'panel' | 'drawer';
 };
 
 const formatTime = (ts: number): string => {
@@ -19,14 +17,18 @@ const formatTime = (ts: number): string => {
 
 const ChatMessages = ({
   history,
-  scrollRef,
   maxHeight,
 }: {
   history: DialogueHistoryEntry[];
-  scrollRef: React.RefObject<HTMLDivElement | null>;
   maxHeight?: string;
 }) => {
   const { t } = useTranslation();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [history.length]);
 
   return (
     <div
@@ -101,28 +103,39 @@ const ChatMessages = ({
 export const ChatHistoryPanel = ({
   open,
   history,
-  variant = 'panel',
 }: ChatHistoryPanelProps) => {
   const { t } = useTranslation();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const handleToggleExpand = useCallback(
+    () => setExpanded((prev) => !prev),
+    [],
+  );
 
   const springs = useSpring({
     x: open ? 0 : 340,
+    portraitY: open ? 0 : 100,
+    portraitHeight: expanded ? 85 : 25,
     config: { tension: 260, friction: 24 },
   });
 
-  useEffect(() => {
-    if (!open || !scrollRef.current) return;
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [history.length, open]);
-
-  if (variant === 'drawer') {
-    return (
-      <div
+  return (
+    <>
+      {/* Portrait mobile: bottom sheet (1/4 screen, expandable) */}
+      {/* @ts-expect-error animated.div children type mismatch with React 19 */}
+      <animated.div
         className={cn(
-          'flex min-h-0 flex-1 flex-col',
+          'fixed inset-x-0 bottom-0 z-60 flex flex-col pb-4',
           'bg-neutral-900/80 shadow-xl backdrop-blur-sm',
+          'border-t border-white/10',
+          'lg:hidden landscape:hidden',
         )}
+        style={{
+          transform: springs.portraitY.to(
+            (v: number) => `translateY(${v}%)`,
+          ),
+          height: springs.portraitHeight.to((v: number) => `${v}vh`),
+          pointerEvents: open ? 'auto' : 'none',
+        }}
       >
         <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
           <span className="text-xs font-semibold text-white/90">
@@ -132,34 +145,39 @@ export const ChatHistoryPanel = ({
             {t('chat.messageCount', { count: history.length })}
           </span>
         </div>
-        <ChatMessages history={history} scrollRef={scrollRef} />
-      </div>
-    );
-  }
-
-  return (
-    // @ts-expect-error animated.div children type mismatch with React 19
-    <animated.div
-      className={cn(
-        'fixed right-4 top-16 bottom-6 z-60 flex w-64 flex-col sm:w-80',
-        'rounded-2xl bg-neutral-900/80 shadow-xl backdrop-blur-sm',
-        'border border-white/10',
-      )}
-      style={{
-        x: springs.x,
-        pointerEvents: open ? 'auto' : 'none',
-      }}
-    >
-      <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2 sm:px-4 sm:py-3">
-        <span className="text-xs font-semibold text-white/90 sm:text-sm">
-          {t('chat.title')}
-        </span>
-        <span className="ml-auto text-[10px] text-white/40 sm:text-xs">
-          {t('chat.messageCount', { count: history.length })}
-        </span>
-      </div>
-
-      <ChatMessages history={history} scrollRef={scrollRef} />
-    </animated.div>
+        <ChatMessages history={history} />
+        <button
+          type="button"
+          onClick={handleToggleExpand}
+          className="mx-3 mt-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white/80"
+        >
+          {expanded ? t('chat.collapse') : t('chat.expand')}
+        </button>
+      </animated.div>
+      {/* Landscape + desktop: right-side panel */}
+      {/* @ts-expect-error animated.div children type mismatch with React 19 */}
+      <animated.div
+        className={cn(
+          'fixed right-4 top-16 bottom-6 z-60 flex w-64 flex-col sm:w-80',
+          'rounded-2xl bg-neutral-900/80 shadow-xl backdrop-blur-sm',
+          'border border-white/10',
+          'hidden landscape:flex lg:flex',
+        )}
+        style={{
+          x: springs.x,
+          pointerEvents: open ? 'auto' : 'none',
+        }}
+      >
+        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2 sm:px-4 sm:py-3">
+          <span className="text-xs font-semibold text-white/90 sm:text-sm">
+            {t('chat.title')}
+          </span>
+          <span className="ml-auto text-[10px] text-white/40 sm:text-xs">
+            {t('chat.messageCount', { count: history.length })}
+          </span>
+        </div>
+        <ChatMessages history={history} />
+      </animated.div>
+    </>
   );
 };

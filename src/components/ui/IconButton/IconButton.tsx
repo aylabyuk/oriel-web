@@ -37,8 +37,6 @@ export const IconButton = ({
         'after:text-xs after:whitespace-nowrap after:text-white after:opacity-0 after:transition-opacity',
         'after:content-[attr(data-tooltip)]',
         'hover:after:opacity-100',
-        // Mobile portrait: tooltip above (toolbar is at bottom)
-        'max-lg:portrait:after:bottom-full max-lg:portrait:after:top-auto max-lg:portrait:after:mt-0 max-lg:portrait:after:mb-2',
       )}
     >
       {children}
