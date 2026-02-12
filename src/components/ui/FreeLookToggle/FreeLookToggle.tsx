@@ -12,9 +12,7 @@ export const FreeLookToggle = ({ active, onClick }: FreeLookToggleProps) => {
   return (
     <IconButton
       ariaLabel={
-        active
-          ? t('toolbar.disableFreeLook')
-          : t('toolbar.enableFreeLook')
+        active ? t('toolbar.disableFreeLook') : t('toolbar.enableFreeLook')
       }
       tooltip={active ? t('toolbar.freeLook') : t('toolbar.lockedView')}
       onClick={onClick}

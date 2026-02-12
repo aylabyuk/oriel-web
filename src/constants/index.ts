@@ -15,8 +15,4 @@ export {
   CARD_RADIUS,
   FACE_OFFSET,
 } from '@/constants/cardGeometry';
-export {
-  AI_NAMES,
-  AI_NAME_SET,
-  AVATAR_COLORS,
-} from '@/constants/players';
+export { AI_NAMES, AI_NAME_SET, AVATAR_COLORS } from '@/constants/players';

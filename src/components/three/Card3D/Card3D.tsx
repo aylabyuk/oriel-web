@@ -23,52 +23,54 @@ type Card3DProps = {
   bodyRef?: RefObject<Mesh | null>;
 };
 
-export const Card3D = memo(({
-  value,
-  color,
-  faceUp = true,
-  position = [0, 0, 0],
-  rotation = [0, 0, 0],
-  glowColor,
-  glowIntensity = 0,
-  bodyRef,
-}: Card3DProps) => {
-  const showFront = faceUp && value !== undefined;
-  const frontUrl = showFront
-    ? CARD_TEXTURES[getCardFilename(value, color)]
-    : undefined;
+export const Card3D = memo(
+  ({
+    value,
+    color,
+    faceUp = true,
+    position = [0, 0, 0],
+    rotation = [0, 0, 0],
+    glowColor,
+    glowIntensity = 0,
+    bodyRef,
+  }: Card3DProps) => {
+    const showFront = faceUp && value !== undefined;
+    const frontUrl = showFront
+      ? CARD_TEXTURES[getCardFilename(value, color)]
+      : undefined;
 
-  const textures = useTexture(
-    frontUrl ? [frontUrl, CARD_BACK_TEXTURE] : [CARD_BACK_TEXTURE],
-  );
+    const textures = useTexture(
+      frontUrl ? [frontUrl, CARD_BACK_TEXTURE] : [CARD_BACK_TEXTURE],
+    );
 
-  const [frontTex, backTex] = frontUrl ? textures : [undefined, textures[0]];
+    const [frontTex, backTex] = frontUrl ? textures : [undefined, textures[0]];
 
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh ref={bodyRef} geometry={bodyGeo}>
-        <meshStandardMaterial
-          color="#ffffff"
-          roughness={0.5}
-          emissive={glowColor ?? '#000000'}
-          emissiveIntensity={glowIntensity}
-          toneMapped={false}
-        />
-      </mesh>
-
-      {frontTex && (
-        <mesh geometry={faceGeo} position={[0, 0, FACE_OFFSET]}>
-          <meshStandardMaterial map={frontTex} transparent />
+    return (
+      <group position={position} rotation={rotation}>
+        <mesh ref={bodyRef} geometry={bodyGeo}>
+          <meshStandardMaterial
+            color="#ffffff"
+            roughness={0.5}
+            emissive={glowColor ?? '#000000'}
+            emissiveIntensity={glowIntensity}
+            toneMapped={false}
+          />
         </mesh>
-      )}
 
-      <mesh
-        geometry={faceGeo}
-        position={[0, 0, -FACE_OFFSET]}
-        rotation={[0, Math.PI, 0]}
-      >
-        <meshStandardMaterial map={backTex} transparent />
-      </mesh>
-    </group>
-  );
-});
+        {frontTex && (
+          <mesh geometry={faceGeo} position={[0, 0, FACE_OFFSET]}>
+            <meshStandardMaterial map={frontTex} transparent />
+          </mesh>
+        )}
+
+        <mesh
+          geometry={faceGeo}
+          position={[0, 0, -FACE_OFFSET]}
+          rotation={[0, Math.PI, 0]}
+        >
+          <meshStandardMaterial map={backTex} transparent />
+        </mesh>
+      </group>
+    );
+  },
+);

@@ -1,9 +1,5 @@
 import { Value, Color } from 'uno-engine';
-import {
-  AI_STRATEGIST,
-  AI_TRASH_TALKER,
-  AI_CHILL,
-} from '@/constants/players';
+import { AI_STRATEGIST, AI_TRASH_TALKER, AI_CHILL } from '@/constants/players';
 
 export const AI_INDEX: Record<string, number> = {
   [AI_STRATEGIST]: 1,
@@ -128,7 +124,7 @@ export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
   [AI_STRATEGIST]: [
     "Since we're playing — might as well tell you about Oriel.",
     "You're here to learn about Oriel, right? Let me share something.",
-    'While we wait — here\'s something about our frontend dev.',
+    "While we wait — here's something about our frontend dev.",
     'Fun fact about the guy who built this game.',
     "Since {visitor} came here to know Oriel — here's a data point.",
     "Let me optimize your visit — here's something about Oriel.",
@@ -137,18 +133,18 @@ export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
   ],
   [AI_TRASH_TALKER]: [
     'Hey {visitor}, wanna know something about Oriel?',
-    "Okay but real talk — let me tell you about Oriel!",
-    "YO, fun fact about the dude who made this game!",
+    'Okay but real talk — let me tell you about Oriel!',
+    'YO, fun fact about the dude who made this game!',
     "While we play — let's talk about Oriel for a sec!",
     "Since you're here, lemme put you on about our boy Oriel.",
     'Hey {visitor}! You came here for Oriel right? Listen to THIS!',
     'Okay okay — Oriel fact incoming!',
-    "You gotta hear this about Oriel!",
+    'You gotta hear this about Oriel!',
   ],
   [AI_CHILL]: [
     "Oh by the way {visitor} — you're here for Oriel right? Here's something.",
     "Since we're just vibing... wanna hear about Oriel?",
-    'You came to learn about Oriel? Cool. Here\'s one.',
+    "You came to learn about Oriel? Cool. Here's one.",
     'Random Oriel fact while we play.',
     'So about the guy who built this game...',
     "Oh right — you're here to get to know Oriel. Here you go.",
@@ -156,7 +152,6 @@ export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
     'Oriel fact. No big deal.',
   ],
 };
-
 
 export const COLOR_NAMES: Record<number, string> = {
   [Color.RED]: 'Red',

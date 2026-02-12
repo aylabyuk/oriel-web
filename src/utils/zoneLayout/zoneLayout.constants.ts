@@ -1,7 +1,4 @@
-import {
-  CARD_WIDTH,
-  CARD_HEIGHT,
-} from '@/constants/cardGeometry';
+import { CARD_WIDTH, CARD_HEIGHT } from '@/constants/cardGeometry';
 
 export { CARD_WIDTH, CARD_HEIGHT, CARD_DEPTH } from '@/constants/cardGeometry';
 

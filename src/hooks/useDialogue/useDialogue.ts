@@ -1,27 +1,22 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectEvents, selectSnapshot } from '@/store/slices/game';
-import {
-  createDialogueSelector,
-  findAffectedPlayer,
-} from '@/utils/dialogueSelector';
+import { createDialogueSelector } from '@/utils/dialogueSelector';
 import type {
   AiPersonality,
   DialogueBubble,
   DialogueCategory,
   DialogueHistoryEntry,
 } from '@/types/dialogue';
-import type { GameEvent, GameSnapshot, SerializedCard } from '@/types/game';
 import { playChat } from '@/utils/sounds';
 import { fetchJokes } from '@/utils/fetchJokes';
 import type { Joke } from '@/utils/fetchJokes';
-import { AI_NAMES, AI_NAME_SET, toDisplayName } from '@/constants/players';
+import { AI_NAMES, toDisplayName } from '@/constants/players';
 import { PERSONAL_INFO_TOPICS } from '@/data/personalInfoTopics';
 import {
   AI_INDEX,
   REACTION_DELAY_BASE,
   STAGGER_INTERVAL,
-  BUBBLE_DURATION,
   MAX_REACTORS,
   VISITOR_SLOW_THRESHOLD,
   PERSONAL_INFO_CHANCE,
@@ -48,362 +43,14 @@ import {
   JOKE_QUESTION_RESPONSES,
   JOKE_REACTIONS_POSITIVE,
   JOKE_REACTIONS_NEGATIVE,
-  COLOR_NAMES,
-  VALUE_NAMES,
 } from './useDialogue.constants';
-
-type Candidate = {
-  personality: AiPersonality;
-  category: DialogueCategory;
-  context: { player?: string; visitor?: string };
-};
-
-const formatCard = (card: SerializedCard): string => {
-  const valueName = VALUE_NAMES[card.value] ?? '?';
-  if (card.color == null) return valueName;
-  return `${COLOR_NAMES[card.color] ?? ''} ${valueName}`.trim();
-};
-
-/** Map a game event to a human-readable action message, or null to skip */
-const formatEventAction = (
-  event: GameEvent,
-  snapshot: GameSnapshot,
-): { playerName: string; message: string } | null => {
-  const name = toDisplayName(event.playerName);
-  switch (event.type) {
-    case 'card_played': {
-      if (!event.card) return null;
-      const trigger = event.data?.trigger as string | undefined;
-      const cardName = formatCard(event.card);
-      if (
-        trigger === 'skip' ||
-        trigger === 'draw_two' ||
-        trigger === 'wild_draw_four'
-      ) {
-        const victim = findAffectedPlayer(snapshot);
-        if (victim)
-          return {
-            playerName: name,
-            message: `played ${cardName} on ${toDisplayName(victim)}`,
-          };
-      }
-      return { playerName: name, message: `played ${cardName}` };
-    }
-    case 'card_drawn':
-      return { playerName: name, message: 'drew a card' };
-    case 'uno_called':
-      return null; // handled as 'shout' entry below
-    case 'uno_penalty': {
-      const count = (event.data?.count as number) ?? 2;
-      return {
-        playerName: name,
-        message: `caught! Drew ${count} penalty cards`,
-      };
-    }
-    case 'challenge_resolved': {
-      const result = event.data?.result as string;
-      const bluffer = toDisplayName(event.data?.blufferName as string);
-      if (result === 'bluff_caught')
-        return {
-          playerName: bluffer,
-          message: 'bluff was caught! Drew 4 cards',
-        };
-      if (result === 'legit_play')
-        return {
-          playerName: name,
-          message: 'challenge failed! Drew 6 cards',
-        };
-      return null;
-    }
-    case 'game_ended': {
-      const score = event.data?.score as number | undefined;
-      return {
-        playerName: name,
-        message: `won the game${score ? ` with ${score} points` : ''}!`,
-      };
-    }
-    default:
-      return null;
-  }
-};
-
-const isAi = (name: string): name is AiPersonality => AI_NAME_SET.has(name);
-const otherAis = (exclude: string): AiPersonality[] =>
-  AI_NAMES.filter((n) => n !== exclude);
-
-/** Shuffle array in place (Fisher-Yates) and return it */
-const shuffle = <T>(arr: T[]): T[] => {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-};
-
-const mapEventToCandidates = (
-  event: GameEvent,
-  snapshot: GameSnapshot,
-  visitorName: string,
-): Candidate[] => {
-  const candidates: Candidate[] = [];
-  const displayName = toDisplayName(visitorName);
-  const ctx = { visitor: displayName };
-  const withPlayer = (name: string) => ({
-    ...ctx,
-    player: toDisplayName(name),
-  });
-
-  switch (event.type) {
-    case 'card_played': {
-      const trigger = event.data?.trigger as string | undefined;
-      const victim = findAffectedPlayer(snapshot);
-
-      if (trigger === 'skip') {
-        if (victim && isAi(victim)) {
-          candidates.push({
-            personality: victim,
-            category: 'got_skipped',
-            context: withPlayer(event.playerName),
-          });
-        }
-        if (isAi(event.playerName)) {
-          candidates.push({
-            personality: event.playerName,
-            category: 'skipped_someone',
-            context: withPlayer(victim ?? ''),
-          });
-        }
-        for (const ai of otherAis(event.playerName)) {
-          if (ai !== victim) {
-            candidates.push({
-              personality: ai,
-              category: 'opponent_got_skipped',
-              context: withPlayer(victim ?? ''),
-            });
-          }
-        }
-      }
-
-      if (trigger === 'draw_two') {
-        if (victim && isAi(victim)) {
-          candidates.push({
-            personality: victim,
-            category: 'got_draw_two',
-            context: withPlayer(event.playerName),
-          });
-        }
-        if (isAi(event.playerName)) {
-          candidates.push({
-            personality: event.playerName,
-            category: 'hit_someone_draw',
-            context: withPlayer(victim ?? ''),
-          });
-        }
-        for (const ai of otherAis(event.playerName)) {
-          if (ai !== victim) {
-            candidates.push({
-              personality: ai,
-              category: 'opponent_drew_cards',
-              context: withPlayer(victim ?? ''),
-            });
-          }
-        }
-      }
-
-      if (trigger === 'wild_draw_four') {
-        if (victim && isAi(victim)) {
-          candidates.push({
-            personality: victim,
-            category: 'got_draw_four',
-            context: withPlayer(event.playerName),
-          });
-        }
-        if (isAi(event.playerName)) {
-          candidates.push({
-            personality: event.playerName,
-            category: 'hit_someone_draw',
-            context: withPlayer(victim ?? ''),
-          });
-        }
-      }
-
-      if (trigger === 'reverse' && isAi(event.playerName)) {
-        candidates.push({
-          personality: event.playerName,
-          category: 'played_reverse',
-          context: ctx,
-        });
-      }
-
-      if (trigger === 'wild' && isAi(event.playerName)) {
-        candidates.push({
-          personality: event.playerName,
-          category: 'played_wild',
-          context: ctx,
-        });
-      }
-      break;
-    }
-
-    case 'card_drawn': {
-      if (isAi(event.playerName)) {
-        candidates.push({
-          personality: event.playerName,
-          category: 'drew_card_self',
-          context: ctx,
-        });
-      }
-      break;
-    }
-
-    case 'uno_called': {
-      if (isAi(event.playerName)) {
-        candidates.push({
-          personality: event.playerName,
-          category: 'uno_called_self',
-          context: ctx,
-        });
-      }
-      for (const ai of otherAis(event.playerName)) {
-        candidates.push({
-          personality: ai,
-          category: 'uno_called_opponent',
-          context: withPlayer(event.playerName),
-        });
-      }
-      break;
-    }
-
-    case 'uno_penalty': {
-      for (const ai of otherAis(event.playerName)) {
-        candidates.push({
-          personality: ai,
-          category: 'uno_caught',
-          context: withPlayer(event.playerName),
-        });
-      }
-      break;
-    }
-
-    case 'challenge_resolved': {
-      const result = event.data?.result as string;
-      if (result === 'accepted') break; // no dialogue for simple accept
-      const category: DialogueCategory =
-        result === 'bluff_caught'
-          ? 'challenge_bluff_caught'
-          : 'challenge_legit';
-      const blufferName = event.data?.blufferName as string;
-      for (const ai of AI_NAMES) {
-        candidates.push({
-          personality: ai,
-          category,
-          context: withPlayer(blufferName),
-        });
-      }
-      break;
-    }
-
-    case 'game_ended': {
-      const winner = event.playerName;
-      for (const ai of AI_NAMES) {
-        if (ai === winner) {
-          candidates.push({
-            personality: ai,
-            category: 'game_won',
-            context: ctx,
-          });
-        } else if (winner === visitorName) {
-          candidates.push({
-            personality: ai,
-            category: 'visitor_won',
-            context: ctx,
-          });
-        } else {
-          candidates.push({
-            personality: ai,
-            category: 'game_lost',
-            context: withPlayer(winner),
-          });
-        }
-      }
-      break;
-    }
-
-    case 'turn_changed': {
-      // Check hand sizes for low_cards / many_cards commentary
-      for (const p of snapshot.players) {
-        if (p.name === visitorName) continue;
-        if (p.hand.length === 2 || p.hand.length === 3) {
-          for (const ai of otherAis(p.name)) {
-            candidates.push({
-              personality: ai,
-              category: 'low_cards',
-              context: withPlayer(p.name),
-            });
-          }
-        }
-        if (p.hand.length >= 10) {
-          for (const ai of otherAis(p.name)) {
-            candidates.push({
-              personality: ai,
-              category: 'many_cards',
-              context: withPlayer(p.name),
-            });
-          }
-        }
-      }
-
-      // Idle chatter — pick one random AI to maybe comment on quiet turns
-      const idleAi = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
-      candidates.push({
-        personality: idleAi,
-        category: 'idle',
-        context: ctx,
-      });
-      break;
-    }
-  }
-
-  return candidates;
-};
-
-/** Schedule dialogue lines from selected candidates */
-const scheduleDialogues = (
-  selected: { personality: AiPersonality; text: string }[],
-  baseDelay: number,
-  timersRef: React.RefObject<ReturnType<typeof setTimeout>[]>,
-  setDialogues: React.Dispatch<React.SetStateAction<(DialogueBubble | null)[]>>,
-  setHistory: React.Dispatch<React.SetStateAction<DialogueHistoryEntry[]>>,
-) => {
-  for (let i = 0; i < selected.length; i++) {
-    const { personality, text } = selected[i];
-    const delay = baseDelay + i * STAGGER_INTERVAL;
-    const idx = AI_INDEX[personality];
-
-    const showTimer = setTimeout(() => {
-      playChat(personality);
-      setDialogues((prev) => {
-        const next = [...prev];
-        next[idx] = { message: text, key: Date.now() };
-        return next;
-      });
-      setHistory((prev) => [
-        ...prev,
-        { kind: 'dialogue', personality, message: text, timestamp: Date.now() },
-      ]);
-    }, delay);
-
-    const hideTimer = setTimeout(() => {
-      setDialogues((prev) => {
-        const next = [...prev];
-        next[idx] = null;
-        return next;
-      });
-    }, delay + BUBBLE_DURATION);
-
-    timersRef.current.push(showTimer, hideTimer);
-  }
-};
+import {
+  formatEventAction,
+  mapEventToCandidates,
+  otherAis,
+  shuffle,
+} from './eventHelpers';
+import { scheduleDialogues } from './scheduleDialogues';
 
 export const useDialogue = (ready: boolean) => {
   const events = useAppSelector(selectEvents);
@@ -411,6 +58,8 @@ export const useDialogue = (ready: boolean) => {
   const processedRef = useRef(0);
   const selectorRef = useRef(createDialogueSelector());
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const threadCountRef = useRef(0);
+  const nextThreadId = () => `t-${++threadCountRef.current}`;
   const [dialogues, setDialogues] = useState<(DialogueBubble | null)[]>([
     null,
     null,
@@ -441,8 +90,7 @@ export const useDialogue = (ready: boolean) => {
     fetchJokes().then((jokes) => {
       const short = jokes.filter((j) => {
         const words =
-          j.setup.split(/\s+/).length +
-          (j.punchline?.split(/\s+/).length ?? 0);
+          j.setup.split(/\s+/).length + (j.punchline?.split(/\s+/).length ?? 0);
         return words <= MAX_JOKE_WORDS;
       });
       jokePoolRef.current.push(...short);
@@ -474,6 +122,7 @@ export const useDialogue = (ready: boolean) => {
     jokeActiveRef.current = false;
     personalInfoActiveRef.current = false;
     usedTopicIndicesRef.current.clear();
+    threadCountRef.current = 0;
     setDialogues([null, null, null, null]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
 
@@ -489,7 +138,12 @@ export const useDialogue = (ready: boolean) => {
     if (gameCountRef.current > 1) {
       setHistory((prev) => [
         ...prev,
-        { kind: 'action', playerName: '', message: 'New game started', timestamp: Date.now() },
+        {
+          kind: 'action',
+          playerName: '',
+          message: 'New game started',
+          timestamp: Date.now(),
+        },
       ]);
     }
 
@@ -516,7 +170,15 @@ export const useDialogue = (ready: boolean) => {
       if (text) selected.push({ personality: c.personality, text });
     }
 
-    scheduleDialogues(selected, REACTION_DELAY_BASE, timersRef, setDialogues, setHistory);
+    const tid = selected.length > 1 ? nextThreadId() : undefined;
+    scheduleDialogues(
+      selected,
+      REACTION_DELAY_BASE,
+      timersRef,
+      setDialogues,
+      setHistory,
+      tid,
+    );
   }, [snapshot, ready]);
 
   // Visitor slow timer — when it's the visitor's turn, start a countdown
@@ -607,9 +269,7 @@ export const useDialogue = (ready: boolean) => {
       const prioritized = candidates.filter((c) =>
         priority.includes(c.category),
       );
-      const rest = candidates.filter(
-        (c) => !priority.includes(c.category),
-      );
+      const rest = candidates.filter((c) => !priority.includes(c.category));
       shuffle(rest);
       const ordered = [...prioritized, ...rest];
 
@@ -649,19 +309,28 @@ export const useDialogue = (ready: boolean) => {
         jokePoolRef.current.length > 0 &&
         Math.random() < JOKE_CHANCE;
 
-      if (event.type === 'uno_called' || (!jokeActiveRef.current && !personalInfoActiveRef.current && !willTellJoke && !willShareInfo)) {
+      if (
+        event.type === 'uno_called' ||
+        (!jokeActiveRef.current &&
+          !personalInfoActiveRef.current &&
+          !willTellJoke &&
+          !willShareInfo)
+      ) {
+        const tid = selected.length > 1 ? nextThreadId() : undefined;
         scheduleDialogues(
           selected,
           REACTION_DELAY_BASE,
           timersRef,
           setDialogues,
           setHistory,
+          tid,
         );
       }
 
       if (willTellJoke) {
         jokeActiveRef.current = true;
         clearVisitorSlowTimer();
+        const jokeThreadId = nextThreadId();
         const joke = jokePoolRef.current.pop()!;
         const teller = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)];
         const reactors = otherAis(teller);
@@ -671,8 +340,7 @@ export const useDialogue = (ready: boolean) => {
         const intro =
           JOKE_INTROS[Math.floor(Math.random() * JOKE_INTROS.length)];
 
-        const prompter =
-          reactors[Math.floor(Math.random() * reactors.length)];
+        const prompter = reactors[Math.floor(Math.random() * reactors.length)];
         const prompterIdx = AI_INDEX[prompter];
         const jokeTimers: ReturnType<typeof setTimeout>[] = [];
 
@@ -691,6 +359,7 @@ export const useDialogue = (ready: boolean) => {
               personality: teller,
               message: intro,
               timestamp: Date.now(),
+              threadId: jokeThreadId,
             },
           ]);
         }, baseT);
@@ -721,16 +390,20 @@ export const useDialogue = (ready: boolean) => {
               personality: prompter,
               message: goAheadLine,
               timestamp: Date.now(),
+              threadId: jokeThreadId,
             },
           ]);
         }, baseT + JOKE_GO_AHEAD_DELAY);
-        const goAheadHide = setTimeout(() => {
-          setDialogues((prev) => {
-            const n = [...prev];
-            n[prompterIdx] = null;
-            return n;
-          });
-        }, baseT + JOKE_GO_AHEAD_DELAY + JOKE_GO_AHEAD_DURATION);
+        const goAheadHide = setTimeout(
+          () => {
+            setDialogues((prev) => {
+              const n = [...prev];
+              n[prompterIdx] = null;
+              return n;
+            });
+          },
+          baseT + JOKE_GO_AHEAD_DELAY + JOKE_GO_AHEAD_DURATION,
+        );
         jokeTimers.push(goAheadShow, goAheadHide);
 
         // Phase 2 — Setup
@@ -751,6 +424,7 @@ export const useDialogue = (ready: boolean) => {
               personality: teller,
               message: joke.setup,
               timestamp: Date.now(),
+              threadId: jokeThreadId,
             },
           ]);
         }, setupStart);
@@ -795,6 +469,7 @@ export const useDialogue = (ready: boolean) => {
                   personality: prompter,
                   message: questionLine,
                   timestamp: Date.now(),
+                  threadId: jokeThreadId,
                 },
               ]);
             }, questionStart);
@@ -833,6 +508,7 @@ export const useDialogue = (ready: boolean) => {
                 personality: teller,
                 message: punchlineText,
                 timestamp: Date.now(),
+                threadId: jokeThreadId,
               },
             ]);
           }, punchlineStart);
@@ -882,6 +558,7 @@ export const useDialogue = (ready: boolean) => {
                 personality: reactor,
                 message: line,
                 timestamp: Date.now(),
+                threadId: jokeThreadId,
               },
             ]);
           }, rDelay);
@@ -912,36 +589,38 @@ export const useDialogue = (ready: boolean) => {
       if (willShareInfo) {
         personalInfoActiveRef.current = true;
         clearVisitorSlowTimer();
+        const infoThreadId = nextThreadId();
 
         // Pick an unused topic — skip topics whose key was already shown
         // (either via a prior topic thread or a weight:3 banter line)
         const selector = selectorRef.current;
-        let available = PERSONAL_INFO_TOPICS
-          .map((_, i) => i)
-          .filter(
-            (i) =>
-              !usedTopicIndicesRef.current.has(i) &&
-              !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
-          );
+        let available = PERSONAL_INFO_TOPICS.map((_, i) => i).filter(
+          (i) =>
+            !usedTopicIndicesRef.current.has(i) &&
+            !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
+        );
         if (available.length === 0) {
           usedTopicIndicesRef.current.clear();
-          available = PERSONAL_INFO_TOPICS
-            .map((_, i) => i)
-            .filter((i) => !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey));
+          available = PERSONAL_INFO_TOPICS.map((_, i) => i).filter(
+            (i) => !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
+          );
         }
         if (available.length === 0) {
           // All topics exhausted — fall back to regular banter/jokes
           personalInfoActiveRef.current = false;
+          const tid = selected.length > 1 ? nextThreadId() : undefined;
           scheduleDialogues(
             selected,
             REACTION_DELAY_BASE,
             timersRef,
             setDialogues,
             setHistory,
+            tid,
           );
           continue;
         }
-        const topicIndex = available[Math.floor(Math.random() * available.length)];
+        const topicIndex =
+          available[Math.floor(Math.random() * available.length)];
         usedTopicIndicesRef.current.add(topicIndex);
         const topic = PERSONAL_INFO_TOPICS[topicIndex];
         selector.markTopicShown(topic.topicKey);
@@ -959,7 +638,8 @@ export const useDialogue = (ready: boolean) => {
 
         if (showIntro) {
           const introPool = PERSONAL_INFO_INTROS[teller];
-          let introLine = introPool[Math.floor(Math.random() * introPool.length)];
+          let introLine =
+            introPool[Math.floor(Math.random() * introPool.length)];
           introLine = introLine.split('{visitor}').join(displayVisitor);
 
           const introShow = setTimeout(() => {
@@ -971,7 +651,13 @@ export const useDialogue = (ready: boolean) => {
             });
             setHistory((prev) => [
               ...prev,
-              { kind: 'dialogue', personality: teller, message: introLine, timestamp: Date.now() },
+              {
+                kind: 'dialogue',
+                personality: teller,
+                message: introLine,
+                timestamp: Date.now(),
+                threadId: infoThreadId,
+              },
             ]);
           }, baseT);
           const introHideT = baseT + PERSONAL_INFO_INTRO_DURATION;
@@ -1004,7 +690,14 @@ export const useDialogue = (ready: boolean) => {
             });
             setHistory((prev) => [
               ...prev,
-              { kind: 'dialogue', personality: entry.personality, message: entry.text, timestamp: Date.now(), topicKey: topic.topicKey },
+              {
+                kind: 'dialogue',
+                personality: entry.personality,
+                message: entry.text,
+                timestamp: Date.now(),
+                topicKey: topic.topicKey,
+                threadId: infoThreadId,
+              },
             ]);
           }, cursor);
           const entryHide = setTimeout(() => {

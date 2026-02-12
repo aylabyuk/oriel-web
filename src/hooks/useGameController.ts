@@ -5,7 +5,11 @@ import { UnoGame, getCardId } from '@/engine';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSnapshot, pushEvent, clearEvents } from '@/store/slices/game';
 import { selectVisitorName } from '@/store/slices/visitor';
-import { AI_NAMES, AI_NAME_SET, sanitizeVisitorName } from '@/constants/players';
+import {
+  AI_NAMES,
+  AI_NAME_SET,
+  sanitizeVisitorName,
+} from '@/constants/players';
 import { playBluffCaught, playLegitPlay, playUnoPenalty } from '@/utils/sounds';
 import {
   AI_ANIMATION_WAIT,
@@ -150,7 +154,10 @@ export const useGameController = () => {
   const startGame = useCallback(() => {
     if (gameRef.current) return;
 
-    const playerNames = [sanitizeVisitorName(visitorName || 'Player'), ...AI_NAMES];
+    const playerNames = [
+      sanitizeVisitorName(visitorName || 'Player'),
+      ...AI_NAMES,
+    ];
     const game = new UnoGame(playerNames, playerNames[0]);
 
     game.onEvent((event) => {

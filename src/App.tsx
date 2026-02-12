@@ -74,14 +74,20 @@ export const App = () => {
     setFreeLookExplainerOpen(!freeLook);
     toggleFreeLook();
   }, [freeLook, toggleFreeLook]);
-  const handleFreeLookExplainerDismiss = useCallback(() => setFreeLookExplainerOpen(false), []);
+  const handleFreeLookExplainerDismiss = useCallback(
+    () => setFreeLookExplainerOpen(false),
+    [],
+  );
   const [soundOn, handleSoundToggle] = usePersistedState('sound', true);
   useEffect(() => setSoundEnabled(soundOn), [soundOn]);
   const [musicOn, handleMusicToggle] = usePersistedState('music', true);
   useEffect(() => setMusicEnabled(musicOn), [musicOn]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const handleRestartClick = useCallback(() => setRestartConfirmOpen(true), []);
-  const handleRestartCancel = useCallback(() => setRestartConfirmOpen(false), []);
+  const handleRestartCancel = useCallback(
+    () => setRestartConfirmOpen(false),
+    [],
+  );
   const [rulesOpen, setRulesOpen] = useState(false);
   const handleRulesOpen = useCallback(() => setRulesOpen(true), []);
   const handleRulesClose = useCallback(() => setRulesOpen(false), []);
@@ -325,13 +331,13 @@ export const App = () => {
       {disclaimerAcked && (
         <div
           className={cn(
-            'fixed top-4 z-70 flex flex-row items-center justify-evenly w-80',
+            'fixed top-4 z-70 flex w-80 flex-row items-center justify-evenly',
             'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
             'dark:bg-neutral-900/70',
             // Portrait mobile: centered
             'max-lg:portrait:left-1/2 max-lg:portrait:-translate-x-1/2',
             // Landscape + desktop: top-right
-            'landscape:right-4 lg:right-4',
+            'lg:right-4 landscape:right-4',
           )}
         >
           <ThemeToggle />

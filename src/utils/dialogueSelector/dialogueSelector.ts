@@ -1,11 +1,7 @@
 import { DIALOGUE_LINES } from '@/data/dialogueLines';
 import type { AiPersonality, DialogueCategory } from '@/types/dialogue';
 import type { GameSnapshot } from '@/types/game';
-import {
-  AI_STRATEGIST,
-  AI_TRASH_TALKER,
-  AI_CHILL,
-} from '@/constants/players';
+import { AI_STRATEGIST, AI_TRASH_TALKER, AI_CHILL } from '@/constants/players';
 import {
   CATEGORY_PROBABILITY,
   HISTORY_SIZE,
@@ -38,7 +34,11 @@ export const createDialogueSelector = () => {
     context: LineContext,
     now: number,
   ): string | null => {
-    if (!COOLDOWN_BYPASS.has(category) && now - state.lastTime[personality] < COOLDOWN_MS) return null;
+    if (
+      !COOLDOWN_BYPASS.has(category) &&
+      now - state.lastTime[personality] < COOLDOWN_MS
+    )
+      return null;
     if (Math.random() > CATEGORY_PROBABILITY[category]) return null;
 
     const lines = DIALOGUE_LINES[personality][category];
@@ -46,9 +46,16 @@ export const createDialogueSelector = () => {
 
     const recent = new Set(state.history[personality]);
     const candidates = lines.filter(
-      (l) => !recent.has(l.text) && (!l.topicKey || !state.shownTopicKeys.has(l.topicKey)),
+      (l) =>
+        !recent.has(l.text) &&
+        (!l.topicKey || !state.shownTopicKeys.has(l.topicKey)),
     );
-    const pool = candidates.length > 0 ? candidates : lines.filter((l) => !l.topicKey || !state.shownTopicKeys.has(l.topicKey));
+    const pool =
+      candidates.length > 0
+        ? candidates
+        : lines.filter(
+            (l) => !l.topicKey || !state.shownTopicKeys.has(l.topicKey),
+          );
     if (pool.length === 0) return null;
 
     const totalWeight = pool.reduce((sum, l) => sum + (l.weight ?? 1), 0);
@@ -90,8 +97,16 @@ export const createDialogueSelector = () => {
   const isTopicShown = (key: string): boolean => state.shownTopicKeys.has(key);
 
   const reset = () => {
-    state.history = { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] };
-    state.lastTime = { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 };
+    state.history = {
+      [AI_STRATEGIST]: [],
+      [AI_TRASH_TALKER]: [],
+      [AI_CHILL]: [],
+    };
+    state.lastTime = {
+      [AI_STRATEGIST]: 0,
+      [AI_TRASH_TALKER]: 0,
+      [AI_CHILL]: 0,
+    };
     state.shownTopicKeys.clear();
   };
 

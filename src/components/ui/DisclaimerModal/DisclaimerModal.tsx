@@ -49,7 +49,9 @@ export const DisclaimerModal = ({
 
         <div className="text-sm text-neutral-600 dark:text-white/70">
           <p>{t('disclaimer.closing')}</p>
-          <p className="font-semibold text-neutral-900 dark:text-white">{t('disclaimer.signature')}</p>
+          <p className="font-semibold text-neutral-900 dark:text-white">
+            {t('disclaimer.signature')}
+          </p>
         </div>
 
         <button

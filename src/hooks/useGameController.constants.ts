@@ -23,9 +23,4 @@ export const CATCH_WINDOW_DURATION = 3000;
 /** Visitor turn timeout — matches TURN_DURATION_S in PlayerLabel (ms) */
 export const VISITOR_TURN_TIMEOUT = 10_000;
 
-export const ALL_COLORS = [
-  Color.RED,
-  Color.BLUE,
-  Color.GREEN,
-  Color.YELLOW,
-];
+export const ALL_COLORS = [Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW];

@@ -8,13 +8,7 @@ type RulesModalProps = {
   onClose: () => void;
 };
 
-const CardImg = ({
-  name,
-  className,
-}: {
-  name: string;
-  className?: string;
-}) => {
+const CardImg = ({ name, className }: { name: string; className?: string }) => {
   const src = CARD_TEXTURES[name];
   if (!src) return null;
   return (
@@ -28,11 +22,15 @@ const CardImg = ({
 };
 
 const SectionHeading = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="mb-2 text-sm font-bold text-neutral-900 dark:text-white">{children}</h3>
+  <h3 className="mb-2 text-sm font-bold text-neutral-900 dark:text-white">
+    {children}
+  </h3>
 );
 
 const SectionBody = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-xs leading-relaxed text-neutral-600 dark:text-white/70">{children}</p>
+  <p className="text-xs leading-relaxed text-neutral-600 dark:text-white/70">
+    {children}
+  </p>
 );
 
 export const RulesModal = ({ open, onClose }: RulesModalProps) => {
@@ -79,7 +77,13 @@ export const RulesModal = ({ open, onClose }: RulesModalProps) => {
             aria-label={t('rules.close')}
             className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-800 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white dark:focus:ring-white/50"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-4 w-4">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              className="h-4 w-4"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>

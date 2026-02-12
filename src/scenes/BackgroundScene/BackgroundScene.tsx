@@ -391,7 +391,12 @@ export const BackgroundScene = ({
 
   return (
     <div className="h-full w-full">
-      <Canvas camera={{ position: [...DEFAULT_CAMERA_POSITION], fov: DEFAULT_CAMERA_FOV }}>
+      <Canvas
+        camera={{
+          position: [...DEFAULT_CAMERA_POSITION],
+          fov: DEFAULT_CAMERA_FOV,
+        }}
+      >
         <ResponsiveFov />
         <CameraController
           freeLook={freeLook}
@@ -405,7 +410,11 @@ export const BackgroundScene = ({
         <pointLight position={[0, 0, 3]} intensity={0.5} />
         {showTable && (
           <Suspense fallback={null}>
-            <Table startEntrance={entranceEnabled} onLoad={handleTableLoaded} onReady={handleTableReady}>
+            <Table
+              startEntrance={entranceEnabled}
+              onLoad={handleTableLoaded}
+              onReady={handleTableReady}
+            >
               {DEBUG_MAGNETS && (
                 <>
                   <MagnetDeck cards={magnet.deck} />
@@ -427,9 +436,7 @@ export const BackgroundScene = ({
                 </>
               )}
               <DeckArrow
-                visible={
-                  isVisitorTurn && deckEnabled && !playableOverride
-                }
+                visible={isVisitorTurn && deckEnabled && !playableOverride}
               />
               <VisibleCardLayer
                 magnet={magnet}

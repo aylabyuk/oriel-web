@@ -17,7 +17,7 @@ const PAD_CHORDS: number[][] = [
 const ARP_PATTERNS: number[][] = [
   [523, 0, 622, 0, 523, 0, 466, 0], // C5 . Eb5 . C5 . Bb4 .
   [622, 0, 698, 0, 784, 0, 622, 0], // Eb5 . F5 . G5 . Eb5 .
-  [784, 0, 622, 0, 523, 0, 0, 0],   // G5 . Eb5 . C5 . . .
+  [784, 0, 622, 0, 523, 0, 0, 0], // G5 . Eb5 . C5 . . .
   [466, 0, 523, 0, 622, 0, 784, 0], // Bb4 . C5 . Eb5 . G5 .
 ];
 
@@ -65,7 +65,10 @@ const scheduleArp = (ac: AudioContext, time: number, freq: number): void => {
   g.connect(lpFilter!);
   osc.start(time);
   osc.stop(time + HALF * 0.9);
-  osc.onended = () => { osc.disconnect(); g.disconnect(); };
+  osc.onended = () => {
+    osc.disconnect();
+    g.disconnect();
+  };
 };
 
 const scheduleBass = (ac: AudioContext, time: number, freq: number): void => {
@@ -82,7 +85,10 @@ const scheduleBass = (ac: AudioContext, time: number, freq: number): void => {
   g.connect(lpFilter!);
   osc.start(time);
   osc.stop(time + BEAT * 4);
-  osc.onended = () => { osc.disconnect(); g.disconnect(); };
+  osc.onended = () => {
+    osc.disconnect();
+    g.disconnect();
+  };
 };
 
 const schedulePad = (ac: AudioContext, time: number, chord: number[]): void => {
@@ -104,7 +110,10 @@ const schedulePad = (ac: AudioContext, time: number, chord: number[]): void => {
     g.connect(lpFilter!);
     osc.start(time);
     osc.stop(time + dur + 0.05);
-    osc.onended = () => { osc.disconnect(); g.disconnect(); };
+    osc.onended = () => {
+      osc.disconnect();
+      g.disconnect();
+    };
   }
 };
 

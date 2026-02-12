@@ -49,6 +49,7 @@ export type DialogueHistoryEntry =
       message: string;
       timestamp: number;
       topicKey?: string;
+      threadId?: string;
     }
   | { kind: 'action'; playerName: string; message: string; timestamp: number }
   | { kind: 'shout'; playerName: string; message: string; timestamp: number };

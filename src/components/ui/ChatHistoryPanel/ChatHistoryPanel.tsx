@@ -242,7 +242,7 @@ const ChatMessages = ({
     <div
       ref={scrollRef}
       className={cn(
-        'flex-1 space-y-2 overflow-y-auto px-3 py-2 sm:space-y-3 sm:px-4 sm:py-3',
+        'flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3',
         scrollbarClasses,
       )}
       style={maxHeight ? { maxHeight } : undefined}
@@ -252,11 +252,33 @@ const ChatMessages = ({
           {t('chat.empty')}
         </p>
       ) : (
-        history.map((entry, i) =>
-          entry.kind === 'shout' ? (
+        history.map((entry, i) => {
+          const prevEntry = history[i - 1];
+          const nextEntry = history[i + 1];
+          const tid = entry.kind === 'dialogue' ? entry.threadId : undefined;
+          const prevTid =
+            prevEntry?.kind === 'dialogue' ? prevEntry.threadId : undefined;
+          const nextTid =
+            nextEntry?.kind === 'dialogue' ? nextEntry.threadId : undefined;
+          const isThreadContinuation = !!tid && tid === prevTid;
+          const isThreadEnd = !!tid && tid !== nextTid;
+          const spacing =
+            i === 0 ? '' : isThreadContinuation ? 'mt-1' : 'mt-2 sm:mt-3';
+          const threadBorder =
+            tid && (isThreadContinuation || tid === nextTid)
+              ? 'border-l-2 border-neutral-300/50 dark:border-white/10 ml-1 pl-2'
+              : '';
+          const threadEndRounding =
+            isThreadEnd && !isThreadContinuation
+              ? ''
+              : isThreadEnd
+                ? 'pb-0.5'
+                : '';
+
+          return entry.kind === 'shout' ? (
             <div
               key={`${entry.timestamp}-${i}`}
-              className="flex items-center gap-2 py-1"
+              className={cn('flex items-center gap-2 py-1', spacing)}
             >
               <span className="h-px flex-1 bg-red-500/30 dark:bg-red-400/30" />
               <span className="text-[11px] font-black tracking-widest text-red-600 sm:text-xs dark:text-red-400">
@@ -267,7 +289,7 @@ const ChatMessages = ({
           ) : entry.kind === 'action' ? (
             <div
               key={`${entry.timestamp}-${i}`}
-              className="flex items-center gap-2 py-0.5"
+              className={cn('flex items-center gap-2 py-0.5', spacing)}
             >
               <span className="text-[10px] text-neutral-500 sm:text-xs dark:text-white/40">
                 <span className="font-semibold text-neutral-700 dark:text-white/60">
@@ -282,7 +304,12 @@ const ChatMessages = ({
           ) : (
             <div
               key={`${entry.timestamp}-${i}`}
-              className="flex items-start gap-2"
+              className={cn(
+                'flex items-start gap-2',
+                spacing,
+                threadBorder,
+                threadEndRounding,
+              )}
             >
               <div
                 className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white sm:size-6 sm:text-[10px]"
@@ -307,17 +334,14 @@ const ChatMessages = ({
                 </p>
               </div>
             </div>
-          ),
-        )
+          );
+        })
       )}
     </div>
   );
 };
 
-export const ChatHistoryPanel = ({
-  open,
-  history,
-}: ChatHistoryPanelProps) => {
+export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<Tab>('chat');
@@ -370,15 +394,18 @@ export const ChatHistoryPanel = ({
           'lg:hidden landscape:hidden',
         )}
         style={{
-          transform: springs.portraitY.to(
-            (v: number) => `translateY(${v}%)`,
-          ),
+          transform: springs.portraitY.to((v: number) => `translateY(${v}%)`),
           height: springs.portraitHeight.to((v: number) => `${v}vh`),
           pointerEvents: open ? 'auto' : 'none',
         }}
       >
         <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 dark:border-white/10">
-          <TabSwitcher tab={tab} onTabChange={handleTabChange} aboutHasNew={aboutHasNew} compact />
+          <TabSwitcher
+            tab={tab}
+            onTabChange={handleTabChange}
+            aboutHasNew={aboutHasNew}
+            compact
+          />
           <span className="ml-auto text-[10px] text-neutral-400 dark:text-white/40">
             {tab === 'chat'
               ? t('chat.messageCount', { count: history.length })
@@ -405,10 +432,10 @@ export const ChatHistoryPanel = ({
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
       <animated.div
         className={cn(
-          'fixed right-4 top-16 bottom-6 z-60 flex w-64 flex-col sm:w-80',
+          'fixed top-16 right-4 bottom-6 z-60 flex w-64 flex-col sm:w-80',
           'rounded-2xl bg-white/80 shadow-xl backdrop-blur-sm dark:bg-neutral-900/80',
           'border border-neutral-200 dark:border-white/10',
-          'hidden landscape:flex lg:flex',
+          'hidden lg:flex landscape:flex',
         )}
         style={{
           x: springs.x,
@@ -416,7 +443,11 @@ export const ChatHistoryPanel = ({
         }}
       >
         <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2 sm:px-4 sm:py-3 dark:border-white/10">
-          <TabSwitcher tab={tab} onTabChange={handleTabChange} aboutHasNew={aboutHasNew} />
+          <TabSwitcher
+            tab={tab}
+            onTabChange={handleTabChange}
+            aboutHasNew={aboutHasNew}
+          />
           <span className="ml-auto text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
             {tab === 'chat'
               ? t('chat.messageCount', { count: history.length })
