@@ -82,6 +82,7 @@ export const en = {
     undiscovered: 'Keep playing to discover more...',
     aboutEmpty:
       'AI opponents will share facts about Oriel as you play. Check back soon!',
+    tellMeMore: 'Tell me more',
   },
   disclaimer: {
     greeting: 'Hi {{name}},',

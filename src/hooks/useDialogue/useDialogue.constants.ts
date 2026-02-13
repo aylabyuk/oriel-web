@@ -18,9 +18,11 @@ export const MAX_REACTORS = 2;
 /** How long before AIs comment on visitor being slow (ms) */
 export const VISITOR_SLOW_THRESHOLD = 4500;
 /** Probability that an AI shares personal info about Oriel on a turn change */
-export const PERSONAL_INFO_CHANCE = 0.4;
+export const PERSONAL_INFO_CHANCE = 0.55;
+/** Cooldown after a personal info thread before another can start (ms) */
+export const PERSONAL_INFO_COOLDOWN = 8000;
 /** Probability that an AI tells a joke on a turn change */
-export const JOKE_CHANCE = 0.08;
+export const JOKE_CHANCE = 0.05;
 /** Refetch threshold — fetch more jokes when pool drops below this */
 export const JOKE_REFETCH_THRESHOLD = 3;
 

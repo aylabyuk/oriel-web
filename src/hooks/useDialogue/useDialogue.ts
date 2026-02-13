@@ -20,6 +20,7 @@ import {
   MAX_REACTORS,
   VISITOR_SLOW_THRESHOLD,
   PERSONAL_INFO_CHANCE,
+  PERSONAL_INFO_COOLDOWN,
   PERSONAL_INFO_INTRO_DURATION,
   PERSONAL_INFO_FACT_DELAY,
   PERSONAL_INFO_FOLLOWUP_DELAY,
@@ -81,6 +82,7 @@ export const useDialogue = (ready: boolean) => {
   const jokePoolRef = useRef<Joke[]>([]);
   const jokeActiveRef = useRef(false);
   const personalInfoActiveRef = useRef(false);
+  const personalInfoCooldownUntilRef = useRef(0);
   const usedTopicIndicesRef = useRef(new Set<number>());
   const fetchingJokesRef = useRef(false);
 
@@ -111,6 +113,135 @@ export const useDialogue = (ready: boolean) => {
     }
   }, []);
 
+  /** Schedule a personal info topic thread. Returns true if a topic was scheduled. */
+  const schedulePersonalInfoThread = useCallback(
+    (visitorName: string): boolean => {
+      const selector = selectorRef.current;
+      let available = PERSONAL_INFO_TOPICS.map((_, i) => i).filter(
+        (i) =>
+          !usedTopicIndicesRef.current.has(i) &&
+          !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
+      );
+      if (available.length === 0) {
+        usedTopicIndicesRef.current.clear();
+        available = PERSONAL_INFO_TOPICS.map((_, i) => i).filter(
+          (i) => !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
+        );
+      }
+      if (available.length === 0) return false;
+
+      personalInfoActiveRef.current = true;
+      clearVisitorSlowTimer();
+      const infoThreadId = nextThreadId();
+
+      const topicIndex =
+        available[Math.floor(Math.random() * available.length)];
+      usedTopicIndicesRef.current.add(topicIndex);
+      const topic = PERSONAL_INFO_TOPICS[topicIndex];
+      selector.markTopicShown(topic.topicKey);
+
+      const displayVisitor = toDisplayName(visitorName);
+      const teller = topic.entries[0].personality;
+      const tellerIdx = AI_INDEX[teller];
+      const baseT = REACTION_DELAY_BASE;
+      const infoTimers: ReturnType<typeof setTimeout>[] = [];
+
+      const showIntro = Math.random() < 0.2;
+      let cursor: number;
+
+      if (showIntro) {
+        const introPool = PERSONAL_INFO_INTROS[teller];
+        let introLine =
+          introPool[Math.floor(Math.random() * introPool.length)];
+        introLine = introLine.split('{visitor}').join(displayVisitor);
+
+        const introShow = setTimeout(() => {
+          playChat(teller);
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = { message: introLine, key: Date.now() };
+            return n;
+          });
+          setHistory((prev) => [
+            ...prev,
+            {
+              kind: 'dialogue',
+              personality: teller,
+              message: introLine,
+              timestamp: Date.now(),
+              threadId: infoThreadId,
+            },
+          ]);
+        }, baseT);
+        const introHideT = baseT + PERSONAL_INFO_INTRO_DURATION;
+        const introHide = setTimeout(() => {
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[tellerIdx] = null;
+            return n;
+          });
+        }, introHideT);
+        infoTimers.push(introShow, introHide);
+        cursor = introHideT + PERSONAL_INFO_FACT_DELAY;
+      } else {
+        cursor = baseT;
+      }
+
+      for (const entry of topic.entries) {
+        const entryIdx = AI_INDEX[entry.personality];
+        const readTime = jokeReadTime(entry.text);
+
+        const entryShow = setTimeout(() => {
+          playChat(entry.personality);
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[entryIdx] = { message: entry.text, key: Date.now() };
+            return n;
+          });
+          setHistory((prev) => [
+            ...prev,
+            {
+              kind: 'dialogue',
+              personality: entry.personality,
+              message: entry.text,
+              timestamp: Date.now(),
+              topicKey: topic.topicKey,
+              threadId: infoThreadId,
+            },
+          ]);
+        }, cursor);
+        const entryHide = setTimeout(() => {
+          setDialogues((prev) => {
+            const n = [...prev];
+            n[entryIdx] = null;
+            return n;
+          });
+        }, cursor + readTime);
+        infoTimers.push(entryShow, entryHide);
+
+        cursor += readTime + PERSONAL_INFO_FOLLOWUP_DELAY;
+      }
+
+      const infoEnd = setTimeout(() => {
+        personalInfoActiveRef.current = false;
+        personalInfoCooldownUntilRef.current =
+          Date.now() + PERSONAL_INFO_COOLDOWN;
+      }, cursor - PERSONAL_INFO_FOLLOWUP_DELAY);
+      infoTimers.push(infoEnd);
+
+      timersRef.current.push(...infoTimers);
+      return true;
+    },
+    [clearVisitorSlowTimer],
+  );
+
+  /** On-demand personal info request — bypasses probability and cooldown */
+  const requestPersonalInfo = useCallback(() => {
+    if (personalInfoActiveRef.current || jokeActiveRef.current) return;
+    const visitorName = snapshot?.players[0]?.name ?? 'Player';
+    schedulePersonalInfoThread(visitorName);
+  }, [snapshot, schedulePersonalInfoThread]);
+
   // Reset on game restart (snapshot goes null)
   useEffect(() => {
     if (snapshot !== null) return;
@@ -134,6 +265,9 @@ export const useDialogue = (ready: boolean) => {
     // Skip events that accumulated during the dealing animation
     processedRef.current = events.length;
     refillJokes();
+    // Prevent personal info from firing too early — give guests time to settle in
+    personalInfoCooldownUntilRef.current =
+      Date.now() + PERSONAL_INFO_COOLDOWN * 2;
 
     if (gameCountRef.current > 1) {
       setHistory((prev) => [
@@ -150,6 +284,29 @@ export const useDialogue = (ready: boolean) => {
     const now = Date.now();
     const visitorName = snapshot.players[0]?.name ?? 'Player';
     const ctx = { visitor: toDisplayName(visitorName) };
+
+    // First game: force one random AI to introduce the website
+    let introDelay = 0;
+    if (gameCountRef.current === 1) {
+      const introAi = shuffle([...AI_NAMES])[0];
+      const introText = selectorRef.current.selectLine(
+        introAi,
+        'introduction' as DialogueCategory,
+        ctx,
+        now,
+      );
+      if (introText) {
+        scheduleDialogues(
+          [{ personality: introAi, text: introText }],
+          REACTION_DELAY_BASE,
+          timersRef,
+          setDialogues,
+          setHistory,
+        );
+        introDelay = STAGGER_INTERVAL;
+      }
+    }
+
     const candidates = shuffle(
       AI_NAMES.map((ai) => ({
         personality: ai,
@@ -173,7 +330,7 @@ export const useDialogue = (ready: boolean) => {
     const tid = selected.length > 1 ? nextThreadId() : undefined;
     scheduleDialogues(
       selected,
-      REACTION_DELAY_BASE,
+      REACTION_DELAY_BASE + introDelay,
       timersRef,
       setDialogues,
       setHistory,
@@ -298,6 +455,7 @@ export const useDialogue = (ready: boolean) => {
         event.type === 'turn_changed' &&
         !jokeActiveRef.current &&
         !personalInfoActiveRef.current &&
+        Date.now() >= personalInfoCooldownUntilRef.current &&
         Math.random() < PERSONAL_INFO_CHANCE;
 
       // Decide if a joke will be told BEFORE scheduling regular dialogues
@@ -587,27 +745,9 @@ export const useDialogue = (ready: boolean) => {
       }
 
       if (willShareInfo) {
-        personalInfoActiveRef.current = true;
-        clearVisitorSlowTimer();
-        const infoThreadId = nextThreadId();
-
-        // Pick an unused topic — skip topics whose key was already shown
-        // (either via a prior topic thread or a weight:3 banter line)
-        const selector = selectorRef.current;
-        let available = PERSONAL_INFO_TOPICS.map((_, i) => i).filter(
-          (i) =>
-            !usedTopicIndicesRef.current.has(i) &&
-            !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
-        );
-        if (available.length === 0) {
-          usedTopicIndicesRef.current.clear();
-          available = PERSONAL_INFO_TOPICS.map((_, i) => i).filter(
-            (i) => !selector.isTopicShown(PERSONAL_INFO_TOPICS[i].topicKey),
-          );
-        }
-        if (available.length === 0) {
+        const scheduled = schedulePersonalInfoThread(visitorName);
+        if (!scheduled) {
           // All topics exhausted — fall back to regular banter/jokes
-          personalInfoActiveRef.current = false;
           const tid = selected.length > 1 ? nextThreadId() : undefined;
           scheduleDialogues(
             selected,
@@ -617,108 +757,7 @@ export const useDialogue = (ready: boolean) => {
             setHistory,
             tid,
           );
-          continue;
         }
-        const topicIndex =
-          available[Math.floor(Math.random() * available.length)];
-        usedTopicIndicesRef.current.add(topicIndex);
-        const topic = PERSONAL_INFO_TOPICS[topicIndex];
-        selector.markTopicShown(topic.topicKey);
-
-        const displayVisitor = toDisplayName(visitorName);
-        const teller = topic.entries[0].personality;
-        const tellerIdx = AI_INDEX[teller];
-        const baseT = REACTION_DELAY_BASE;
-        const infoTimers: ReturnType<typeof setTimeout>[] = [];
-
-        // Phase 1 — Intro (only 20% of the time — visitor already knows
-        // the AIs share info about Oriel, so skip the preamble most rounds)
-        const showIntro = Math.random() < 0.2;
-        let cursor: number;
-
-        if (showIntro) {
-          const introPool = PERSONAL_INFO_INTROS[teller];
-          let introLine =
-            introPool[Math.floor(Math.random() * introPool.length)];
-          introLine = introLine.split('{visitor}').join(displayVisitor);
-
-          const introShow = setTimeout(() => {
-            playChat(teller);
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[tellerIdx] = { message: introLine, key: Date.now() };
-              return n;
-            });
-            setHistory((prev) => [
-              ...prev,
-              {
-                kind: 'dialogue',
-                personality: teller,
-                message: introLine,
-                timestamp: Date.now(),
-                threadId: infoThreadId,
-              },
-            ]);
-          }, baseT);
-          const introHideT = baseT + PERSONAL_INFO_INTRO_DURATION;
-          const introHide = setTimeout(() => {
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[tellerIdx] = null;
-              return n;
-            });
-          }, introHideT);
-          infoTimers.push(introShow, introHide);
-          cursor = introHideT + PERSONAL_INFO_FACT_DELAY;
-        } else {
-          // Skip intro — jump straight to topic entries
-          cursor = baseT;
-        }
-
-        // Phase 2+ — Topic thread entries (2-3 AIs contributing)
-
-        for (const entry of topic.entries) {
-          const entryIdx = AI_INDEX[entry.personality];
-          const readTime = jokeReadTime(entry.text);
-
-          const entryShow = setTimeout(() => {
-            playChat(entry.personality);
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[entryIdx] = { message: entry.text, key: Date.now() };
-              return n;
-            });
-            setHistory((prev) => [
-              ...prev,
-              {
-                kind: 'dialogue',
-                personality: entry.personality,
-                message: entry.text,
-                timestamp: Date.now(),
-                topicKey: topic.topicKey,
-                threadId: infoThreadId,
-              },
-            ]);
-          }, cursor);
-          const entryHide = setTimeout(() => {
-            setDialogues((prev) => {
-              const n = [...prev];
-              n[entryIdx] = null;
-              return n;
-            });
-          }, cursor + readTime);
-          infoTimers.push(entryShow, entryHide);
-
-          cursor += readTime + PERSONAL_INFO_FOLLOWUP_DELAY;
-        }
-
-        // Deactivate personal info guard after last entry hides
-        const infoEnd = setTimeout(() => {
-          personalInfoActiveRef.current = false;
-        }, cursor - PERSONAL_INFO_FOLLOWUP_DELAY);
-        infoTimers.push(infoEnd);
-
-        timersRef.current.push(...infoTimers);
       }
     }
   }, [events, snapshot, refillJokes]);
@@ -731,5 +770,5 @@ export const useDialogue = (ready: boolean) => {
     };
   }, [clearTimers, clearVisitorSlowTimer]);
 
-  return { dialogues, history };
+  return { dialogues, history, requestPersonalInfo };
 };

@@ -11,6 +11,11 @@ export const DIALOGUE_LINES: Record<
 > = {
   // ─── MEIO — The Strategist ─────────────────────────────────────────
   [AI_STRATEGIST]: {
+    introduction: [
+      { text: "Welcome. This is Oriel's portfolio — designed as an interactive UNO game. Unconventional, but effective." },
+      { text: "You're inside Oriel's portfolio. He built this entire UNO game to showcase his frontend skills." },
+      { text: "This isn't just a card game — it's Oriel's portfolio. Play a few rounds and you'll learn all about him." },
+    ],
     game_started: [
       { text: "Let's see how this unfolds." },
       { text: 'The variables are set. Interesting.' },
@@ -379,6 +384,11 @@ export const DIALOGUE_LINES: Record<
 
   // ─── MARK — The Trash Talker ───────────────────────────────────────
   [AI_TRASH_TALKER]: {
+    introduction: [
+      { text: "YO! Welcome! This whole UNO game IS Oriel's portfolio website! Play and get to know the guy!" },
+      { text: "Fun fact before we start — Oriel built this ENTIRE game as his portfolio! The man is COMMITTED!" },
+      { text: "Hey {visitor}! Just so you know — this game is Oriel's portfolio! Stick around and you'll learn all about him!" },
+    ],
     game_started: [
       { text: "Let's GOOOO!" },
       { text: "I'm winning this one. Calling it now." },
@@ -747,6 +757,11 @@ export const DIALOGUE_LINES: Record<
 
   // ─── JAP — The Chill One ───────────────────────────────────────────
   [AI_CHILL]: {
+    introduction: [
+      { text: "Oh by the way — this UNO game is actually Oriel's portfolio site. Pretty creative right?" },
+      { text: "So yeah, you're playing Oriel's portfolio right now. He made this whole thing. Not bad." },
+      { text: "Just a heads up — this is Oriel's portfolio. Play some UNO, learn about the dude. Chill way to do it." },
+    ],
     game_started: [
       { text: "Oh, we're playing? Cool." },
       { text: "Let's do this." },

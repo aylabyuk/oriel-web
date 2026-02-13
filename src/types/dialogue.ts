@@ -22,6 +22,7 @@ export type DialogueCategory =
   | 'visitor_won'
   | 'low_cards'
   | 'many_cards'
+  | 'introduction'
   | 'game_started'
   | 'visitor_slow'
   | 'drew_card_self'

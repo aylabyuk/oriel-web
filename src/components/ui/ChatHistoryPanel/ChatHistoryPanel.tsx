@@ -9,6 +9,7 @@ import { TOPIC_LABELS, PERSONAL_INFO_TOPICS } from '@/data/personalInfoTopics';
 type ChatHistoryPanelProps = {
   open: boolean;
   history: DialogueHistoryEntry[];
+  onRequestInfo?: () => void;
 };
 
 type Tab = 'chat' | 'about';
@@ -54,7 +55,7 @@ const TabSwitcher = ({
         >
           {key === 'chat' ? t('chat.tabChat') : t('chat.tabAbout')}
           {key === 'about' && showBadge && (
-            <span className="absolute -top-1.5 -right-2.5 flex min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 py-px text-[8px] font-bold leading-none text-white shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+            <span className="absolute -top-1.5 -right-2.5 flex min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 py-px text-[8px] leading-none font-bold text-white shadow-[0_0_6px_rgba(16,185,129,0.6)]">
               {aboutNewCount}
             </span>
           )}
@@ -123,9 +124,11 @@ const scrollbarClasses = cn(
 const AboutMessages = ({
   history,
   lastSeenAt,
+  onRequestInfo,
 }: {
   history: DialogueHistoryEntry[];
   lastSeenAt: number;
+  onRequestInfo?: () => void;
 }) => {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -169,92 +172,105 @@ const AboutMessages = ({
   const pct = Math.round((discoveredCount / TOPIC_COUNT) * 100);
 
   return (
-    <div
-      ref={scrollRef}
-      className={cn(
-        'flex-1 space-y-3 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3',
-        scrollbarClasses,
-      )}
-    >
-      {/* Progress bar */}
-      <div className="space-y-1">
+    <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Progress bar — fixed above scroll area */}
+      <div className="shrink-0 space-y-1 border-b border-neutral-200/60 px-3 py-2 sm:px-4 sm:py-2 dark:border-white/5">
         <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-white/10">
           <div
             className="h-full rounded-full bg-emerald-500 transition-all duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
-          {t('chat.progress', { count: discoveredCount, total: TOPIC_COUNT })}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] text-neutral-400 sm:text-xs dark:text-white/40">
+            {t('chat.progress', { count: discoveredCount, total: TOPIC_COUNT })}
+          </p>
+          {onRequestInfo && undiscoveredCount > 0 && (
+            <button
+              type="button"
+              onClick={onRequestInfo}
+              className="cursor-pointer rounded px-1.5 py-0.5 text-[9px] font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 hover:text-emerald-700 sm:text-[10px] dark:text-emerald-400 dark:hover:bg-emerald-400/10 dark:hover:text-emerald-300"
+            >
+              {t('chat.tellMeMore')}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Discovered topics */}
-      {topics.map((topic) => {
-        const isNewTopic = topic.firstSeen > lastSeenAt;
-        const hasNewMessages = topic.messages.some(
-          (m) => m.timestamp > lastSeenAt,
-        );
-        return (
-          <div
-            key={topic.topicKey}
-            className={cn(
-              'border-l-2 pl-2.5',
-              isNewTopic
-                ? 'border-emerald-500 dark:border-emerald-400'
-                : 'border-emerald-500/50 dark:border-emerald-400/40',
-            )}
-          >
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-700 sm:text-xs dark:text-white/80">
-              {topic.label}
-              {isNewTopic && (
-                <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
-                  NEW
-                </span>
+      <div
+        ref={scrollRef}
+        className={cn(
+          'flex-1 space-y-3 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3',
+          scrollbarClasses,
+        )}
+      >
+        {/* Discovered topics */}
+        {topics.map((topic) => {
+          const isNewTopic = topic.firstSeen > lastSeenAt;
+          const hasNewMessages = topic.messages.some(
+            (m) => m.timestamp > lastSeenAt,
+          );
+          return (
+            <div
+              key={topic.topicKey}
+              className={cn(
+                'border-l-2 pl-2.5',
+                isNewTopic
+                  ? 'border-emerald-500 dark:border-emerald-400'
+                  : 'border-emerald-500/50 dark:border-emerald-400/40',
               )}
-            </p>
-            <ul className="mt-0.5 space-y-0.5">
-              {topic.messages.map((msg, i) => {
-                const isNew = !isNewTopic && msg.timestamp > lastSeenAt;
-                return (
-                  <li
-                    key={i}
-                    className={cn(
-                      'text-[10px] leading-snug sm:text-[11px]',
-                      isNew || isNewTopic
-                        ? 'text-neutral-700 dark:text-white/70'
-                        : 'text-neutral-500 dark:text-white/50',
-                    )}
-                  >
-                    <span className="mr-1 text-neutral-300 dark:text-white/20">
-                      &bull;
-                    </span>
-                    {msg.text}
-                    {isNew && hasNewMessages && (
-                      <span className="ml-1 rounded bg-emerald-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
-                        NEW
+            >
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-700 sm:text-xs dark:text-white/80">
+                {topic.label}
+                {isNewTopic && (
+                  <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
+                    NEW
+                  </span>
+                )}
+              </p>
+              <ul className="mt-0.5 space-y-0.5">
+                {topic.messages.map((msg, i) => {
+                  const isNew = !isNewTopic && msg.timestamp > lastSeenAt;
+                  return (
+                    <li
+                      key={i}
+                      className={cn(
+                        'text-[10px] leading-snug sm:text-[11px]',
+                        isNew || isNewTopic
+                          ? 'text-neutral-700 dark:text-white/70'
+                          : 'text-neutral-500 dark:text-white/50',
+                      )}
+                    >
+                      <span className="mr-1 text-neutral-300 dark:text-white/20">
+                        &bull;
                       </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      })}
+                      {msg.text}
+                      {isNew && hasNewMessages && (
+                        <span className="ml-1 rounded bg-emerald-500/15 px-1 py-px text-[8px] font-bold tracking-wide text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
+                          NEW
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
 
-      {/* Undiscovered placeholders */}
-      {undiscoveredCount > 0 &&
-        Array.from({ length: undiscoveredCount }).map((_, i) => (
-          <div
-            key={`locked-${i}`}
-            className="border-l-2 border-neutral-200 pl-2.5 dark:border-white/10"
-          >
-            <p className="text-[10px] text-neutral-400/50 italic sm:text-[11px] dark:text-white/20">
-              {t('chat.undiscovered')}
-            </p>
-          </div>
-        ))}
+        {/* Undiscovered placeholders */}
+        {undiscoveredCount > 0 &&
+          Array.from({ length: undiscoveredCount }).map((_, i) => (
+            <div
+              key={`locked-${i}`}
+              className="border-l-2 border-neutral-200 pl-2.5 dark:border-white/10"
+            >
+              <p className="text-[10px] text-neutral-400/50 italic sm:text-[11px] dark:text-white/20">
+                {t('chat.undiscovered')}
+              </p>
+            </div>
+          ))}
+      </div>
     </div>
   );
 };
@@ -272,10 +288,7 @@ const ChatMessages = ({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(
-    () =>
-      showActions
-        ? history
-        : history.filter((e) => e.kind !== 'action'),
+    () => (showActions ? history : history.filter((e) => e.kind !== 'action')),
     [history, showActions],
   );
 
@@ -329,10 +342,12 @@ const ChatMessages = ({
 
           // Whether this dialogue is a reply (part of a thread but not the first)
           const isReply =
-            entry.kind === 'dialogue' && !!tid && !isCompact && isThreadContinuation;
+            entry.kind === 'dialogue' &&
+            !!tid &&
+            !isCompact &&
+            isThreadContinuation;
 
-          const isGroupStart =
-            i > 0 && !isCompact && !isThreadContinuation;
+          const isGroupStart = i > 0 && !isCompact && !isThreadContinuation;
 
           const spacing = isCompact
             ? 'mt-0.5'
@@ -425,7 +440,11 @@ const ChatMessages = ({
   );
 };
 
-export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
+export const ChatHistoryPanel = ({
+  open,
+  history,
+  onRequestInfo,
+}: ChatHistoryPanelProps) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<Tab>('chat');
@@ -437,7 +456,8 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
   const [aboutViewedAt, setAboutViewedAt] = useState(0);
   const aboutNewCount = topics.reduce(
     (sum, topic) =>
-      sum + topic.messages.filter((m) => m.timestamp > lastSeenAtRef.current).length,
+      sum +
+      topic.messages.filter((m) => m.timestamp > lastSeenAtRef.current).length,
     0,
   );
 
@@ -521,7 +541,11 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
         {tab === 'chat' ? (
           <ChatMessages history={history} showActions={showActions} />
         ) : (
-          <AboutMessages history={history} lastSeenAt={aboutViewedAt} />
+          <AboutMessages
+            history={history}
+            lastSeenAt={aboutViewedAt}
+            onRequestInfo={onRequestInfo}
+          />
         )}
         <button
           type="button"
@@ -577,7 +601,11 @@ export const ChatHistoryPanel = ({ open, history }: ChatHistoryPanelProps) => {
         {tab === 'chat' ? (
           <ChatMessages history={history} showActions={showActions} />
         ) : (
-          <AboutMessages history={history} lastSeenAt={aboutViewedAt} />
+          <AboutMessages
+            history={history}
+            lastSeenAt={aboutViewedAt}
+            onRequestInfo={onRequestInfo}
+          />
         )}
       </animated.div>
     </>

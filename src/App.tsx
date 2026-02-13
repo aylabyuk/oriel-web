@@ -58,7 +58,8 @@ export const App = () => {
     cancelVisitorTimer,
   } = useGameController();
   const [dealingComplete, setDealingComplete] = useState(false);
-  const { dialogues, history } = useDialogue(dealingComplete);
+  const { dialogues, history, requestPersonalInfo } =
+    useDialogue(dealingComplete);
   const { t } = useTranslation();
   const [chatOpen, handleChatToggle] = usePersistedState(
     'chat',
@@ -325,7 +326,11 @@ export const App = () => {
       />
       {/* Floating chat panel */}
       {disclaimerAcked && (
-        <ChatHistoryPanel open={chatOpen} history={history} />
+        <ChatHistoryPanel
+          open={chatOpen}
+          history={history}
+          onRequestInfo={requestPersonalInfo}
+        />
       )}
       {/* Toolbar (pill) — shown after disclaimer acknowledged */}
       {disclaimerAcked && (
