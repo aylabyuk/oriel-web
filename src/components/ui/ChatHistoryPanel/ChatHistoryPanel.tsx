@@ -57,7 +57,7 @@ export const ChatHistoryPanel = ({
   const springs = useSpring({
     x: open ? 0 : 340,
     portraitY: open ? 0 : 100,
-    portraitHeight: expanded ? 85 : 25,
+    portraitHeight: expanded ? 85 : 35,
     config: { tension: 260, friction: 24 },
   });
 
