@@ -61,10 +61,7 @@ export const App = () => {
   const { dialogues, history, requestPersonalInfo } =
     useDialogue(dealingComplete);
   const { t } = useTranslation();
-  const [chatOpen, handleChatToggle] = usePersistedState(
-    'chat',
-    () => window.innerWidth >= 640,
-  );
+  const [chatOpen, handleChatToggle] = usePersistedState('chat', true);
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [disclaimerAcked, setDisclaimerAcked] = useState(false);
