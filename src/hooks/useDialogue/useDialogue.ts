@@ -253,7 +253,6 @@ export const useDialogue = (ready: boolean) => {
     jokeActiveRef.current = false;
     personalInfoActiveRef.current = false;
     usedTopicIndicesRef.current.clear();
-    threadCountRef.current = 0;
     setDialogues([null, null, null, null]);
   }, [snapshot, clearTimers, clearVisitorSlowTimer]);
 
