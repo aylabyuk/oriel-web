@@ -68,16 +68,21 @@ export const useMagnetState = (
   const latestSnapshotRef = useRef<GameSnapshot | null>(null);
   latestSnapshotRef.current = snapshot;
   const animatingRef = useRef(false);
+  // Incremented when the animation queue empties, forcing the gameplay
+  // effect to re-evaluate even when snapshot/phase refs haven't changed.
+  const [syncTick, setSyncTick] = useState(0);
 
   // --- Queue processor ---
 
   const processNext = useCallback(() => {
     const step = queueRef.current[0];
     if (!step) {
-      // Queue exhausted — don't sync immediately. Clear the flag so the
-      // gameplay effect can detect any pending diffs (e.g. draws that arrived
-      // during a play animation) before falling through to a full sync.
+      // Queue exhausted — clear the flag and bump the sync tick so the
+      // gameplay effect re-runs to detect any snapshots that arrived
+      // while the animation was in progress (e.g. visitor play during
+      // AI play animation).
       animatingRef.current = false;
+      setSyncTick((t) => t + 1);
       return;
     }
 
@@ -343,7 +348,7 @@ export const useMagnetState = (
     }
 
     setState(snapshotToMagnetState(snapshot));
-  }, [snapshot, state.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [snapshot, state.phase, syncTick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Reset: collect all cards back to deck when snapshot nulls ---
 

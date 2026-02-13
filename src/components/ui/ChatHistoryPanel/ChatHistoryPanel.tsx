@@ -5,6 +5,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { ChatHistoryPanelProps, Tab } from './chatPanel.types';
 import { TOPIC_COUNT } from './chatPanel.utils';
 import { useDiscoveredTopics } from './useDiscoveredTopics';
+import { SocialLinks } from '@/components/ui/SocialLinks';
 import { TabSwitcher } from './TabSwitcher';
 import { AboutMessages } from './AboutMessages';
 import { ChatMessages } from './ChatMessages';
@@ -116,13 +117,16 @@ export const ChatHistoryPanel = ({
             onRequestInfo={onRequestInfo}
           />
         )}
-        <button
-          type="button"
-          onClick={handleToggleExpand}
-          className="mx-3 mt-1 rounded-lg border border-neutral-200 bg-neutral-100/60 px-3 py-1.5 text-[10px] font-medium text-neutral-500 transition-colors hover:bg-neutral-200/80 hover:text-neutral-700 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white/80"
-        >
-          {expanded ? t('chat.collapse') : t('chat.expand')}
-        </button>
+        <div className="shrink-0 space-y-4 border-t border-neutral-200/60 px-3 pt-2 pb-1 dark:border-white/5">
+          <button
+            type="button"
+            onClick={handleToggleExpand}
+            className="w-full rounded-lg border border-neutral-200 bg-neutral-100/60 px-3 py-1.5 text-[10px] font-medium text-neutral-500 transition-colors hover:bg-neutral-200/80 hover:text-neutral-700 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white/80"
+          >
+            {expanded ? t('chat.collapse') : t('chat.expand')}
+          </button>
+          <SocialLinks compact />
+        </div>
       </animated.div>
       {/* Landscape + desktop: right-side panel */}
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
@@ -176,6 +180,9 @@ export const ChatHistoryPanel = ({
             onRequestInfo={onRequestInfo}
           />
         )}
+        <div className="shrink-0 border-t border-neutral-200/60 px-3 py-2 sm:px-4 dark:border-white/5">
+          <SocialLinks compact />
+        </div>
       </animated.div>
     </>
   );

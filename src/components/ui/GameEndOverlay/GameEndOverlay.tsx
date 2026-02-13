@@ -1,6 +1,7 @@
 import { useSpring, useTrail, animated } from '@react-spring/web';
 import type { GameEndInfo } from '@/types/game';
 import { useTranslation } from '@/hooks/useTranslation';
+import { SocialLinks } from '@/components/ui/SocialLinks';
 
 type GameEndOverlayProps = {
   open: boolean;
@@ -105,6 +106,13 @@ export const GameEndOverlay = ({
         >
           {t('game.playAgain')}
         </button>
+
+        <div className="flex flex-col items-center gap-1.5">
+          <span className="text-[10px] text-neutral-400 dark:text-white/30">
+            {t('game.connectWithOriel')}
+          </span>
+          <SocialLinks />
+        </div>
       </animated.div>
     </animated.div>
   );

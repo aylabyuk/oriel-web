@@ -21,6 +21,7 @@ export const en = {
     cards: 'cards',
     pts: 'pts',
     playAgain: 'Play Again',
+    connectWithOriel: 'Connect with Oriel',
   },
   challenge: {
     playedWildDrawFour: '{{name}} played Wild Draw 4!',

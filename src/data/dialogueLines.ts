@@ -341,6 +341,8 @@ export const DIALOGUE_LINES: Record<
       { text: 'The variables shift.' },
       { text: 'Recalculating...' },
       { text: 'The game is progressing as expected.' },
+      { text: 'Fun fact — this runs on mobile browsers too. Oriel made sure of it.' },
+      { text: 'This whole thing works on your phone, by the way. Responsive design done right.' },
     ],
     personal_info: [
       {
@@ -714,6 +716,8 @@ export const DIALOGUE_LINES: Record<
       { text: "Let's keep it moving!" },
       { text: 'The energy right now!' },
       { text: "I'm watching EVERYONE!" },
+      { text: 'Yo you know you can play this on your phone right?? Try it!' },
+      { text: 'Pull this up on mobile next time, it slaps just as hard on a tiny screen.' },
     ],
     personal_info: [
       {
@@ -1087,6 +1091,8 @@ export const DIALOGUE_LINES: Record<
       { text: 'Playing cards.' },
       { text: 'Chill game.' },
       { text: 'Hmm.' },
+      { text: 'Works on mobile too btw. Play from the couch, the bus, wherever.' },
+      { text: 'Next time try this on your phone. Same vibes, smaller screen.' },
     ],
     personal_info: [
       {
