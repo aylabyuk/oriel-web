@@ -44,6 +44,9 @@ import {
   JOKE_QUESTION_RESPONSES,
   JOKE_REACTIONS_POSITIVE,
   JOKE_REACTIONS_NEGATIVE,
+  ENDGAME_VISITOR_WON,
+  ENDGAME_VISITOR_LOST,
+  ENDGAME_KEEP_PLAYING,
 } from './useDialogue.constants';
 import {
   formatEventAction,
@@ -415,6 +418,47 @@ export const useDialogue = (ready: boolean) => {
             timestamp: Date.now(),
           },
         ]);
+      }
+
+      // Force endgame messages — congrats/consolation + keep playing nudge
+      if (event.type === 'game_ended') {
+        // Cancel any in-flight dialogue threads so "Tell me more" isn't blocked
+        clearTimers();
+        clearVisitorSlowTimer();
+        personalInfoActiveRef.current = false;
+        jokeActiveRef.current = false;
+
+        const isVisitorWinner = event.playerName === visitorName;
+        const displayVisitor = toDisplayName(visitorName);
+        const pick = (pool: string[]) =>
+          pool[Math.floor(Math.random() * pool.length)];
+        const sub = (text: string) =>
+          text.split('{visitor}').join(displayVisitor);
+
+        const reactAi = shuffle([...AI_NAMES])[0];
+        const reactPool = isVisitorWinner
+          ? ENDGAME_VISITOR_WON[reactAi]
+          : ENDGAME_VISITOR_LOST[reactAi];
+        const reactLine = sub(pick(reactPool));
+
+        const nudgeAi = otherAis(reactAi)[
+          Math.floor(Math.random() * otherAis(reactAi).length)
+        ];
+        const nudgeLine = sub(pick(ENDGAME_KEEP_PLAYING[nudgeAi]));
+
+        const endThreadId = nextThreadId();
+        scheduleDialogues(
+          [
+            { personality: reactAi, text: reactLine },
+            { personality: nudgeAi, text: nudgeLine },
+          ],
+          REACTION_DELAY_BASE,
+          timersRef,
+          setDialogues,
+          setHistory,
+          endThreadId,
+        );
+        continue;
       }
 
       const candidates = mapEventToCandidates(event, snapshot, visitorName);

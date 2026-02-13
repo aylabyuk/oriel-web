@@ -17,7 +17,7 @@ export const ChatHistoryPanel = ({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<Tab>('chat');
-  const [showActions, setShowActions] = useState(false);
+  const [showActions, setShowActions] = useState(true);
   const topics = useDiscoveredTopics(history);
   const lastSeenAtRef = useRef(0);
   // Snapshot of lastSeenAt captured when opening the About tab — used to render

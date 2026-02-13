@@ -155,6 +155,63 @@ export const PERSONAL_INFO_INTROS: Record<string, string[]> = {
   ],
 };
 
+/** Forced endgame lines — visitor won */
+export const ENDGAME_VISITOR_WON: Record<string, string[]> = {
+  [AI_STRATEGIST]: [
+    'Well played, {visitor}. The outcome was statistically fair.',
+    'A decisive victory, {visitor}. Impressive execution.',
+    'Victory confirmed. Credit where it\'s due, {visitor}.',
+  ],
+  [AI_TRASH_TALKER]: [
+    "LET'S GOOO {visitor}!! You actually pulled it off!",
+    "GG {visitor}! Can't even be mad — that was CLEAN!",
+    'NO WAY! {visitor} just wiped us! Respect!',
+  ],
+  [AI_CHILL]: [
+    'Nice win, {visitor}. That was smooth.',
+    'GG, {visitor}. You earned that one.',
+    'Well played, {visitor}. Clean and chill.',
+  ],
+};
+
+/** Forced endgame lines — visitor lost */
+export const ENDGAME_VISITOR_LOST: Record<string, string[]> = {
+  [AI_STRATEGIST]: [
+    "A calculated outcome. Don't take it personally, {visitor}.",
+    "The variance wasn't in your favor, {visitor}. Recalibrate and try again.",
+    'Better luck next round, {visitor}. The data will shift.',
+  ],
+  [AI_TRASH_TALKER]: [
+    'Aw man {visitor}! SO close though! Run it back!',
+    'Better luck next time {visitor}! That was still fun!',
+    "Don't sweat it {visitor}! Can't win 'em all — YET!",
+  ],
+  [AI_CHILL]: [
+    "Tough break, {visitor}. Next one's yours.",
+    "No worries, {visitor}. Can't win them all.",
+    'It happens. Shake it off and go again, {visitor}.',
+  ],
+};
+
+/** Forced endgame nudge — encourage continued play + mention Tell me more */
+export const ENDGAME_KEEP_PLAYING: Record<string, string[]> = {
+  [AI_STRATEGIST]: [
+    "There's more to learn about Oriel. Keep playing to unlock new facts — or hit 'Tell me more' in the About Oriel tab.",
+    "We've only covered a fraction of Oriel's story. Play again, or use the 'Tell me more' button in About Oriel.",
+    "More data points await. Another round reveals more — or check the About Oriel tab for a shortcut.",
+  ],
+  [AI_TRASH_TALKER]: [
+    "We got WAY more to tell you about Oriel! Keep playing or hit 'Tell me more' in the About tab!",
+    "There's MORE! Play again or check the About Oriel tab — smash that 'Tell me more' button!",
+    "We barely scratched the surface on Oriel! Run it back or tap 'Tell me more' in About Oriel!",
+  ],
+  [AI_CHILL]: [
+    "Plenty more to share about Oriel. Play another round, or there's a 'Tell me more' button in the About Oriel section.",
+    "More Oriel facts to come. Keep playing or just hit 'Tell me more' in the About tab. No pressure.",
+    'More stories where that came from. Another game or the About tab — your call, {visitor}.',
+  ],
+};
+
 export const COLOR_NAMES: Record<number, string> = {
   [Color.RED]: 'Red',
   [Color.BLUE]: 'Blue',

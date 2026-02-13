@@ -25,16 +25,16 @@ export const ChatMessages = ({
       ? history
       : history.filter((e) => e.kind !== 'action');
 
-    // Identify personal info thread IDs (threads containing at least one topicKey entry)
-    const infoThreadIds = new Set<string>();
+    // Collect all thread IDs so we can group their entries together
+    const threadIds = new Set<string>();
     for (const e of base) {
-      if (e.kind === 'dialogue' && e.topicKey && e.threadId) {
-        infoThreadIds.add(e.threadId);
+      if (e.kind === 'dialogue' && e.threadId) {
+        threadIds.add(e.threadId);
       }
     }
-    if (infoThreadIds.size === 0) return base;
+    if (threadIds.size === 0) return base;
 
-    // Group personal info thread entries together at the position of their first entry
+    // Group thread entries together at the position of their first entry
     const result: DialogueHistoryEntry[] = [];
     const consumed = new Set<number>();
 
@@ -43,7 +43,7 @@ export const ChatMessages = ({
       const entry = base[i];
       const tid = entry.kind === 'dialogue' ? entry.threadId : undefined;
 
-      if (tid && infoThreadIds.has(tid)) {
+      if (tid && threadIds.has(tid)) {
         result.push(entry);
         consumed.add(i);
         for (let j = i + 1; j < base.length; j++) {
@@ -157,6 +157,8 @@ export const ChatMessages = ({
             isFirstInfoInThread && entry.kind === 'dialogue'
               ? TOPIC_LABELS[entry.topicKey!]
               : undefined;
+          // Force full header when a topic label needs to render
+          const showCompact = isCompact && !topicLabel;
 
           const replyStyle =
             'ml-3 border-l-2 border-neutral-300/40 pl-2 dark:border-white/10';
@@ -193,7 +195,7 @@ export const ChatMessages = ({
                 </span>
               </div>
             </div>
-          ) : isCompact ? (
+          ) : showCompact ? (
             <div
               key={`${entry.timestamp}-${i}`}
               className={cn(
