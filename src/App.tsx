@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { useAppSelector } from '@/store/hooks';
 import {
   selectHasEnteredWelcome,
@@ -364,6 +365,7 @@ export const App = () => {
           onExited={handleWelcomeExited}
         />
       )}
+      <Analytics />
     </div>
   );
 };
