@@ -8,6 +8,7 @@ import {
   COOLDOWN_MS,
   COOLDOWN_BYPASS,
 } from './dialogueSelector.constants';
+import { readShownTopics, writeShownTopics } from '@/utils/shownTopicsCookie';
 
 type SelectorState = {
   history: Record<AiPersonality, string[]>;
@@ -22,10 +23,11 @@ type LineContext = {
 };
 
 export const createDialogueSelector = () => {
+  const persisted = readShownTopics();
   const state: SelectorState = {
     history: { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] },
     lastTime: { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 },
-    shownTopicKeys: new Set(),
+    shownTopicKeys: new Set(persisted),
   };
 
   const selectLine = (
@@ -83,6 +85,7 @@ export const createDialogueSelector = () => {
     // Mark the topic key as shown so the same fact doesn't resurface
     if (selected.topicKey) {
       state.shownTopicKeys.add(selected.topicKey);
+      writeShownTopics(state.shownTopicKeys);
     }
 
     return text;
@@ -91,6 +94,7 @@ export const createDialogueSelector = () => {
   /** Mark a topic key as shown (called when a topic thread plays). */
   const markTopicShown = (key: string) => {
     state.shownTopicKeys.add(key);
+    writeShownTopics(state.shownTopicKeys);
   };
 
   /** Check if a topic key has already been shown. */
@@ -107,7 +111,7 @@ export const createDialogueSelector = () => {
       [AI_TRASH_TALKER]: 0,
       [AI_CHILL]: 0,
     };
-    state.shownTopicKeys.clear();
+    state.shownTopicKeys = new Set(readShownTopics());
   };
 
   return { selectLine, markTopicShown, isTopicShown, reset };
