@@ -13,6 +13,7 @@ import { fetchJokes } from '@/utils/fetchJokes';
 import type { Joke } from '@/utils/fetchJokes';
 import { AI_NAMES, toDisplayName } from '@/constants/players';
 import { PERSONAL_INFO_TOPICS } from '@/data/personalInfoTopics';
+import { restoreShownHistory } from '@/utils/shownTopicsCookie';
 import {
   AI_INDEX,
   REACTION_DELAY_BASE,
@@ -70,7 +71,7 @@ export const useDialogue = (ready: boolean) => {
     null,
     null,
   ]);
-  const [history, setHistoryRaw] = useState<DialogueHistoryEntry[]>([]);
+  const [history, setHistoryRaw] = useState<DialogueHistoryEntry[]>(restoreShownHistory);
   const MAX_HISTORY = 200;
   const setHistory: typeof setHistoryRaw = (update) =>
     setHistoryRaw((prev) => {
