@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/aylabyuk/oriel-web/compare/v1.0.0...v1.1.0) (2026-02-17)
+
+
+### Features
+
+* limit username input to 15 characters ([1e14b8b](https://github.com/aylabyuk/oriel-web/commit/1e14b8b681ee46409f7ff9579247c746a69ddace))
+
 ## 1.0.0 (2026-02-15)
 
 
