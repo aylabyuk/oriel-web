@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { USERNAME_MAX_LENGTH } from '@/constants/players';
 
 type VisitorState = {
   name: string;
@@ -21,7 +22,7 @@ export const visitorSlice = createSlice({
   initialState,
   reducers: {
     setName(state, action: PayloadAction<string>) {
-      state.name = action.payload;
+      state.name = action.payload.slice(0, USERNAME_MAX_LENGTH);
       if (state.submitted && action.payload.trim()) {
         state.nameError = '';
       }
