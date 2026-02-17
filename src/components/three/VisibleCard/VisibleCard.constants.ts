@@ -8,6 +8,10 @@ export const PLAYABLE_LIFT = 0.12;
 export const PLAYABLE_GLOW_COLOR = '#ffffff';
 export const PLAYABLE_GLOW = 0.6;
 
+/** Keyboard-selected card: stronger lift + glow to stand out from playable */
+export const SELECTED_LIFT = 0.22;
+export const SELECTED_GLOW = 1.2;
+
 /** Deck bob: gentle sine-wave hover */
 export const DECK_BOB_AMPLITUDE = 0.025;
 export const DECK_BOB_SPEED = 3;

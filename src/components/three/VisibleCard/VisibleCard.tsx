@@ -12,6 +12,8 @@ import {
   PLAYABLE_LIFT,
   PLAYABLE_GLOW_COLOR,
   PLAYABLE_GLOW,
+  SELECTED_LIFT,
+  SELECTED_GLOW,
   DECK_BOB_AMPLITUDE,
   DECK_BOB_SPEED,
   DECK_GLOW_MIN,
@@ -27,6 +29,7 @@ type VisibleCardProps = {
   immediate?: boolean;
   springConfig?: SpringConfig;
   playable?: boolean;
+  selected?: boolean;
   deckClickable?: boolean;
   onCardClick?: (cardId: string) => void;
 };
@@ -48,6 +51,7 @@ const VisibleCardInner = ({
   immediate: snap,
   springConfig,
   playable,
+  selected,
   deckClickable,
   onCardClick,
 }: VisibleCardProps) => {
@@ -71,6 +75,16 @@ const VisibleCardInner = ({
   }));
 
   useEffect(() => {
+    const targetLift = selected
+      ? SELECTED_LIFT
+      : playable
+        ? PLAYABLE_LIFT
+        : 0;
+    const targetGlow = selected
+      ? SELECTED_GLOW
+      : playable
+        ? PLAYABLE_GLOW
+        : 0;
     api.start({
       px: to.position[0],
       py: to.position[1],
@@ -78,8 +92,8 @@ const VisibleCardInner = ({
       yaw: shortestYaw(to.yaw, springs.yaw.get()),
       tilt: to.tilt,
       roll: to.roll,
-      lift: playable ? PLAYABLE_LIFT : 0,
-      glow: playable ? PLAYABLE_GLOW : 0,
+      lift: targetLift,
+      glow: targetGlow,
       immediate: (key: string) =>
         key === 'lift' || key === 'glow' ? false : !!snap,
       config: (key: string) =>
@@ -87,7 +101,7 @@ const VisibleCardInner = ({
           ? PLAYABLE_CONFIG
           : (springConfig ?? DEFAULT_CONFIG),
     });
-  }, [api, to, snap, springConfig, playable]);
+  }, [api, to, snap, springConfig, playable, selected]);
 
   useFrame((state) => {
     outerRef.current.position.set(

@@ -172,6 +172,14 @@ export const en = {
       actionPoints: 'Action cards (Skip, Reverse, Draw Two): 20 points each',
       wildPoints: 'Wild and Wild Draw Four: 50 points each',
     },
+    shortcuts: {
+      heading: 'Keyboard Shortcuts',
+      selectCard: 'Select card',
+      playCard: 'Play selected card',
+      drawCard: 'Draw from deck',
+      callUno: 'Call UNO / Catch',
+      dismiss: 'Close dialog',
+    },
   },
   status: {
     skipped: 'Skipped!',

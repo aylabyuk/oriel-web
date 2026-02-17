@@ -9,6 +9,7 @@ type VisibleCardLayerProps = {
   magnet: MagnetState;
   forceImmediate?: boolean;
   playableCardIds?: string[];
+  keyboardSelectedId?: string | null;
   onCardClick?: (cardId: string) => void;
   onDeckClick?: () => void;
   onDeckReady?: () => void;
@@ -20,6 +21,7 @@ export const VisibleCardLayer = ({
   magnet,
   forceImmediate,
   playableCardIds,
+  keyboardSelectedId,
   onCardClick,
   onDeckClick,
   onDeckReady,
@@ -63,8 +65,9 @@ export const VisibleCardLayer = ({
         playableCardIds,
         deckLimit,
         deckClickEnabled,
+        keyboardSelectedId,
       ),
-    [magnet, playableCardIds, deckLimit, deckClickEnabled],
+    [magnet, playableCardIds, deckLimit, deckClickEnabled, keyboardSelectedId],
   );
 
   return (
@@ -79,6 +82,7 @@ export const VisibleCardLayer = ({
           immediate={forceImmediate || t.immediate}
           springConfig={t.springConfig}
           playable={t.playable}
+          selected={t.selected}
           deckClickable={t.deckClickable}
           onCardClick={t.deckClickable ? handleDeckClick : onCardClick}
         />

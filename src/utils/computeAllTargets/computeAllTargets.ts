@@ -33,6 +33,7 @@ export type CardTarget = {
   immediate?: boolean;
   springConfig?: SpringConfig;
   playable?: boolean;
+  selected?: boolean;
   deckClickable?: boolean;
 };
 
@@ -43,6 +44,7 @@ export const computeAllTargets = (
   playableCardIds?: string[],
   deckRenderLimit = magnet.deck.length,
   deckClickable = false,
+  keyboardSelectedId?: string | null,
 ): CardTarget[] => {
   const playableSet = playableCardIds ? new Set(playableCardIds) : undefined;
   const targets: CardTarget[] = [];
@@ -211,6 +213,7 @@ export const computeAllTargets = (
         color: card.color,
         placement,
         playable: playerIndex === 0 && playableSet?.has(card.id),
+        selected: playerIndex === 0 && card.id === keyboardSelectedId,
       });
     });
   });

@@ -226,6 +226,38 @@ export const RulesModal = ({ open, onClose }: RulesModalProps) => {
               <CardImg name="wild.png" />
             </div>
           </section>
+
+          {/* Keyboard Shortcuts */}
+          <section>
+            <SectionHeading>{t('rules.shortcuts.heading')}</SectionHeading>
+            <div className="mt-2 space-y-2">
+              {(
+                [
+                  { keys: ['\u2190', '\u2192'], label: t('rules.shortcuts.selectCard') },
+                  { keys: ['Enter'], label: t('rules.shortcuts.playCard') },
+                  { keys: ['Space', 'D'], label: t('rules.shortcuts.drawCard') },
+                  { keys: ['U'], label: t('rules.shortcuts.callUno') },
+                  { keys: ['Esc'], label: t('rules.shortcuts.dismiss') },
+                ] as const
+              ).map(({ keys, label }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <div className="flex shrink-0 gap-1">
+                    {keys.map((k) => (
+                      <kbd
+                        key={k}
+                        className="inline-flex h-6 min-w-6 items-center justify-center rounded border border-neutral-300 bg-neutral-100 px-1.5 text-[10px] font-semibold text-neutral-600 dark:border-white/20 dark:bg-white/10 dark:text-white/70"
+                      >
+                        {k}
+                      </kbd>
+                    ))}
+                  </div>
+                  <span className="text-xs text-neutral-600 dark:text-white/70">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
         {/* Footer */}

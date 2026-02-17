@@ -28,6 +28,7 @@ import { HelpButton } from '@/components/ui/HelpButton';
 import { RulesModal } from '@/components/ui/RulesModal';
 import { InstallPrompt } from '@/components/ui/InstallPrompt';
 import { useGameController } from '@/hooks/useGameController';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -249,6 +250,54 @@ export const App = () => {
     resolveChallenge(false);
   }, [resolveChallenge]);
 
+  // --- Keyboard shortcuts ---
+  const isVisitorTurn =
+    dealingComplete &&
+    snapshot?.phase === 'playing' &&
+    snapshot.currentPlayerName === snapshot.players[0]?.name;
+  const kbDeckEnabled =
+    isVisitorTurn && !drawPending && drawChoice === null && !challengeReady;
+
+  const handleKbPlayCard = useCallback(
+    (cardId: string) => {
+      if (!snapshot) return;
+      const card = snapshot.players[0]?.hand.find((c) => c.id === cardId);
+      if (!card) return;
+      const isWild = card.color == null;
+      if (isWild) {
+        cancelVisitorTimer();
+        setPendingWildCardId(cardId);
+      } else {
+        playCard(cardId);
+      }
+    },
+    [snapshot, playCard, cancelVisitorTimer],
+  );
+
+  const handleEscape = useCallback(() => {
+    if (pendingWildCardId) {
+      setPendingWildCardId(null);
+      setDrawnWildCardId(null);
+    } else if (rulesOpen) {
+      setRulesOpen(false);
+    } else if (restartConfirmOpen) {
+      setRestartConfirmOpen(false);
+    } else if (freeLookExplainerOpen) {
+      setFreeLookExplainerOpen(false);
+    }
+  }, [pendingWildCardId, rulesOpen, restartConfirmOpen, freeLookExplainerOpen]);
+
+  const { selectedCardId: kbSelectedCardId } = useKeyboardShortcuts({
+    playableCardIds: snapshot?.playableCardIds ?? [],
+    enabled: isVisitorTurn && !drawPending && drawChoice === null && !challengeReady && !pendingWildCardId,
+    onPlayCard: handleKbPlayCard,
+    onDrawCard: handleDrawCard,
+    onCallUno: handleUnoPress,
+    onEscape: handleEscape,
+    deckEnabled: kbDeckEnabled,
+    unoAvailable: unoMode !== null,
+  });
+
   return (
     <div
       className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
@@ -277,6 +326,7 @@ export const App = () => {
                 : undefined
           }
           onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
+          keyboardSelectedId={kbSelectedCardId}
           dialogues={dialogues}
         />
       </div>

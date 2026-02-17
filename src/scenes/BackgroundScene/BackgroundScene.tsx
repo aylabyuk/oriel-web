@@ -134,6 +134,7 @@ type BackgroundSceneProps = {
   deckEnabled?: boolean;
   freeLook?: boolean;
   playableOverride?: string[];
+  keyboardSelectedId?: string | null;
   dialogues?: (DialogueBubble | null)[];
 };
 
@@ -153,6 +154,7 @@ export const BackgroundScene = ({
   deckEnabled = true,
   freeLook = false,
   playableOverride,
+  keyboardSelectedId,
   dialogues,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
@@ -444,6 +446,9 @@ export const BackgroundScene = ({
                   isVisitorTurn
                     ? (playableOverride ?? snapshot?.playableCardIds)
                     : undefined
+                }
+                keyboardSelectedId={
+                  isVisitorTurn ? keyboardSelectedId : undefined
                 }
                 onCardClick={
                   isVisitorTurn
