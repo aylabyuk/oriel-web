@@ -26,6 +26,7 @@ import { RestartConfirmModal } from '@/components/ui/RestartConfirmModal';
 import { FreeLookExplainer } from '@/components/ui/FreeLookExplainer';
 import { HelpButton } from '@/components/ui/HelpButton';
 import { RulesModal } from '@/components/ui/RulesModal';
+import { InstallPrompt } from '@/components/ui/InstallPrompt';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -365,6 +366,7 @@ export const App = () => {
           onExited={handleWelcomeExited}
         />
       )}
+      <InstallPrompt />
       <Analytics />
     </div>
   );
