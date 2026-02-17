@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/utils';
 import { en } from '@/i18n/en';
+import { USERNAME_MAX_LENGTH } from '@/constants/players';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
 
 describe('WelcomeScreen', () => {
@@ -22,6 +23,15 @@ describe('WelcomeScreen', () => {
     expect(
       screen.getByRole('button', { name: en.welcome.startButton }),
     ).toBeInTheDocument();
+  });
+
+  it('limits name input to USERNAME_MAX_LENGTH characters', () => {
+    renderWithProviders(<WelcomeScreen />);
+    const nameInput = screen.getByLabelText(en.welcome.nameLabel);
+    expect(nameInput).toHaveAttribute(
+      'maxLength',
+      String(USERNAME_MAX_LENGTH),
+    );
   });
 
   it('auto-focuses the name input', () => {

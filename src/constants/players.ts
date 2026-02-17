@@ -1,3 +1,5 @@
+export const USERNAME_MAX_LENGTH = 15;
+
 export const AI_STRATEGIST = 'Meio' as const;
 export const AI_TRASH_TALKER = 'Mark' as const;
 export const AI_CHILL = 'Paul' as const;

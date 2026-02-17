@@ -6,6 +6,7 @@ import {
   submitWelcome,
   resetVisitor,
 } from '@/store/slices/visitor';
+import { USERNAME_MAX_LENGTH } from '@/constants/players';
 
 const reducer = visitorSlice.reducer;
 
@@ -24,6 +25,19 @@ describe('visitorSlice', () => {
   it('sets name', () => {
     const state = reducer(undefined, setName('Oriel'));
     expect(state.name).toBe('Oriel');
+  });
+
+  it('truncates name to USERNAME_MAX_LENGTH characters', () => {
+    const longName = 'A'.repeat(USERNAME_MAX_LENGTH + 10);
+    const state = reducer(undefined, setName(longName));
+    expect(state.name).toBe('A'.repeat(USERNAME_MAX_LENGTH));
+    expect(state.name).toHaveLength(USERNAME_MAX_LENGTH);
+  });
+
+  it('allows name at exactly USERNAME_MAX_LENGTH characters', () => {
+    const exactName = 'A'.repeat(USERNAME_MAX_LENGTH);
+    const state = reducer(undefined, setName(exactName));
+    expect(state.name).toBe(exactName);
   });
 
   it('sets company', () => {

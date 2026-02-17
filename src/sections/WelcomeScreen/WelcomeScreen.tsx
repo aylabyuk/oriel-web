@@ -15,7 +15,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { MY_AVATAR_URL } from '@/constants';
-import { AI_NAME_SET } from '@/constants/players';
+import { AI_NAME_SET, USERNAME_MAX_LENGTH } from '@/constants/players';
 import { cn } from '@/utils/cn';
 
 type WelcomeScreenProps = {
@@ -120,6 +120,7 @@ export const WelcomeScreen = ({
             required
             autoComplete="name"
             disabled={loading}
+            maxLength={USERNAME_MAX_LENGTH}
           />
           <Input
             label={t('welcome.companyLabel')}
