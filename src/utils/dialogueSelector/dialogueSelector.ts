@@ -22,8 +22,9 @@ type LineContext = {
   visitor?: string;
 };
 
-export const createDialogueSelector = () => {
-  const persisted = readShownTopics();
+export const createDialogueSelector = (username = '') => {
+  let currentUsername = username;
+  const persisted = readShownTopics(currentUsername);
   const state: SelectorState = {
     history: { [AI_STRATEGIST]: [], [AI_TRASH_TALKER]: [], [AI_CHILL]: [] },
     lastTime: { [AI_STRATEGIST]: 0, [AI_TRASH_TALKER]: 0, [AI_CHILL]: 0 },
@@ -85,7 +86,7 @@ export const createDialogueSelector = () => {
     // Mark the topic key as shown so the same fact doesn't resurface
     if (selected.topicKey) {
       state.shownTopicKeys.add(selected.topicKey);
-      writeShownTopics(state.shownTopicKeys);
+      writeShownTopics(state.shownTopicKeys, currentUsername);
     }
 
     return text;
@@ -94,13 +95,14 @@ export const createDialogueSelector = () => {
   /** Mark a topic key as shown (called when a topic thread plays). */
   const markTopicShown = (key: string) => {
     state.shownTopicKeys.add(key);
-    writeShownTopics(state.shownTopicKeys);
+    writeShownTopics(state.shownTopicKeys, currentUsername);
   };
 
   /** Check if a topic key has already been shown. */
   const isTopicShown = (key: string): boolean => state.shownTopicKeys.has(key);
 
-  const reset = () => {
+  const reset = (username?: string) => {
+    if (username !== undefined) currentUsername = username;
     state.history = {
       [AI_STRATEGIST]: [],
       [AI_TRASH_TALKER]: [],
@@ -111,7 +113,7 @@ export const createDialogueSelector = () => {
       [AI_TRASH_TALKER]: 0,
       [AI_CHILL]: 0,
     };
-    state.shownTopicKeys = new Set(readShownTopics());
+    state.shownTopicKeys = new Set(readShownTopics(currentUsername));
   };
 
   return { selectLine, markTopicShown, isTopicShown, reset };

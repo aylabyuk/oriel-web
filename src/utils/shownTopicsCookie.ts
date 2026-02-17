@@ -1,13 +1,21 @@
 import { PERSONAL_INFO_TOPICS } from '@/data/personalInfoTopics';
 import type { DialogueHistoryEntry } from '@/types/dialogue';
 
-const COOKIE_NAME = 'oriel_shown_topics';
+const COOKIE_PREFIX = 'oriel_shown_topics_';
 const EXPIRY_HOURS = 6;
 
-export const readShownTopics = (): Set<string> => {
+/** Build a safe cookie name scoped to the given username. */
+const cookieName = (username: string): string => {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `${COOKIE_PREFIX}${safe}`;
+};
+
+export const readShownTopics = (username: string): Set<string> => {
+  if (!username) return new Set();
+  const name = cookieName(username);
   const match = document.cookie
     .split('; ')
-    .find((row) => row.startsWith(`${COOKIE_NAME}=`));
+    .find((row) => row.startsWith(`${name}=`));
   if (!match) return new Set();
   try {
     const keys: unknown = JSON.parse(decodeURIComponent(match.split('=')[1]));
@@ -17,15 +25,17 @@ export const readShownTopics = (): Set<string> => {
   }
 };
 
-export const writeShownTopics = (keys: Set<string>): void => {
+export const writeShownTopics = (keys: Set<string>, username: string): void => {
+  if (!username) return;
   const expires = new Date(Date.now() + EXPIRY_HOURS * 60 * 60 * 1000).toUTCString();
   const value = encodeURIComponent(JSON.stringify([...keys]));
-  document.cookie = `${COOKIE_NAME}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+  const name = cookieName(username);
+  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
 };
 
 /** Reconstruct history entries for previously shown topics so the UI shows them after refresh. */
-export const restoreShownHistory = (): DialogueHistoryEntry[] => {
-  const shown = readShownTopics();
+export const restoreShownHistory = (username: string): DialogueHistoryEntry[] => {
+  const shown = readShownTopics(username);
   if (shown.size === 0) return [];
   const entries: DialogueHistoryEntry[] = [];
   const baseTs = Date.now() - 1;

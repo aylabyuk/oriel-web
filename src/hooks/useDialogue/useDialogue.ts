@@ -71,8 +71,9 @@ export const useDialogue = (ready: boolean) => {
     null,
     null,
   ]);
-  const [history, setHistoryRaw] = useState<DialogueHistoryEntry[]>(restoreShownHistory);
+  const [history, setHistoryRaw] = useState<DialogueHistoryEntry[]>([]);
   const MAX_HISTORY = 200;
+  const currentUsernameRef = useRef('');
   const setHistory: typeof setHistoryRaw = (update) =>
     setHistoryRaw((prev) => {
       const next = typeof update === 'function' ? update(prev) : update;
@@ -251,7 +252,6 @@ export const useDialogue = (ready: boolean) => {
     if (snapshot !== null) return;
     clearTimers();
     clearVisitorSlowTimer();
-    selectorRef.current.reset();
     processedRef.current = 0;
     gameStartedRef.current = false;
     jokeActiveRef.current = false;
@@ -271,6 +271,14 @@ export const useDialogue = (ready: boolean) => {
     // Prevent personal info from firing too early — give guests time to settle in
     personalInfoCooldownUntilRef.current =
       Date.now() + PERSONAL_INFO_COOLDOWN * 2;
+
+    // Reinitialize selector and history when the visitor username changes
+    const visitorUsername = snapshot.players[0]?.name ?? '';
+    if (visitorUsername !== currentUsernameRef.current) {
+      currentUsernameRef.current = visitorUsername;
+      selectorRef.current.reset(visitorUsername);
+      setHistoryRaw(restoreShownHistory(visitorUsername));
+    }
 
     if (gameCountRef.current > 1) {
       setHistory((prev) => [
