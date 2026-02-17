@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/aylabyuk/oriel-web/compare/v1.1.0...v1.2.0) (2026-02-17)
+
+
+### Features
+
+* scope topic cache by visitor username ([2a685b5](https://github.com/aylabyuk/oriel-web/commit/2a685b5b7c2a03c0331c6dd8f1d92093eea59fd0))
+
 ## [1.1.0](https://github.com/aylabyuk/oriel-web/compare/v1.0.0...v1.1.0) (2026-02-17)
 
 
