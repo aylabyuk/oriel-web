@@ -50,17 +50,15 @@ describe('visitorSlice', () => {
     expect(state.nameError).toBe('Required');
   });
 
-  it('clears name error when typing after submit', () => {
-    let state = reducer(undefined, submitWelcome());
-    expect(state.submitted).toBe(true);
-    state = reducer(state, setNameError('Required'));
+  it('clears name error when typing a valid name', () => {
+    let state = reducer(undefined, setNameError('Required'));
     state = reducer(state, setName('Oriel'));
     expect(state.nameError).toBe('');
   });
 
-  it('does not clear name error before submit', () => {
+  it('does not clear name error when typing whitespace only', () => {
     let state = reducer(undefined, setNameError('Required'));
-    state = reducer(state, setName('Oriel'));
+    state = reducer(state, setName('   '));
     expect(state.nameError).toBe('Required');
   });
 

@@ -23,7 +23,7 @@ export const visitorSlice = createSlice({
   reducers: {
     setName(state, action: PayloadAction<string>) {
       state.name = action.payload.slice(0, USERNAME_MAX_LENGTH);
-      if (state.submitted && action.payload.trim()) {
+      if (state.nameError && action.payload.trim()) {
         state.nameError = '';
       }
     },
