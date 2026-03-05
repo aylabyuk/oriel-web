@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAllSessions } from '@/services/analytics/sessionsReader';
+import { fetchAllSessions, softDeleteSession } from '@/services/analytics/sessionsReader';
 import type { SessionDocument } from '@/services/analytics/types';
 import type {
   DashboardData,
@@ -148,6 +148,7 @@ type UseDashboardDataReturn = {
   timeRange: TimeRange;
   setTimeRange: (range: TimeRange) => void;
   refresh: () => void;
+  deleteSession: (sessionId: string) => Promise<void>;
 };
 
 export const useDashboardData = (): UseDashboardDataReturn => {
@@ -189,5 +190,12 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     return processData(filtered);
   }, [allSessions, timeRange]);
 
-  return { data, loading, error, timeRange, setTimeRange, refresh: load };
+  const handleDelete = useCallback(async (sessionId: string) => {
+    await softDeleteSession(sessionId);
+    setAllSessions((prev) =>
+      prev ? prev.filter((s) => s.sessionId !== sessionId) : prev,
+    );
+  }, []);
+
+  return { data, loading, error, timeRange, setTimeRange, refresh: load, deleteSession: handleDelete };
 };

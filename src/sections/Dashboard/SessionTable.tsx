@@ -4,11 +4,12 @@ import { SessionDetailRow, SessionDetailCard } from './SessionDetailRow';
 
 type SessionTableProps = {
   sessions: SessionRow[];
+  onDelete: (sessionId: string) => Promise<void>;
 };
 
 const PAGE_SIZE = 15;
 
-export const SessionTable = ({ sessions }: SessionTableProps) => {
+export const SessionTable = ({ sessions, onDelete }: SessionTableProps) => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
 
@@ -82,6 +83,7 @@ export const SessionTable = ({ sessions }: SessionTableProps) => {
                 <SessionDetailRow
                   key={session.sessionId}
                   session={session}
+                  onDelete={onDelete}
                 />
               ))
             )}
@@ -100,6 +102,7 @@ export const SessionTable = ({ sessions }: SessionTableProps) => {
             <SessionDetailCard
               key={session.sessionId}
               session={session}
+              onDelete={onDelete}
             />
           ))
         )}

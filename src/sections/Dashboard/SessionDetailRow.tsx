@@ -4,6 +4,7 @@ import { cn } from '@/utils/cn';
 
 type SessionDetailRowProps = {
   session: SessionRow;
+  onDelete: (sessionId: string) => Promise<void>;
 };
 
 const formatDuration = (ms: number): string => {
@@ -23,7 +24,57 @@ const formatEventTime = (ms: number): string => {
 
 const RATING_COLORS = ['#ef6f6f', '#5b8ef5', '#4dcb7a', '#f0b84d', '#a855f7'];
 
-const ExpandedDetails = ({ session, topics }: { session: SessionRow; topics: string[] }) => (
+const TrashIcon = () => (
+  <svg
+    width={14}
+    height={14}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+  </svg>
+);
+
+const DeleteButton = ({ onDelete }: { onDelete: () => Promise<void> }) => {
+  const [deleting, setDeleting] = useState(false);
+
+  const handleClick = async () => {
+    if (!window.confirm('Delete this session?')) return;
+    setDeleting(true);
+    try {
+      await onDelete();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={deleting}
+      className="flex cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-400/10"
+    >
+      <TrashIcon />
+      {deleting ? 'Deleting...' : 'Delete'}
+    </button>
+  );
+};
+
+const ExpandedDetails = ({
+  session,
+  topics,
+  onDelete,
+}: {
+  session: SessionRow;
+  topics: string[];
+  onDelete: () => Promise<void>;
+}) => (
   <div className="space-y-3">
     {topics.length > 0 && (
       <div>
@@ -123,6 +174,9 @@ const ExpandedDetails = ({ session, topics }: { session: SessionRow; topics: str
         )}
       </div>
     </div>
+    <div className="flex justify-end">
+      <DeleteButton onDelete={onDelete} />
+    </div>
   </div>
 );
 
@@ -143,7 +197,7 @@ const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
 );
 
 /** Desktop table row — hidden on mobile */
-export const SessionDetailRow = ({ session }: SessionDetailRowProps) => {
+export const SessionDetailRow = ({ session, onDelete }: SessionDetailRowProps) => {
   const [expanded, setExpanded] = useState(false);
 
   const topics = session.events
@@ -183,7 +237,7 @@ export const SessionDetailRow = ({ session }: SessionDetailRowProps) => {
       {expanded && (
         <tr className="border-b border-neutral-100 dark:border-neutral-800">
           <td colSpan={7} className="px-4 py-3">
-            <ExpandedDetails session={session} topics={topics} />
+            <ExpandedDetails session={session} topics={topics} onDelete={() => onDelete(session.sessionId)} />
           </td>
         </tr>
       )}
@@ -192,7 +246,7 @@ export const SessionDetailRow = ({ session }: SessionDetailRowProps) => {
 };
 
 /** Mobile card — hidden on desktop */
-export const SessionDetailCard = ({ session }: SessionDetailRowProps) => {
+export const SessionDetailCard = ({ session, onDelete }: SessionDetailRowProps) => {
   const [expanded, setExpanded] = useState(false);
 
   const topics = session.events
@@ -231,7 +285,7 @@ export const SessionDetailCard = ({ session }: SessionDetailRowProps) => {
       </div>
       {expanded && (
         <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-          <ExpandedDetails session={session} topics={topics} />
+          <ExpandedDetails session={session} topics={topics} onDelete={() => onDelete(session.sessionId)} />
         </div>
       )}
     </div>

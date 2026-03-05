@@ -90,4 +90,5 @@ export type SessionDocument = {
 
   events: AnalyticsEvent[];
   feedback?: SessionFeedback[];
+  deletedAt?: Timestamp | null;
 };

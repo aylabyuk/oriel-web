@@ -10,7 +10,7 @@ type DashboardProps = {
 };
 
 export const Dashboard = ({ onBack }: DashboardProps) => {
-  const { data, loading, error, timeRange, setTimeRange, refresh } =
+  const { data, loading, error, timeRange, setTimeRange, refresh, deleteSession } =
     useDashboardData();
 
   return (
@@ -42,7 +42,7 @@ export const Dashboard = ({ onBack }: DashboardProps) => {
             <ActivityChart data={data.dailyActivity} />
             <VisitorMap geoPoints={data.geoPoints} />
           </div>
-          <SessionTable sessions={data.sessions} />
+          <SessionTable sessions={data.sessions} onDelete={deleteSession} />
         </>
       )}
     </div>

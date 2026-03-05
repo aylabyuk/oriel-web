@@ -1,11 +1,14 @@
 import {
   collection,
+  doc,
   getDocs,
+  updateDoc,
   query,
   orderBy,
   limit,
   where,
   Timestamp,
+  serverTimestamp,
   type QueryConstraint,
 } from 'firebase/firestore';
 import { getFirestoreDb } from './firebase';
@@ -38,5 +41,17 @@ export const fetchAllSessions = async (
   const q = query(collection(db, SESSIONS_COLLECTION), ...constraints);
   const snapshot = await getDocs(q);
 
-  return snapshot.docs.map((doc) => doc.data() as SessionDocument);
+  // Filter soft-deleted sessions client-side to avoid composite index requirement
+  return snapshot.docs
+    .map((d) => d.data() as SessionDocument)
+    .filter((s) => !s.deletedAt);
+};
+
+export const softDeleteSession = async (sessionId: string): Promise<void> => {
+  const db = getFirestoreDb();
+  if (!db) throw new Error('Firestore not available');
+
+  await updateDoc(doc(db, SESSIONS_COLLECTION, sessionId), {
+    deletedAt: serverTimestamp(),
+  });
 };

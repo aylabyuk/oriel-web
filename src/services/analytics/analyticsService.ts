@@ -83,6 +83,7 @@ export const createAnalyticsService = () => {
         gamesWon: 0,
         totalScore: 0,
         events: [],
+        deletedAt: null,
       });
     } catch (err) {
       console.error('[analytics] session write failed:', err);
