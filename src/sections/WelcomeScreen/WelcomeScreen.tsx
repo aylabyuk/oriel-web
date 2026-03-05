@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { SocialLinks } from '@/components/ui/SocialLinks';
 import { MY_AVATAR_URL } from '@/constants';
 import { AI_NAME_SET, USERNAME_MAX_LENGTH } from '@/constants/players';
+import { ADMIN_SECRET_NAME } from '@/constants/admin';
 import { analytics } from '@/services/analytics';
 import { cn } from '@/utils/cn';
 
@@ -24,12 +25,14 @@ type WelcomeScreenProps = {
   loading?: boolean;
   exiting?: boolean;
   onExited?: () => void;
+  onSecretDetected?: () => void;
 };
 
 export const WelcomeScreen = ({
   loading = false,
   exiting = false,
   onExited,
+  onSecretDetected,
 }: WelcomeScreenProps) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
@@ -69,6 +72,10 @@ export const WelcomeScreen = ({
     if (AI_NAME_SET.has(trimmed)) {
       dispatch(setNameError(t('welcome.nameReserved')));
       nameInputRef.current?.focus();
+      return;
+    }
+    if (trimmed.toLowerCase() === ADMIN_SECRET_NAME.toLowerCase()) {
+      onSecretDetected?.();
       return;
     }
 
