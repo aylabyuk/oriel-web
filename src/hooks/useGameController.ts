@@ -62,25 +62,54 @@ export const useGameController = () => {
         return;
       }
 
-      const playable = g.getPlayableCardsForPlayer(playerName);
+      try {
+        const playable = g.getPlayableCardsForPlayer(playerName);
 
-      if (playable.length > 0) {
-        const card = playable[Math.floor(Math.random() * playable.length)];
-        const chosenColor = card.isWildCard()
-          ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
-          : undefined;
+        if (playable.length > 0) {
+          const card = playable[Math.floor(Math.random() * playable.length)];
+          const chosenColor = card.isWildCard()
+            ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
+            : undefined;
+          try {
+            g.playCard(card, chosenColor);
+          } catch {
+            g.draw();
+            g.pass();
+          }
+        } else {
+          g.draw();
+          // Check if the drawn card is playable (e.g. Wild) — play it instead of passing
+          const nowPlayable = g.getPlayableCardsForPlayer(playerName);
+          if (nowPlayable.length > 0) {
+            const card =
+              nowPlayable[Math.floor(Math.random() * nowPlayable.length)];
+            const chosenColor = card.isWildCard()
+              ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
+              : undefined;
+            try {
+              g.playCard(card, chosenColor);
+            } catch {
+              g.pass();
+            }
+          } else {
+            g.pass();
+          }
+        }
+      } catch (err) {
+        console.error('[ai] turn failed, attempting recovery:', err);
+        // Attempt to advance the turn so the game doesn't freeze
         try {
-          g.playCard(card, chosenColor);
-        } catch {
           g.draw();
           g.pass();
+        } catch {
+          // Draw pile is exhausted — end game by scoring remaining hands.
+          console.warn('[ai] draw pile exhausted — ending game by hand score');
+          g.endByDeckExhaustion();
+          dispatch(setSnapshot(g.getSnapshot()));
         }
-      } else {
-        g.draw();
-        g.pass();
       }
     }, totalDelay);
-  }, []);
+  }, [dispatch]);
 
   const cancelVisitorTimer = useCallback(() => {
     if (visitorTimerRef.current) {
@@ -136,10 +165,12 @@ export const useGameController = () => {
           }
         }
       } catch {
-        // Auto-play failed — game will recover on next turn_changed event
+        // Draw pile is exhausted — end game by scoring remaining hands
+        g.endByDeckExhaustion();
+        dispatch(setSnapshot(g.getSnapshot()));
       }
     }, AI_ANIMATION_WAIT + VISITOR_TURN_TIMEOUT);
-  }, [visitorName, cancelVisitorTimer]);
+  }, [visitorName, cancelVisitorTimer, dispatch]);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -272,7 +303,15 @@ export const useGameController = () => {
     const handBefore = new Set(
       game.getPlayerHand(playerName).map((c) => getCardId(c)),
     );
-    game.draw();
+
+    try {
+      game.draw();
+    } catch {
+      // Draw pile exhausted — end game by scoring remaining hands
+      game.endByDeckExhaustion();
+      dispatch(setSnapshot(game.getSnapshot()));
+      return null;
+    }
 
     const drawnCard = game
       .getPlayerHand(playerName)
@@ -285,7 +324,7 @@ export const useGameController = () => {
       .getPlayableCards()
       .some((c) => getCardId(c) === cardId);
     return { cardId, isPlayable, isWild };
-  }, [visitorName, cancelVisitorTimer]);
+  }, [visitorName, cancelVisitorTimer, dispatch]);
 
   const passAfterDraw = useCallback(() => {
     cancelVisitorTimer();

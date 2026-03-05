@@ -402,6 +402,40 @@ export class UnoGame {
     return this.engine.getPlayer(playerName).hand;
   }
 
+  /**
+   * End the game due to deck exhaustion (draw pile empty, no playable cards).
+   * Per UNO rules, the player with the fewest points in hand wins.
+   * The winner's score equals the sum of all OTHER players' hand points.
+   */
+  endByDeckExhaustion(): void {
+    if (this.phase === 'ended') return;
+
+    // Score each player's hand
+    const scores = this.seatOrder.map((name) => {
+      const hand = this.engine.getPlayer(name).hand;
+      return {
+        name,
+        points: hand.reduce((sum, card) => sum + card.score, 0),
+      };
+    });
+
+    // Player with lowest hand points wins
+    scores.sort((a, b) => a.points - b.points);
+    const winnerName = scores[0].name;
+    const totalScore = scores
+      .filter((s) => s.name !== winnerName)
+      .reduce((sum, s) => sum + s.points, 0);
+
+    this.phase = 'ended';
+    this.winner = winnerName;
+    this.score = totalScore;
+    this.emit({
+      type: 'game_ended',
+      playerName: winnerName,
+      data: { score: totalScore },
+    });
+  }
+
   /** Get end-of-game info with per-player score breakdown. Returns null if game hasn't ended. */
   getGameEndInfo(): GameEndInfo | null {
     if (this.phase !== 'ended' || !this.winner || this.score === null)
