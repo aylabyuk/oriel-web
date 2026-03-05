@@ -8,25 +8,12 @@ import {
 import { selectMode } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { RestartButton } from '@/components/ui/RestartButton';
-import { WildColorPicker } from '@/components/ui/WildColorPicker';
-import { DrawChoiceModal } from '@/components/ui/DrawChoiceModal';
-import { ChallengeModal } from '@/components/ui/ChallengeModal';
-import { GameEndOverlay } from '@/components/ui/GameEndOverlay';
-import { DisclaimerModal } from '@/components/ui/DisclaimerModal';
-import { FreeLookToggle } from '@/components/ui/FreeLookToggle';
 import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
-import { ChatToggle } from '@/components/ui/ChatToggle';
-import { SoundToggle } from '@/components/ui/SoundToggle';
-import { MusicToggle } from '@/components/ui/MusicToggle';
 import { ChatHistoryPanel } from '@/components/ui/ChatHistoryPanel';
-import { RestartConfirmModal } from '@/components/ui/RestartConfirmModal';
-import { FreeLookExplainer } from '@/components/ui/FreeLookExplainer';
-import { HelpButton } from '@/components/ui/HelpButton';
-import { RulesModal } from '@/components/ui/RulesModal';
 import { InstallPrompt } from '@/components/ui/InstallPrompt';
+import { Toolbar } from '@/components/ui/Toolbar';
+import { GameModals } from '@/components/ui/GameModals';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -34,7 +21,6 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { useToolbar } from '@/hooks/useToolbar';
 import { useCardFlow } from '@/hooks/useCardFlow';
 import { TRACK } from '@/services/analytics';
-import { cn } from '@/utils/cn';
 import {
   playGather,
   playUnoShout,
@@ -205,45 +191,34 @@ export const App = () => {
           dialogues={dialogues}
         />
       </div>
-      <DisclaimerModal
-        open={welcomeDismissed && !disclaimerAcked}
+      <GameModals
+        disclaimerOpen={welcomeDismissed && !disclaimerAcked}
         visitorName={enteredVisitorName}
         analyticsConsent={analyticsConsent}
         onConsentChange={setAnalyticsConsent}
-        onAcknowledge={handleDisclaimerAck}
-      />
-      <DrawChoiceModal
-        open={cardFlow.drawChoice !== null}
-        onPlay={cardFlow.handleDrawPlay}
-        onSkip={cardFlow.handleDrawSkip}
-      />
-      <WildColorPicker
-        open={cardFlow.pendingWildCardId != null}
-        onColorSelect={cardFlow.handleWildColorSelect}
-        onDismiss={cardFlow.handleWildDismiss}
-      />
-      <ChallengeModal
-        open={challengeReady}
+        onDisclaimerAck={handleDisclaimerAck}
+        drawChoiceOpen={cardFlow.drawChoice !== null}
+        onDrawPlay={cardFlow.handleDrawPlay}
+        onDrawSkip={cardFlow.handleDrawSkip}
+        wildPickerOpen={cardFlow.pendingWildCardId != null}
+        onWildColorSelect={cardFlow.handleWildColorSelect}
+        onWildDismiss={cardFlow.handleWildDismiss}
+        challengeOpen={challengeReady}
         blufferName={snapshot?.pendingChallenge?.blufferName ?? ''}
-        onAccept={handleChallengeAccept}
-        onChallenge={handleChallengeIssue}
-      />
-      <GameEndOverlay
-        open={gameEnded}
+        onChallengeAccept={handleChallengeAccept}
+        onChallengeIssue={handleChallengeIssue}
+        gameEnded={gameEnded}
         endInfo={endInfo}
         isVisitorWinner={isVisitorWinner}
         onPlayAgain={handlePlayAgain}
+        restartConfirmOpen={toolbar.restartConfirmOpen && !gameEnded}
+        onRestartConfirm={handlePlayAgain}
+        onRestartCancel={toolbar.handleRestartCancel}
+        freeLookExplainerOpen={toolbar.freeLookExplainerOpen}
+        onFreeLookExplainerDismiss={toolbar.handleFreeLookExplainerDismiss}
+        rulesOpen={toolbar.rulesOpen}
+        onRulesClose={toolbar.handleRulesClose}
       />
-      <RestartConfirmModal
-        open={toolbar.restartConfirmOpen && !gameEnded}
-        onConfirm={handlePlayAgain}
-        onCancel={toolbar.handleRestartCancel}
-      />
-      <FreeLookExplainer
-        open={toolbar.freeLookExplainerOpen}
-        onDismiss={toolbar.handleFreeLookExplainerDismiss}
-      />
-      <RulesModal open={toolbar.rulesOpen} onClose={toolbar.handleRulesClose} />
       <UnoButton
         mode={unoMode}
         targetName={unoTargetName}
@@ -258,38 +233,19 @@ export const App = () => {
         />
       )}
       {disclaimerAcked && (
-        <div
-          className={cn(
-            'fixed top-4 z-70 flex w-80 flex-row items-center justify-evenly',
-            'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
-            'dark:bg-neutral-900/70',
-            'max-lg:portrait:left-1/2 max-lg:portrait:-translate-x-1/2',
-            'lg:right-4 landscape:right-4',
-          )}
-        >
-          <ThemeToggle />
-          <SoundToggle
-            active={toolbar.soundOn}
-            onClick={toolbar.handleSoundToggle}
-          />
-          <MusicToggle
-            active={toolbar.musicOn}
-            onClick={toolbar.handleMusicToggle}
-          />
-          <HelpButton onClick={toolbar.handleRulesOpen} />
-          <FreeLookToggle
-            active={toolbar.freeLook}
-            onClick={toolbar.handleFreeLookToggle}
-          />
-          <RestartButton
-            onClick={toolbar.handleRestartClick}
-            disabled={!snapshot}
-          />
-          <ChatToggle
-            open={toolbar.chatOpen}
-            onClick={toolbar.handleChatToggle}
-          />
-        </div>
+        <Toolbar
+          soundOn={toolbar.soundOn}
+          onSoundToggle={toolbar.handleSoundToggle}
+          musicOn={toolbar.musicOn}
+          onMusicToggle={toolbar.handleMusicToggle}
+          freeLook={toolbar.freeLook}
+          onFreeLookToggle={toolbar.handleFreeLookToggle}
+          chatOpen={toolbar.chatOpen}
+          onChatToggle={toolbar.handleChatToggle}
+          onRulesOpen={toolbar.handleRulesOpen}
+          onRestartClick={toolbar.handleRestartClick}
+          restartDisabled={!snapshot}
+        />
       )}
       {welcomeDismissed ? (
         <div>
