@@ -36,7 +36,9 @@ export type AnalyticsEventType =
   | 'close_rules'
   | 'restart_game'
   | 'play_again'
-  | 'disclaimer_acknowledged';
+  | 'disclaimer_acknowledged'
+  | 'topic_revealed'
+  | 'link_clicked';
 
 export const TRACK = {
   GAME_STARTED: 'game_started',
@@ -50,6 +52,8 @@ export const TRACK = {
   RESTART_GAME: 'restart_game',
   PLAY_AGAIN: 'play_again',
   DISCLAIMER_ACKNOWLEDGED: 'disclaimer_acknowledged',
+  TOPIC_REVEALED: 'topic_revealed',
+  LINK_CLICKED: 'link_clicked',
 } as const satisfies Record<string, AnalyticsEventType>;
 
 export type AnalyticsEvent = {

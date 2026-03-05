@@ -1,24 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import {
-  selectVisitorName,
-  selectVisitorCompany,
-} from '@/store/slices/visitor';
 import { selectSnapshot } from '@/store/slices/game';
 import { analytics } from '@/services/analytics';
 import type { AnalyticsEventType } from '@/services/analytics';
 
 type UseAnalyticsOptions = {
   consentGiven: boolean;
-  disclaimerAcked: boolean;
 };
 
 export const useAnalytics = ({
   consentGiven,
-  disclaimerAcked,
 }: UseAnalyticsOptions) => {
-  const visitorName = useAppSelector(selectVisitorName);
-  const company = useAppSelector(selectVisitorCompany);
   const snapshot = useAppSelector(selectSnapshot);
   const prevPhaseRef = useRef<string | null>(null);
 
@@ -26,18 +18,6 @@ export const useAnalytics = ({
   useEffect(() => {
     analytics.setConsent(consentGiven);
   }, [consentGiven]);
-
-  // Initialize session when visitor clicks "Deal Me In"
-  useEffect(() => {
-    if (!disclaimerAcked || !visitorName) return;
-
-    // Ensure consent is set before initializing (covers same-render-cycle case)
-    analytics.setConsent(consentGiven);
-
-    if (consentGiven) {
-      analytics.initialize({ name: visitorName, company });
-    }
-  }, [consentGiven, disclaimerAcked, visitorName, company]);
 
   // Track game end results
   useEffect(() => {

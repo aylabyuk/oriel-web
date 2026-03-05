@@ -57,7 +57,6 @@ export const App = () => {
   const [analyticsConsent, setAnalyticsConsent] = useState(true);
   const { trackEvent } = useAnalytics({
     consentGiven: analyticsConsent,
-    disclaimerAcked,
   });
 
   // --- Toolbar toggles ---

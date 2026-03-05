@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { MY_AVATAR_URL } from '@/constants';
 import { AI_NAME_SET, USERNAME_MAX_LENGTH } from '@/constants/players';
+import { analytics } from '@/services/analytics';
 import { cn } from '@/utils/cn';
 
 type WelcomeScreenProps = {
@@ -67,6 +68,8 @@ export const WelcomeScreen = ({
     }
 
     dispatch(submitWelcome());
+    analytics.setConsent(true);
+    analytics.initialize({ name: trimmed, company: company.trim() });
   };
 
   return (

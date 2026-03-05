@@ -9,6 +9,8 @@ import type {
   DialogueHistoryEntry,
 } from '@/types/dialogue';
 import { playChat } from '@/utils/sounds';
+import { analytics } from '@/services/analytics';
+import { TRACK } from '@/services/analytics';
 import { fetchJokes } from '@/utils/fetchJokes';
 import type { Joke } from '@/utils/fetchJokes';
 import { AI_NAMES, toDisplayName } from '@/constants/players';
@@ -144,6 +146,7 @@ export const useDialogue = (ready: boolean) => {
       usedTopicIndicesRef.current.add(topicIndex);
       const topic = PERSONAL_INFO_TOPICS[topicIndex];
       selector.markTopicShown(topic.topicKey);
+      analytics.trackEvent(TRACK.TOPIC_REVEALED, { topicKey: topic.topicKey });
 
       const displayVisitor = toDisplayName(visitorName);
       const teller = topic.entries[0].personality;

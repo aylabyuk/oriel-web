@@ -4,6 +4,7 @@ import {
   EMAIL_ICON_PATH,
   buildEmailUrl,
 } from '@/constants/social';
+import { analytics, TRACK } from '@/services/analytics';
 
 type SocialLinksProps = {
   compact?: boolean;
@@ -34,6 +35,11 @@ export const SocialLinks = ({ compact }: SocialLinksProps) => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={link.label}
+          onClick={() =>
+            analytics.trackEvent(TRACK.LINK_CLICKED, {
+              label: link.label.toLowerCase(),
+            })
+          }
           className={cn(
             'text-neutral-400 transition-all duration-200 hover:-translate-y-0.5 hover:scale-110 hover:text-neutral-600 dark:text-white/35 dark:hover:text-white/70',
             compact ? 'p-0.5' : 'p-1',
