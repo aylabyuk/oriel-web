@@ -1,5 +1,9 @@
 import { cn } from '@/utils/cn';
-import { SOCIAL_LINKS, EMAIL_ICON_PATH, buildEmailUrl } from '@/constants/social';
+import {
+  SOCIAL_LINKS,
+  EMAIL_ICON_PATH,
+  buildEmailUrl,
+} from '@/constants/social';
 
 type SocialLinksProps = {
   compact?: boolean;
@@ -17,7 +21,12 @@ export const SocialLinks = ({ compact }: SocialLinksProps) => {
   const size = compact ? 18 : 22;
 
   return (
-    <div className={cn('flex items-center justify-center', compact ? 'gap-4' : 'gap-5')}>
+    <div
+      className={cn(
+        'flex items-center justify-center',
+        compact ? 'gap-4' : 'gap-5',
+      )}
+    >
       {links.map((link) => (
         <a
           key={link.label}

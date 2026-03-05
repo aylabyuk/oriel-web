@@ -160,7 +160,7 @@ export const ENDGAME_VISITOR_WON: Record<string, string[]> = {
   [AI_STRATEGIST]: [
     'Well played, {visitor}. The outcome was statistically fair.',
     'A decisive victory, {visitor}. Impressive execution.',
-    'Victory confirmed. Credit where it\'s due, {visitor}.',
+    "Victory confirmed. Credit where it's due, {visitor}.",
   ],
   [AI_TRASH_TALKER]: [
     "LET'S GOOO {visitor}!! You actually pulled it off!",
@@ -198,7 +198,7 @@ export const ENDGAME_KEEP_PLAYING: Record<string, string[]> = {
   [AI_STRATEGIST]: [
     "There's more to learn about Oriel. Keep playing to unlock new facts — or hit 'Tell me more' in the About Oriel tab.",
     "We've only covered a fraction of Oriel's story. Play again, or use the 'Tell me more' button in About Oriel.",
-    "More data points await. Another round reveals more — or check the About Oriel tab for a shortcut.",
+    'More data points await. Another round reveals more — or check the About Oriel tab for a shortcut.',
   ],
   [AI_TRASH_TALKER]: [
     "We got WAY more to tell you about Oriel! Keep playing or hit 'Tell me more' in the About tab!",

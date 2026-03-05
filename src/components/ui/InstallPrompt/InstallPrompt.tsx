@@ -28,7 +28,7 @@ export const InstallPrompt = () => {
         pointerEvents: canInstall ? 'auto' : 'none',
       }}
     >
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-neutral-900 dark:text-white">
           Install Oriel UNO
         </p>
@@ -52,7 +52,7 @@ export const InstallPrompt = () => {
         onClick={dismiss}
         aria-label="Dismiss install prompt"
         className={cn(
-          'shrink-0 flex h-7 w-7 items-center justify-center rounded-full',
+          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
           'text-neutral-400 transition-colors hover:text-neutral-700',
           'dark:text-white/40 dark:hover:text-white/80',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400',

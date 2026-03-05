@@ -28,10 +28,7 @@ describe('WelcomeScreen', () => {
   it('limits name input to USERNAME_MAX_LENGTH characters', () => {
     renderWithProviders(<WelcomeScreen />);
     const nameInput = screen.getByLabelText(en.welcome.nameLabel);
-    expect(nameInput).toHaveAttribute(
-      'maxLength',
-      String(USERNAME_MAX_LENGTH),
-    );
+    expect(nameInput).toHaveAttribute('maxLength', String(USERNAME_MAX_LENGTH));
   });
 
   it('auto-focuses the name input', () => {

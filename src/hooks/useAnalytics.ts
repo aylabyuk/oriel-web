@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { selectVisitorName, selectVisitorCompany } from '@/store/slices/visitor';
+import {
+  selectVisitorName,
+  selectVisitorCompany,
+} from '@/store/slices/visitor';
 import { selectEvents, selectSnapshot } from '@/store/slices/game';
 import { analytics } from '@/services/analytics';
 import type { AnalyticsEventType } from '@/services/analytics';
@@ -42,7 +45,11 @@ export const useAnalytics = ({
       analytics.trackEvent(event.type, {
         playerName: event.playerName,
         ...(event.card
-          ? { cardId: event.card.id, cardValue: event.card.value, cardColor: event.card.color }
+          ? {
+              cardId: event.card.id,
+              cardValue: event.card.value,
+              cardColor: event.card.color,
+            }
           : {}),
         ...(event.data ?? {}),
       });
@@ -52,7 +59,11 @@ export const useAnalytics = ({
   // Track game end results
   useEffect(() => {
     const phase = snapshot?.phase ?? null;
-    if (prevPhaseRef.current !== 'ended' && phase === 'ended' && snapshot?.winner) {
+    if (
+      prevPhaseRef.current !== 'ended' &&
+      phase === 'ended' &&
+      snapshot?.winner
+    ) {
       const visitorPlayerName = snapshot.players[0]?.name ?? '';
       analytics.trackGameEnd(
         snapshot.winner,

@@ -10,7 +10,11 @@ type TrackEventFn = (
 
 type UseCardFlowOptions = {
   playCard: (cardId: string, color?: Color) => void;
-  drawCard: () => { cardId: string; isPlayable: boolean; isWild: boolean } | null;
+  drawCard: () => {
+    cardId: string;
+    isPlayable: boolean;
+    isWild: boolean;
+  } | null;
   passAfterDraw: () => void;
   cancelVisitorTimer: () => void;
   trackEvent: TrackEventFn;
@@ -24,7 +28,9 @@ export const useCardFlow = ({
   trackEvent,
 }: UseCardFlowOptions) => {
   // --- Wild card state ---
-  const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(null);
+  const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
+    null,
+  );
   const [drawnWildCardId, setDrawnWildCardId] = useState<string | null>(null);
 
   const handleWildCardPlayed = useCallback(

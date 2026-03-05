@@ -19,7 +19,9 @@ export const readShownTopics = (username: string): Set<string> => {
   if (!match) return new Set();
   try {
     const keys: unknown = JSON.parse(decodeURIComponent(match.split('=')[1]));
-    return Array.isArray(keys) ? new Set(keys.filter((k): k is string => typeof k === 'string')) : new Set();
+    return Array.isArray(keys)
+      ? new Set(keys.filter((k): k is string => typeof k === 'string'))
+      : new Set();
   } catch {
     return new Set();
   }
@@ -27,14 +29,18 @@ export const readShownTopics = (username: string): Set<string> => {
 
 export const writeShownTopics = (keys: Set<string>, username: string): void => {
   if (!username) return;
-  const expires = new Date(Date.now() + EXPIRY_HOURS * 60 * 60 * 1000).toUTCString();
+  const expires = new Date(
+    Date.now() + EXPIRY_HOURS * 60 * 60 * 1000,
+  ).toUTCString();
   const value = encodeURIComponent(JSON.stringify([...keys]));
   const name = cookieName(username);
   document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
 };
 
 /** Reconstruct history entries for previously shown topics so the UI shows them after refresh. */
-export const restoreShownHistory = (username: string): DialogueHistoryEntry[] => {
+export const restoreShownHistory = (
+  username: string,
+): DialogueHistoryEntry[] => {
   const shown = readShownTopics(username);
   if (shown.size === 0) return [];
   const entries: DialogueHistoryEntry[] = [];

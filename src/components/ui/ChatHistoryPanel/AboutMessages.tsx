@@ -157,7 +157,6 @@ export const AboutMessages = ({
             </div>
           ))}
       </div>
-
     </div>
   );
 };

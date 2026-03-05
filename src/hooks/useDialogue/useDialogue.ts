@@ -156,8 +156,7 @@ export const useDialogue = (ready: boolean) => {
 
       if (showIntro) {
         const introPool = PERSONAL_INFO_INTROS[teller];
-        let introLine =
-          introPool[Math.floor(Math.random() * introPool.length)];
+        let introLine = introPool[Math.floor(Math.random() * introPool.length)];
         introLine = introLine.split('{visitor}').join(displayVisitor);
 
         const introShow = setTimeout(() => {
@@ -450,9 +449,10 @@ export const useDialogue = (ready: boolean) => {
           : ENDGAME_VISITOR_LOST[reactAi];
         const reactLine = sub(pick(reactPool));
 
-        const nudgeAi = otherAis(reactAi)[
-          Math.floor(Math.random() * otherAis(reactAi).length)
-        ];
+        const nudgeAi =
+          otherAis(reactAi)[
+            Math.floor(Math.random() * otherAis(reactAi).length)
+          ];
         const nudgeLine = sub(pick(ENDGAME_KEEP_PLAYING[nudgeAi]));
 
         const endThreadId = nextThreadId();

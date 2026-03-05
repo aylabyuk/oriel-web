@@ -88,9 +88,9 @@ export const en = {
   disclaimer: {
     greeting: 'Hi {{name}},',
     body: "Thanks for stopping by! Before we start, meet my three AI friends who'll be joining us at the table:",
-    meio: "The quiet strategist. Always three moves ahead. Will politely destroy you.",
-    mark: "The loud one. Will absolutely trash talk you. Nothing personal — he does it to everyone.",
-    paul: "The chill guy. Just here for a good time. Might share a joke or two.",
+    meio: 'The quiet strategist. Always three moves ahead. Will politely destroy you.',
+    mark: 'The loud one. Will absolutely trash talk you. Nothing personal — he does it to everyone.',
+    paul: 'The chill guy. Just here for a good time. Might share a joke or two.',
     headsUp:
       "Fair warning: they have strong personalities, zero filter, and will 100% gang up on you if it's funny. They'll also share random facts about me between rounds — some true, some... slightly exaggerated. Don't believe everything Mark says.",
     consent:

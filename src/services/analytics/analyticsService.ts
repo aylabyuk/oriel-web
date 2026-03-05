@@ -117,7 +117,11 @@ export const createAnalyticsService = () => {
     eventBuffer.push(event);
   };
 
-  const trackGameEnd = (winner: string, score: number, visitorName: string): void => {
+  const trackGameEnd = (
+    winner: string,
+    score: number,
+    visitorName: string,
+  ): void => {
     gamesPlayed += 1;
     if (winner === visitorName) gamesWon += 1;
     totalScore += score;
