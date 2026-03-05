@@ -2,6 +2,8 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { toggleMode, selectMode } from '@/store/slices/theme';
 import { IconButton } from '@/components/ui/IconButton';
 import { useTranslation } from '@/hooks/useTranslation';
+import { analytics } from '@/services/analytics/analyticsService';
+import { TRACK } from '@/services/analytics/types';
 
 export const ThemeToggle = () => {
   const dispatch = useAppDispatch();
@@ -9,13 +11,19 @@ export const ThemeToggle = () => {
   const isDark = mode === 'dark';
   const { t } = useTranslation();
 
+  const handleToggle = () => {
+    const newMode = isDark ? 'light' : 'dark';
+    dispatch(toggleMode());
+    analytics.trackEvent(TRACK.TOGGLE_THEME, { mode: newMode });
+  };
+
   return (
     <IconButton
       ariaLabel={
         isDark ? t('toolbar.switchToLight') : t('toolbar.switchToDark')
       }
       tooltip={isDark ? t('toolbar.lightMode') : t('toolbar.darkMode')}
-      onClick={() => dispatch(toggleMode())}
+      onClick={handleToggle}
     >
       {isDark ? (
         <svg
