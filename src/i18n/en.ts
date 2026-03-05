@@ -179,10 +179,9 @@ export const en = {
     cta: 'Drop Oriel a card',
     ctaSubtext: 'Optional — takes 10 seconds',
     ratingLabel: 'Rate your experience',
-    favoriteLabel: 'Favorite opponent?',
     messagePlaceholder:
-      'What did you think? Any feedback or just say hi...',
-    emailPlaceholder: 'your@email.com (optional)',
+      'Say hi, share feedback, or reach out about opportunities...',
+    emailPlaceholder: 'your@email.com (so Oriel can reply)',
     submit: 'Send it',
     skip: 'Skip',
     thankYou: "Thanks! You're a legend.",

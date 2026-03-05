@@ -48,9 +48,13 @@ export const DisclaimerModal = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
       <animated.div
-        className="relative z-10 flex w-full max-w-sm flex-col gap-5 rounded-3xl bg-white/90 px-8 py-8 backdrop-blur-md dark:bg-neutral-900/90"
+        className="relative z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-white/90 backdrop-blur-md dark:bg-neutral-900/90"
         style={{ scale: springs.scale }}
       >
+        {/* UNO gradient accent */}
+        <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#ef6f6f] via-[#5b8ef5] via-50% via-[#4dcb7a] to-[#f0b84d]" />
+
+        <div className="flex flex-col gap-5 px-8 pt-7 pb-8">
         <p className="text-base font-semibold text-neutral-900 dark:text-white">
           {t('disclaimer.greeting', { name: visitorName })}
         </p>
@@ -113,6 +117,7 @@ export const DisclaimerModal = ({
         >
           {t('disclaimer.button')}
         </button>
+        </div>
       </animated.div>
     </animated.div>
   );

@@ -45,7 +45,6 @@ export type SessionFeedback = {
   rating: number;
   message: string;
   email: string;
-  favoriteOpponent: string;
   submittedAt: number;
 };
 
@@ -90,5 +89,5 @@ export type SessionDocument = {
   totalScore: number;
 
   events: AnalyticsEvent[];
-  feedback?: SessionFeedback;
+  feedback?: SessionFeedback[];
 };

@@ -49,14 +49,12 @@ const computeStats = (sessions: SessionDocument[]): DashboardStats => {
   const totalGamesPlayed = sessions.reduce((sum, s) => sum + s.gamesPlayed, 0);
   const totalGamesWon = sessions.reduce((sum, s) => sum + s.gamesWon, 0);
 
-  const sessionsWithFeedback = sessions.filter((s) => s.feedback);
-  const feedbackCount = sessionsWithFeedback.length;
+  const allFeedback = sessions.flatMap((s) => s.feedback ?? []);
+  const feedbackCount = allFeedback.length;
+  const ratedFeedback = allFeedback.filter((f) => f.rating > 0);
   const avgRating =
-    feedbackCount > 0
-      ? sessionsWithFeedback.reduce(
-          (sum, s) => sum + (s.feedback?.rating ?? 0),
-          0,
-        ) / feedbackCount
+    ratedFeedback.length > 0
+      ? ratedFeedback.reduce((sum, f) => sum + f.rating, 0) / ratedFeedback.length
       : 0;
 
   return {

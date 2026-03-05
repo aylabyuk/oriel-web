@@ -42,49 +42,48 @@ const ExpandedDetails = ({ session, topics }: { session: SessionRow; topics: str
         </div>
       </div>
     )}
-    {session.feedback && (
+    {session.feedback && session.feedback.length > 0 && (
       <div>
         <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-          Feedback
+          Feedback ({session.feedback.length})
         </span>
-        <div className="mt-1 space-y-1.5">
-          {session.feedback.rating > 0 && (
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 5 }, (_, i) => (
-                <span
-                  key={i}
-                  className={cn(
-                    'inline-block size-2.5 rounded-full',
-                    i >= session.feedback!.rating &&
-                      'bg-neutral-200 dark:bg-neutral-700',
-                  )}
-                  style={
-                    i < session.feedback!.rating
-                      ? { backgroundColor: RATING_COLORS[i] }
-                      : undefined
-                  }
-                />
-              ))}
-              <span className="ml-1 text-xs text-neutral-400">
-                {session.feedback.rating}/5
-              </span>
+        <div className="mt-1 space-y-3">
+          {session.feedback.map((fb, idx) => (
+            <div key={idx} className="space-y-1.5 border-l-2 border-neutral-200 pl-2 dark:border-neutral-700">
+              {fb.rating > 0 && (
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        'inline-block size-2.5 rounded-full',
+                        i >= fb.rating &&
+                          'bg-neutral-200 dark:bg-neutral-700',
+                      )}
+                      style={
+                        i < fb.rating
+                          ? { backgroundColor: RATING_COLORS[i] }
+                          : undefined
+                      }
+                    />
+                  ))}
+                  <span className="ml-1 text-xs text-neutral-400">
+                    {fb.rating}/5
+                  </span>
+                </div>
+              )}
+              {fb.message && (
+                <p className="text-xs text-neutral-600 italic dark:text-neutral-300">
+                  &ldquo;{fb.message}&rdquo;
+                </p>
+              )}
+              {fb.email && (
+                <p className="text-xs text-neutral-400">
+                  {fb.email}
+                </p>
+              )}
             </div>
-          )}
-          {session.feedback.message && (
-            <p className="text-xs text-neutral-600 italic dark:text-neutral-300">
-              &ldquo;{session.feedback.message}&rdquo;
-            </p>
-          )}
-          {session.feedback.email && (
-            <p className="text-xs text-neutral-400">
-              {session.feedback.email}
-            </p>
-          )}
-          {session.feedback.favoriteOpponent && (
-            <span className="inline-block rounded-full bg-[#4dcb7a]/10 px-2.5 py-0.5 text-xs font-medium text-[#4dcb7a]">
-              Fav: {session.feedback.favoriteOpponent}
-            </span>
-          )}
+          ))}
         </div>
       </div>
     )}

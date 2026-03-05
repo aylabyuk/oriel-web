@@ -35,7 +35,7 @@ export type SessionRow = {
   gamesWon: number;
   startedAt: Date;
   events: AnalyticsEvent[];
-  feedback?: SessionFeedback;
+  feedback?: SessionFeedback[];
 };
 
 export type DashboardData = {

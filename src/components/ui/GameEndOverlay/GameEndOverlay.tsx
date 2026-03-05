@@ -18,13 +18,11 @@ export const GameEndOverlay = ({
   isVisitorWinner,
   onPlayAgain,
 }: GameEndOverlayProps) => {
-  const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackDone, setFeedbackDone] = useState(false);
 
   // Reset feedback state when overlay closes
   useEffect(() => {
     if (!open) {
-      setShowFeedback(false);
       setFeedbackDone(false);
     }
   }, [open]);
@@ -54,14 +52,13 @@ export const GameEndOverlay = ({
   if (!endInfo) return null;
 
   const handleFeedbackDone = () => {
-    setShowFeedback(false);
     setFeedbackDone(true);
   };
 
   return (
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-80 flex items-center justify-center"
       style={{
         opacity: springs.opacity,
         pointerEvents: open ? 'auto' : 'none',
@@ -70,89 +67,82 @@ export const GameEndOverlay = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
       <animated.div
-        className="relative z-10 flex max-h-[90vh] w-80 flex-col items-center gap-5 overflow-y-auto rounded-3xl bg-white/90 px-8 py-8 backdrop-blur-md dark:bg-neutral-900/90"
+        className="relative z-10 flex max-h-[90vh] w-80 flex-col overflow-hidden rounded-3xl bg-white/90 backdrop-blur-md landscape:w-[640px] lg:w-[640px] dark:bg-neutral-900/90"
         style={{ scale: springs.scale }}
       >
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
-          {isVisitorWinner
-            ? t('game.youWin')
-            : t('game.playerWins', { name: endInfo.winner })}
-        </h2>
+        {/* UNO gradient accent */}
+        <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#ef6f6f] via-[#5b8ef5] via-50% via-[#4dcb7a] to-[#f0b84d]" />
 
-        <div className="flex flex-col items-center gap-1">
-          {/* @ts-expect-error animated.span children type mismatch with React 19 */}
-          <animated.span className="text-4xl font-extrabold text-amber-400 tabular-nums">
-            {scoreSpring.val.to((v) => Math.floor(v))}
-          </animated.span>
-          <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-white/50">
-            {t('game.points')}
-          </span>
-        </div>
+        <div className="flex flex-col overflow-y-auto landscape:flex-row lg:flex-row">
+          {/* Game results */}
+          <div className="flex flex-col items-center gap-5 px-8 pt-7 pb-8 landscape:flex-1 lg:flex-1">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
+              {isVisitorWinner
+                ? t('game.youWin')
+                : t('game.playerWins', { name: endInfo.winner })}
+            </h2>
 
-        {breakdownCount > 0 && (
-          <div className="w-full space-y-2">
-            <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-white/40">
-              {t('game.remainingCards')}
-            </span>
-            {trail.map((style, i) => {
-              const player = endInfo.breakdown[i];
-              return (
-                // @ts-expect-error animated.div children type mismatch with React 19
-                <animated.div
-                  key={player.name}
-                  className="flex items-center justify-between text-sm text-neutral-600 dark:text-white/70"
-                  style={{
-                    opacity: style.opacity,
-                    transform: style.x.to((x) => `translateX(${x}px)`),
-                  }}
-                >
-                  <span>{player.name}</span>
-                  <span className="tabular-nums">
-                    {player.cardCount}{' '}
-                    {player.cardCount === 1 ? t('game.card') : t('game.cards')}{' '}
-                    &middot; {player.points} {t('game.pts')}
-                  </span>
-                </animated.div>
-              );
-            })}
-          </div>
-        )}
+            <div className="flex flex-col items-center gap-1">
+              {/* @ts-expect-error animated.span children type mismatch with React 19 */}
+              <animated.span className="text-4xl font-extrabold text-amber-400 tabular-nums">
+                {scoreSpring.val.to((v) => Math.floor(v))}
+              </animated.span>
+              <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-white/50">
+                {t('game.points')}
+              </span>
+            </div>
 
-        <button
-          onClick={onPlayAgain}
-          className="mt-1 w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"
-        >
-          {t('game.playAgain')}
-        </button>
-
-        {/* Feedback form (expanded) */}
-        {showFeedback && (
-          <FeedbackForm
-            onSubmitted={handleFeedbackDone}
-            onSkip={handleFeedbackDone}
-          />
-        )}
-
-        {/* Unified footer: social links + feedback CTA */}
-        <div className="flex w-full flex-col items-center gap-2.5">
-          <div className="flex items-center gap-3">
-            <SocialLinks compact />
-            {!showFeedback && !feedbackDone && (
-              <>
-                <span className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
-                <button
-                  type="button"
-                  onClick={() => setShowFeedback(true)}
-                  className="cursor-pointer whitespace-nowrap text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:text-white/30 dark:hover:text-white/60"
-                >
-                  {t('feedback.cta')} ✉️
-                </button>
-              </>
+            {breakdownCount > 0 && (
+              <div className="w-full space-y-2">
+                <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase dark:text-white/40">
+                  {t('game.remainingCards')}
+                </span>
+                {trail.map((style, i) => {
+                  const player = endInfo.breakdown[i];
+                  return (
+                    // @ts-expect-error animated.div children type mismatch with React 19
+                    <animated.div
+                      key={player.name}
+                      className="flex items-center justify-between text-sm text-neutral-600 dark:text-white/70"
+                      style={{
+                        opacity: style.opacity,
+                        transform: style.x.to((x) => `translateX(${x}px)`),
+                      }}
+                    >
+                      <span>{player.name}</span>
+                      <span className="tabular-nums">
+                        {player.cardCount}{' '}
+                        {player.cardCount === 1 ? t('game.card') : t('game.cards')}{' '}
+                        &middot; {player.points} {t('game.pts')}
+                      </span>
+                    </animated.div>
+                  );
+                })}
+              </div>
             )}
+
+            <button
+              onClick={onPlayAgain}
+              className="mt-1 w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"
+            >
+              {t('game.playAgain')}
+            </button>
+
+            {/* Footer: social links */}
+            <div className="flex w-full flex-col items-center gap-2.5">
+              <SocialLinks compact />
+              <span className="text-[10px] text-neutral-400 dark:text-white/30">
+                {t('game.connectWithOriel')}
+              </span>
+            </div>
           </div>
-          <span className="text-[10px] text-neutral-400 dark:text-white/30">
-            {t('game.connectWithOriel')}
-          </span>
+
+          {/* Feedback form — side by side on landscape/desktop */}
+          {!feedbackDone && (
+            <div className="flex flex-col border-t border-neutral-200 px-8 pt-4 pb-8 landscape:flex-1 landscape:border-t-0 landscape:border-l landscape:pt-7 lg:flex-1 lg:border-t-0 lg:border-l lg:pt-7 dark:border-white/10">
+              <FeedbackForm onSubmitted={handleFeedbackDone} />
+            </div>
+          )}
         </div>
       </animated.div>
     </animated.div>

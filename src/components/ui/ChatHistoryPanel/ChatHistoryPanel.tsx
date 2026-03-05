@@ -6,6 +6,7 @@ import type { ChatHistoryPanelProps, Tab } from './chatPanel.types';
 import { TOPIC_COUNT } from './chatPanel.utils';
 import { useDiscoveredTopics } from './useDiscoveredTopics';
 import { SocialLinks } from '@/components/ui/SocialLinks';
+import { FeedbackOverlay } from '@/components/ui/FeedbackOverlay';
 import { TabSwitcher } from './TabSwitcher';
 import { AboutMessages } from './AboutMessages';
 import { ChatMessages } from './ChatMessages';
@@ -19,6 +20,7 @@ export const ChatHistoryPanel = ({
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<Tab>('chat');
   const [showActions, setShowActions] = useState(true);
+  const [showFeedback, setShowFeedback] = useState(false);
   const topics = useDiscoveredTopics(history);
   const lastSeenAtRef = useRef(0);
   // Snapshot of lastSeenAt captured when opening the About tab — used to render
@@ -53,6 +55,10 @@ export const ChatHistoryPanel = ({
     () => setExpanded((prev) => !prev),
     [],
   );
+
+  const handleFeedbackDone = useCallback(() => {
+    setShowFeedback(false);
+  }, []);
 
   const springs = useSpring({
     x: open ? 0 : 340,
@@ -117,7 +123,7 @@ export const ChatHistoryPanel = ({
             onRequestInfo={onRequestInfo}
           />
         )}
-        <div className="shrink-0 space-y-4 border-t border-neutral-200/60 px-3 pt-2 pb-1 dark:border-white/5">
+        <div className="shrink-0 space-y-3 border-t border-neutral-200/60 px-3 pt-2 pb-1 dark:border-white/5">
           <button
             type="button"
             onClick={handleToggleExpand}
@@ -125,8 +131,25 @@ export const ChatHistoryPanel = ({
           >
             {expanded ? t('chat.collapse') : t('chat.expand')}
           </button>
-          <SocialLinks compact />
+          <div className="flex items-center justify-center gap-3">
+            <SocialLinks compact />
+            {!showFeedback && (
+              <>
+                <span className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
+                <button
+                  type="button"
+                  onClick={() => setShowFeedback(true)}
+                  className="cursor-pointer whitespace-nowrap text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:text-white/30 dark:hover:text-white/60"
+                >
+                  {t('feedback.cta')} ✉️
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* Feedback overlay */}
+        {showFeedback && <FeedbackOverlay onClose={handleFeedbackDone} />}
       </animated.div>
       {/* Landscape + desktop: right-side panel */}
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
@@ -180,9 +203,26 @@ export const ChatHistoryPanel = ({
             onRequestInfo={onRequestInfo}
           />
         )}
-        <div className="shrink-0 border-t border-neutral-200/60 px-3 py-2 sm:px-4 dark:border-white/5">
-          <SocialLinks compact />
+        <div className="shrink-0 space-y-3 border-t border-neutral-200/60 px-3 py-2 sm:px-4 dark:border-white/5">
+          <div className="flex items-center justify-center gap-3">
+            <SocialLinks compact />
+            {!showFeedback && (
+              <>
+                <span className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
+                <button
+                  type="button"
+                  onClick={() => setShowFeedback(true)}
+                  className="cursor-pointer whitespace-nowrap text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:text-white/30 dark:hover:text-white/60"
+                >
+                  {t('feedback.cta')} ✉️
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* Feedback overlay */}
+        {showFeedback && <FeedbackOverlay onClose={handleFeedbackDone} />}
       </animated.div>
     </>
   );

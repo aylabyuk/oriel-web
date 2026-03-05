@@ -139,12 +139,11 @@ export const createAnalyticsService = () => {
   ): Promise<boolean> => {
     if (!consentGiven || !sessionDocRef) return false;
     try {
-      await updateDoc(sessionDocRef, { feedback });
+      await updateDoc(sessionDocRef, { feedback: arrayUnion(feedback) });
       trackEvent('feedback_submitted', {
         rating: feedback.rating,
         hasMessage: feedback.message.length > 0,
         hasEmail: feedback.email.length > 0,
-        favoriteOpponent: feedback.favoriteOpponent || null,
       });
       await flush();
       return true;
