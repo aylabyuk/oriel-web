@@ -162,12 +162,12 @@ export const App = () => {
   if (isDashboardMode) {
     return (
       <div
-        className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
+        className="h-full overflow-y-auto bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white"
         data-theme={mode}
       >
         <Suspense
           fallback={
-            <div className="flex min-h-screen items-center justify-center">
+            <div className="flex h-full items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-300 border-t-neutral-800 dark:border-neutral-600 dark:border-t-white" />
             </div>
           }
