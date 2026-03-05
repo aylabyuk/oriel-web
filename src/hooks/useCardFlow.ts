@@ -1,12 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { TRACK } from '@/services/analytics';
-import type { AnalyticsEventType } from '@/services/analytics';
 import type { Color } from 'uno-engine';
-
-type TrackEventFn = (
-  type: AnalyticsEventType,
-  data?: Record<string, unknown>,
-) => void;
 
 type UseCardFlowOptions = {
   playCard: (cardId: string, color?: Color) => void;
@@ -17,7 +10,6 @@ type UseCardFlowOptions = {
   } | null;
   passAfterDraw: () => void;
   cancelVisitorTimer: () => void;
-  trackEvent: TrackEventFn;
 };
 
 export const useCardFlow = ({
@@ -25,7 +17,6 @@ export const useCardFlow = ({
   drawCard,
   passAfterDraw,
   cancelVisitorTimer,
-  trackEvent,
 }: UseCardFlowOptions) => {
   // --- Wild card state ---
   const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
@@ -51,9 +42,8 @@ export const useCardFlow = ({
       if (pendingWildCardId) playCard(pendingWildCardId, color);
       setPendingWildCardId(null);
       setDrawnWildCardId(null);
-      trackEvent(TRACK.WILD_COLOR_PICKED, { color });
     },
-    [pendingWildCardId, playCard, trackEvent],
+    [pendingWildCardId, playCard],
   );
 
   // --- Draw-choice state ---

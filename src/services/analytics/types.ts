@@ -1,5 +1,4 @@
 import type { Timestamp } from 'firebase/firestore';
-import type { GameEventType } from '@/types/game';
 
 export type DeviceInfo = {
   userAgent: string;
@@ -26,7 +25,7 @@ export type GeoInfo = {
   lon: number;
 };
 
-export type UIEventType =
+export type AnalyticsEventType =
   | 'game_started'
   | 'toggle_sound'
   | 'toggle_music'
@@ -37,24 +36,9 @@ export type UIEventType =
   | 'close_rules'
   | 'restart_game'
   | 'play_again'
-  | 'wild_color_picked'
   | 'disclaimer_acknowledged';
 
-export type AnalyticsEventType = GameEventType | UIEventType;
-
 export const TRACK = {
-  // Game events (from engine via Redux)
-  CARD_PLAYED: 'card_played',
-  CARD_DRAWN: 'card_drawn',
-  PLAYER_PASSED: 'player_passed',
-  DIRECTION_REVERSED: 'direction_reversed',
-  PLAYER_SKIPPED: 'player_skipped',
-  UNO_CALLED: 'uno_called',
-  GAME_ENDED: 'game_ended',
-  TURN_CHANGED: 'turn_changed',
-  CHALLENGE_RESOLVED: 'challenge_resolved',
-  UNO_PENALTY: 'uno_penalty',
-  // UI events
   GAME_STARTED: 'game_started',
   TOGGLE_SOUND: 'toggle_sound',
   TOGGLE_MUSIC: 'toggle_music',
@@ -65,7 +49,6 @@ export const TRACK = {
   CLOSE_RULES: 'close_rules',
   RESTART_GAME: 'restart_game',
   PLAY_AGAIN: 'play_again',
-  WILD_COLOR_PICKED: 'wild_color_picked',
   DISCLAIMER_ACKNOWLEDGED: 'disclaimer_acknowledged',
 } as const satisfies Record<string, AnalyticsEventType>;
 

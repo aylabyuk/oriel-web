@@ -50,10 +50,16 @@ export const createAnalyticsService = () => {
     name: string;
     company: string;
   }): Promise<void> => {
-    if (!consentGiven || initialized) return;
+    if (!consentGiven || initialized) {
+      console.warn('[analytics] init skipped — consent:', consentGiven, 'initialized:', initialized);
+      return;
+    }
 
     const db = getFirestoreDb();
-    if (!db) return;
+    if (!db) {
+      console.warn('[analytics] init skipped — Firestore DB not available (check env vars)');
+      return;
+    }
 
     sessionId = crypto.randomUUID();
     sessionDocRef = doc(db, 'sessions', sessionId);
@@ -78,8 +84,8 @@ export const createAnalyticsService = () => {
         totalScore: 0,
         events: [],
       });
-    } catch {
-      // If initial write fails, disable to avoid further errors
+    } catch (err) {
+      console.error('[analytics] session write failed:', err);
       initialized = false;
       sessionDocRef = null;
       return;

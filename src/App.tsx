@@ -69,13 +69,15 @@ export const App = () => {
     drawCard,
     passAfterDraw,
     cancelVisitorTimer,
-    trackEvent,
   });
 
   // --- Onboarding callbacks ---
   const enteredVisitorName = useAppSelector(selectVisitorName);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
-  const handleDealingComplete = useCallback(() => setDealingComplete(true), []);
+  const handleDealingComplete = useCallback(() => {
+    setDealingComplete(true);
+    trackEvent(TRACK.GAME_STARTED);
+  }, [trackEvent]);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
   const handleDisclaimerAck = useCallback(() => {
     setDisclaimerAcked(true);

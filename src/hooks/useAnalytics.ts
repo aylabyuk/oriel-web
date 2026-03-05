@@ -4,7 +4,7 @@ import {
   selectVisitorName,
   selectVisitorCompany,
 } from '@/store/slices/visitor';
-import { selectEvents, selectSnapshot } from '@/store/slices/game';
+import { selectSnapshot } from '@/store/slices/game';
 import { analytics } from '@/services/analytics';
 import type { AnalyticsEventType } from '@/services/analytics';
 
@@ -19,42 +19,25 @@ export const useAnalytics = ({
 }: UseAnalyticsOptions) => {
   const visitorName = useAppSelector(selectVisitorName);
   const company = useAppSelector(selectVisitorCompany);
-  const events = useAppSelector(selectEvents);
   const snapshot = useAppSelector(selectSnapshot);
-  const prevEventsLengthRef = useRef(0);
   const prevPhaseRef = useRef<string | null>(null);
 
-  // Update consent
+  // Sync consent to analytics service
   useEffect(() => {
     analytics.setConsent(consentGiven);
   }, [consentGiven]);
 
-  // Initialize session after consent + disclaimer
+  // Initialize session when visitor clicks "Deal Me In"
   useEffect(() => {
-    if (consentGiven && disclaimerAcked && visitorName) {
+    if (!disclaimerAcked || !visitorName) return;
+
+    // Ensure consent is set before initializing (covers same-render-cycle case)
+    analytics.setConsent(consentGiven);
+
+    if (consentGiven) {
       analytics.initialize({ name: visitorName, company });
     }
   }, [consentGiven, disclaimerAcked, visitorName, company]);
-
-  // Forward new game events from Redux to analytics
-  useEffect(() => {
-    const newEvents = events.slice(prevEventsLengthRef.current);
-    prevEventsLengthRef.current = events.length;
-
-    for (const event of newEvents) {
-      analytics.trackEvent(event.type, {
-        playerName: event.playerName,
-        ...(event.card
-          ? {
-              cardId: event.card.id,
-              cardValue: event.card.value,
-              cardColor: event.card.color,
-            }
-          : {}),
-        ...(event.data ?? {}),
-      });
-    }
-  }, [events]);
 
   // Track game end results
   useEffect(() => {
