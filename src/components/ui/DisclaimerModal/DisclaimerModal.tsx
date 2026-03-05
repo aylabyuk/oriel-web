@@ -48,75 +48,77 @@ export const DisclaimerModal = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
       <animated.div
-        className="relative z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-white/90 backdrop-blur-md dark:bg-neutral-900/90"
+        className="relative z-10 flex max-h-[90vh] w-full max-w-sm flex-col overflow-hidden rounded-3xl bg-white/90 backdrop-blur-md dark:bg-neutral-900/90"
         style={{ scale: springs.scale }}
       >
         {/* UNO gradient accent */}
         <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#ef6f6f] via-[#5b8ef5] via-50% via-[#4dcb7a] to-[#f0b84d]" />
 
-        <div className="flex flex-col gap-5 px-8 pt-7 pb-8">
-        <p className="text-base font-semibold text-neutral-900 dark:text-white">
-          {t('disclaimer.greeting', { name: visitorName })}
-        </p>
-
-        <p className="text-sm leading-relaxed text-neutral-600 dark:text-white/70">
-          {t('disclaimer.body')}
-        </p>
-
-        <ul className="flex flex-col gap-2.5">
-          {FRIENDS.map(({ name, key }) => (
-            <li key={name} className="flex items-start gap-2.5">
-              <div
-                className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: AVATAR_COLORS[name] }}
-              >
-                {name.charAt(0)}
-              </div>
-              <div className="min-w-0">
-                <span className="text-sm font-semibold text-neutral-900 dark:text-white">
-                  {name}
-                </span>
-                <p className="text-xs leading-snug text-neutral-500 dark:text-white/50">
-                  {t(`disclaimer.${key}`)}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        <p className="text-xs leading-relaxed text-neutral-400 italic dark:text-white/50">
-          {t('disclaimer.headsUp')}
-        </p>
-
-        <label
-          htmlFor="analytics-consent"
-          className="flex cursor-pointer items-start gap-2.5"
-        >
-          <input
-            type="checkbox"
-            id="analytics-consent"
-            checked={analyticsConsent}
-            onChange={(e) => onConsentChange(e.target.checked)}
-            className="mt-0.5 size-4 shrink-0 accent-neutral-900 dark:accent-white"
-          />
-          <span className="text-xs leading-relaxed text-neutral-400 dark:text-white/50">
-            {t('disclaimer.consent')}
-          </span>
-        </label>
-
-        <div className="text-sm text-neutral-600 dark:text-white/70">
-          <p>{t('disclaimer.closing')}</p>
-          <p className="font-semibold text-neutral-900 dark:text-white">
-            {t('disclaimer.signature')}
+        <div className="flex flex-col gap-5 overflow-y-auto px-8 pt-7 pb-5">
+          <p className="text-base font-semibold text-neutral-900 dark:text-white">
+            {t('disclaimer.greeting', { name: visitorName })}
           </p>
+
+          <p className="text-sm leading-relaxed text-neutral-600 dark:text-white/70">
+            {t('disclaimer.body')}
+          </p>
+
+          <ul className="flex flex-col gap-2.5">
+            {FRIENDS.map(({ name, key }) => (
+              <li key={name} className="flex items-start gap-2.5">
+                <div
+                  className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                  style={{ backgroundColor: AVATAR_COLORS[name] }}
+                >
+                  {name.charAt(0)}
+                </div>
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold text-neutral-900 dark:text-white">
+                    {name}
+                  </span>
+                  <p className="text-xs leading-snug text-neutral-500 dark:text-white/50">
+                    {t(`disclaimer.${key}`)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <p className="text-xs leading-relaxed text-neutral-400 italic dark:text-white/50">
+            {t('disclaimer.headsUp')}
+          </p>
+
+          <label
+            htmlFor="analytics-consent"
+            className="flex cursor-pointer items-start gap-2.5"
+          >
+            <input
+              type="checkbox"
+              id="analytics-consent"
+              checked={analyticsConsent}
+              onChange={(e) => onConsentChange(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0 accent-neutral-900 dark:accent-white"
+            />
+            <span className="text-xs leading-relaxed text-neutral-400 dark:text-white/50">
+              {t('disclaimer.consent')}
+            </span>
+          </label>
+
+          <div className="text-sm text-neutral-600 dark:text-white/70">
+            <p>{t('disclaimer.closing')}</p>
+            <p className="font-semibold text-neutral-900 dark:text-white">
+              {t('disclaimer.signature')}
+            </p>
+          </div>
         </div>
 
-        <button
-          onClick={onAcknowledge}
-          className="mt-1 w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"
-        >
-          {t('disclaimer.button')}
-        </button>
+        <div className="shrink-0 px-8 pt-2 pb-8">
+          <button
+            onClick={onAcknowledge}
+            className="w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"
+          >
+            {t('disclaimer.button')}
+          </button>
         </div>
       </animated.div>
     </animated.div>
