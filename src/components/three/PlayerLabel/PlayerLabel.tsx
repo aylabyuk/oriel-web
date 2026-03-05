@@ -138,18 +138,37 @@ export const PlayerLabel = ({
               style={{
                 position: 'absolute',
                 bottom: '100%',
-                marginBottom: toast ? '48px' : '10px',
+                marginBottom: toast ? '48px' : '14px',
                 ...(dialogueAlign === 'left'
-                  ? { right: '0', borderRight: `3px solid ${avatarColor}` }
-                  : { left: '0', borderLeft: `3px solid ${avatarColor}` }),
+                  ? { right: '0' }
+                  : { left: '0' }),
                 animation: 'dialogue-bubble 3s ease-out forwards',
-                backgroundColor: 'rgba(0,0,0,0.85)',
                 pointerEvents: 'none' as const,
-                width: '240px',
+                maxWidth: '220px',
               }}
-              className="rounded-lg px-3 py-1.5 text-sm leading-snug font-medium whitespace-normal text-white/90 italic"
             >
-              {dialogue.message}
+              <div
+                className="rounded-xl px-3 py-2 text-[13px] leading-snug font-medium whitespace-normal text-white"
+                style={{
+                  backgroundColor: avatarColor,
+                  boxShadow: `0 2px 12px ${avatarColor}40`,
+                }}
+              >
+                {dialogue.message}
+              </div>
+              {/* Speech tail */}
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderTop: `6px solid ${avatarColor}`,
+                  ...(dialogueAlign === 'left'
+                    ? { marginLeft: 'auto', marginRight: '16px' }
+                    : { marginLeft: '16px' }),
+                }}
+              />
             </div>
           )}
         </div>

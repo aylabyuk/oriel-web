@@ -499,6 +499,7 @@ export const BackgroundScene = ({
           enableZoom={freeLook}
           enableRotate={freeLook}
           enabled={freeLook}
+          maxPolarAngle={Math.PI / 2}
         />
         <EffectComposer>
           <Bloom
