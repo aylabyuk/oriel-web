@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAllSessions } from '@/services/analytics/sessionsReader';
 import type { SessionDocument } from '@/services/analytics/types';
 import type {
@@ -7,6 +7,7 @@ import type {
   DailyActivity,
   GeoPoint,
   SessionRow,
+  TimeRange,
 } from '@/types/dashboard';
 
 const toDate = (ts: unknown): Date => {
@@ -18,6 +19,29 @@ const toDate = (ts: unknown): Date => {
 
 const formatDateKey = (date: Date): string =>
   date.toISOString().slice(0, 10);
+
+const getTimeRangeCutoff = (range: TimeRange): Date | null => {
+  if (range === 'all') return null;
+
+  const now = new Date();
+
+  switch (range) {
+    case '24h':
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    case 'week':
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    case 'month': {
+      const d = new Date(now);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    }
+    case 'year': {
+      const d = new Date(now);
+      d.setFullYear(d.getFullYear() - 1);
+      return d;
+    }
+  }
+};
 
 const computeStats = (sessions: SessionDocument[]): DashboardStats => {
   const totalVisitors = sessions.length;
@@ -110,13 +134,16 @@ type UseDashboardDataReturn = {
   data: DashboardData | null;
   loading: boolean;
   error: string | null;
+  timeRange: TimeRange;
+  setTimeRange: (range: TimeRange) => void;
   refresh: () => void;
 };
 
 export const useDashboardData = (): UseDashboardDataReturn => {
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [allSessions, setAllSessions] = useState<SessionDocument[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>('all');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -124,7 +151,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
     try {
       const sessions = await fetchAllSessions();
-      setData(processData(sessions));
+      setAllSessions(sessions);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to load sessions';
@@ -139,5 +166,17 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     load();
   }, [load]);
 
-  return { data, loading, error, refresh: load };
+  const data = useMemo(() => {
+    if (!allSessions) return null;
+
+    const cutoff = getTimeRangeCutoff(timeRange);
+
+    const filtered = cutoff
+      ? allSessions.filter((s) => toDate(s.startedAt) >= cutoff)
+      : allSessions;
+
+    return processData(filtered);
+  }, [allSessions, timeRange]);
+
+  return { data, loading, error, timeRange, setTimeRange, refresh: load };
 };

@@ -10,11 +10,18 @@ type DashboardProps = {
 };
 
 export const Dashboard = ({ onBack }: DashboardProps) => {
-  const { data, loading, error, refresh } = useDashboardData();
+  const { data, loading, error, timeRange, setTimeRange, refresh } =
+    useDashboardData();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
-      <DashboardHeader onBack={onBack} onRefresh={refresh} loading={loading} />
+      <DashboardHeader
+        onBack={onBack}
+        onRefresh={refresh}
+        loading={loading}
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+      />
 
       {error && (
         <div className="rounded-2xl bg-red-50 px-5 py-4 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">

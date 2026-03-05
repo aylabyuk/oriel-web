@@ -41,3 +41,5 @@ export type DashboardData = {
   geoPoints: GeoPoint[];
   sessions: SessionRow[];
 };
+
+export type TimeRange = 'all' | 'year' | 'month' | 'week' | '24h';
