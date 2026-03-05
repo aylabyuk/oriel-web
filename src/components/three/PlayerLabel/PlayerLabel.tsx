@@ -144,7 +144,8 @@ export const PlayerLabel = ({
                   : { left: '0' }),
                 animation: 'dialogue-bubble 3s ease-out forwards',
                 pointerEvents: 'none' as const,
-                maxWidth: '220px',
+                width: dialogue.message.length > 50 ? '400px' : 'fit-content',
+                maxWidth: '400px',
               }}
             >
               <div
