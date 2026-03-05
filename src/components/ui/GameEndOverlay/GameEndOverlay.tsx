@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useSpring, useTrail, animated } from '@react-spring/web';
 import type { GameEndInfo } from '@/types/game';
 import { useTranslation } from '@/hooks/useTranslation';
 import { SocialLinks } from '@/components/ui/SocialLinks';
+import { FeedbackForm } from '@/components/ui/FeedbackForm';
 
 type GameEndOverlayProps = {
   open: boolean;
@@ -16,6 +18,17 @@ export const GameEndOverlay = ({
   isVisitorWinner,
   onPlayAgain,
 }: GameEndOverlayProps) => {
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackDone, setFeedbackDone] = useState(false);
+
+  // Reset feedback state when overlay closes
+  useEffect(() => {
+    if (!open) {
+      setShowFeedback(false);
+      setFeedbackDone(false);
+    }
+  }, [open]);
+
   const springs = useSpring({
     opacity: open ? 1 : 0,
     scale: open ? 1 : 0.9,
@@ -40,6 +53,11 @@ export const GameEndOverlay = ({
 
   if (!endInfo) return null;
 
+  const handleFeedbackDone = () => {
+    setShowFeedback(false);
+    setFeedbackDone(true);
+  };
+
   return (
     // @ts-expect-error animated.div children type mismatch with React 19
     <animated.div
@@ -52,7 +70,7 @@ export const GameEndOverlay = ({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       {/* @ts-expect-error animated.div children type mismatch with React 19 */}
       <animated.div
-        className="relative z-10 flex w-80 flex-col items-center gap-5 rounded-3xl bg-white/90 px-8 py-8 backdrop-blur-md dark:bg-neutral-900/90"
+        className="relative z-10 flex max-h-[90vh] w-80 flex-col items-center gap-5 overflow-y-auto rounded-3xl bg-white/90 px-8 py-8 backdrop-blur-md dark:bg-neutral-900/90"
         style={{ scale: springs.scale }}
       >
         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -107,11 +125,34 @@ export const GameEndOverlay = ({
           {t('game.playAgain')}
         </button>
 
-        <div className="flex flex-col items-center gap-1.5">
+        {/* Feedback form (expanded) */}
+        {showFeedback && (
+          <FeedbackForm
+            onSubmitted={handleFeedbackDone}
+            onSkip={handleFeedbackDone}
+          />
+        )}
+
+        {/* Unified footer: social links + feedback CTA */}
+        <div className="flex w-full flex-col items-center gap-2.5">
+          <div className="flex items-center gap-3">
+            <SocialLinks compact />
+            {!showFeedback && !feedbackDone && (
+              <>
+                <span className="h-4 w-px bg-neutral-200 dark:bg-white/10" />
+                <button
+                  type="button"
+                  onClick={() => setShowFeedback(true)}
+                  className="cursor-pointer whitespace-nowrap text-[11px] font-medium text-neutral-400 transition-colors hover:text-neutral-600 dark:text-white/30 dark:hover:text-white/60"
+                >
+                  {t('feedback.cta')} ✉️
+                </button>
+              </>
+            )}
+          </div>
           <span className="text-[10px] text-neutral-400 dark:text-white/30">
             {t('game.connectWithOriel')}
           </span>
-          <SocialLinks />
         </div>
       </animated.div>
     </animated.div>

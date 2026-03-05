@@ -1,10 +1,12 @@
-import type { AnalyticsEvent } from '@/services/analytics/types';
+import type { AnalyticsEvent, SessionFeedback } from '@/services/analytics/types';
 
 export type DashboardStats = {
   totalVisitors: number;
   avgSessionDurationMs: number;
   totalGamesPlayed: number;
   overallWinRate: number;
+  avgRating: number;
+  feedbackCount: number;
 };
 
 export type DailyActivity = {
@@ -33,6 +35,7 @@ export type SessionRow = {
   gamesWon: number;
   startedAt: Date;
   events: AnalyticsEvent[];
+  feedback?: SessionFeedback;
 };
 
 export type DashboardData = {

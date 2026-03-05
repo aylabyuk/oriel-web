@@ -9,7 +9,7 @@ import {
 import { getFirestoreDb } from './firebase';
 import { collectDeviceInfo } from './deviceInfo';
 import { fetchGeoLocation } from './geoLocation';
-import type { AnalyticsEvent, AnalyticsEventType } from './types';
+import type { AnalyticsEvent, AnalyticsEventType, SessionFeedback } from './types';
 
 const FLUSH_INTERVAL_MS = 30_000;
 
@@ -134,6 +134,25 @@ export const createAnalyticsService = () => {
     flush();
   };
 
+  const submitFeedback = async (
+    feedback: SessionFeedback,
+  ): Promise<boolean> => {
+    if (!consentGiven || !sessionDocRef) return false;
+    try {
+      await updateDoc(sessionDocRef, { feedback });
+      trackEvent('feedback_submitted', {
+        rating: feedback.rating,
+        hasMessage: feedback.message.length > 0,
+        hasEmail: feedback.email.length > 0,
+        favoriteOpponent: feedback.favoriteOpponent || null,
+      });
+      await flush();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const setConsent = (given: boolean): void => {
     consentGiven = given;
   };
@@ -146,7 +165,7 @@ export const createAnalyticsService = () => {
     flush();
   };
 
-  return { initialize, trackEvent, trackGameEnd, flush, setConsent, destroy };
+  return { initialize, trackEvent, trackGameEnd, submitFeedback, flush, setConsent, destroy };
 };
 
 export const analytics = createAnalyticsService();

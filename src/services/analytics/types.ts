@@ -38,7 +38,16 @@ export type AnalyticsEventType =
   | 'play_again'
   | 'disclaimer_acknowledged'
   | 'topic_revealed'
-  | 'link_clicked';
+  | 'link_clicked'
+  | 'feedback_submitted';
+
+export type SessionFeedback = {
+  rating: number;
+  message: string;
+  email: string;
+  favoriteOpponent: string;
+  submittedAt: number;
+};
 
 export const TRACK = {
   GAME_STARTED: 'game_started',
@@ -54,6 +63,7 @@ export const TRACK = {
   DISCLAIMER_ACKNOWLEDGED: 'disclaimer_acknowledged',
   TOPIC_REVEALED: 'topic_revealed',
   LINK_CLICKED: 'link_clicked',
+  FEEDBACK_SUBMITTED: 'feedback_submitted',
 } as const satisfies Record<string, AnalyticsEventType>;
 
 export type AnalyticsEvent = {
@@ -80,4 +90,5 @@ export type SessionDocument = {
   totalScore: number;
 
   events: AnalyticsEvent[];
+  feedback?: SessionFeedback;
 };

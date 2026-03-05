@@ -49,11 +49,23 @@ const computeStats = (sessions: SessionDocument[]): DashboardStats => {
   const totalGamesPlayed = sessions.reduce((sum, s) => sum + s.gamesPlayed, 0);
   const totalGamesWon = sessions.reduce((sum, s) => sum + s.gamesWon, 0);
 
+  const sessionsWithFeedback = sessions.filter((s) => s.feedback);
+  const feedbackCount = sessionsWithFeedback.length;
+  const avgRating =
+    feedbackCount > 0
+      ? sessionsWithFeedback.reduce(
+          (sum, s) => sum + (s.feedback?.rating ?? 0),
+          0,
+        ) / feedbackCount
+      : 0;
+
   return {
     totalVisitors,
     avgSessionDurationMs: totalVisitors > 0 ? totalDurationMs / totalVisitors : 0,
     totalGamesPlayed,
     overallWinRate: totalGamesPlayed > 0 ? (totalGamesWon / totalGamesPlayed) * 100 : 0,
+    avgRating,
+    feedbackCount,
   };
 };
 
@@ -121,6 +133,7 @@ const computeSessionRows = (sessions: SessionDocument[]): SessionRow[] =>
     gamesWon: s.gamesWon,
     startedAt: toDate(s.startedAt),
     events: s.events,
+    feedback: s.feedback,
   }));
 
 const processData = (sessions: SessionDocument[]): DashboardData => ({

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { SessionRow } from '@/types/dashboard';
-import { SessionDetailRow } from './SessionDetailRow';
+import { SessionDetailRow, SessionDetailCard } from './SessionDetailRow';
 
 type SessionTableProps = {
   sessions: SessionRow[];
@@ -30,9 +30,11 @@ export const SessionTable = ({ sessions }: SessionTableProps) => {
     (safePage + 1) * PAGE_SIZE,
   );
 
+  const emptyMessage = search ? 'No matching sessions' : 'No sessions yet';
+
   return (
     <div className="overflow-hidden rounded-2xl bg-white/80 shadow-sm backdrop-blur-md dark:bg-neutral-900/80">
-      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+      <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-5 sm:pt-5 sm:pb-3">
         <h2 className="text-sm font-semibold">
           Sessions{' '}
           <span className="font-normal text-neutral-400">
@@ -47,10 +49,12 @@ export const SessionTable = ({ sessions }: SessionTableProps) => {
             setPage(0);
           }}
           placeholder="Search..."
-          className="rounded-lg border border-neutral-200 bg-transparent px-3 py-1.5 text-xs outline-none transition-colors focus:border-neutral-400 dark:border-neutral-700 dark:focus:border-neutral-500"
+          className="w-28 rounded-lg border border-neutral-200 bg-transparent px-3 py-1.5 text-xs outline-none transition-colors focus:border-neutral-400 sm:w-auto dark:border-neutral-700 dark:focus:border-neutral-500"
         />
       </div>
-      <div className="overflow-x-auto">
+
+      {/* Desktop table — hidden on small screens */}
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[600px] text-left">
           <thead>
             <tr className="border-b border-neutral-200 text-xs font-medium text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
@@ -70,7 +74,7 @@ export const SessionTable = ({ sessions }: SessionTableProps) => {
                   colSpan={7}
                   className="px-4 py-8 text-center text-sm text-neutral-400"
                 >
-                  {search ? 'No matching sessions' : 'No sessions yet'}
+                  {emptyMessage}
                 </td>
               </tr>
             ) : (
@@ -84,6 +88,23 @@ export const SessionTable = ({ sessions }: SessionTableProps) => {
           </tbody>
         </table>
       </div>
+
+      {/* Mobile card list — hidden on larger screens */}
+      <div className="sm:hidden">
+        {paginated.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-neutral-400">
+            {emptyMessage}
+          </p>
+        ) : (
+          paginated.map((session) => (
+            <SessionDetailCard
+              key={session.sessionId}
+              session={session}
+            />
+          ))
+        )}
+      </div>
+
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 border-t border-neutral-200 px-5 py-3 dark:border-neutral-700">
           <button

@@ -175,6 +175,19 @@ export const en = {
       wildPoints: 'Wild and Wild Draw Four: 50 points each',
     },
   },
+  feedback: {
+    cta: 'Drop Oriel a card',
+    ctaSubtext: 'Optional — takes 10 seconds',
+    ratingLabel: 'Rate your experience',
+    favoriteLabel: 'Favorite opponent?',
+    messagePlaceholder:
+      'What did you think? Any feedback or just say hi...',
+    emailPlaceholder: 'your@email.com (optional)',
+    submit: 'Send it',
+    skip: 'Skip',
+    thankYou: "Thanks! You're a legend.",
+    thankYouSub: 'Oriel will see your note.',
+  },
   status: {
     skipped: 'Skipped!',
     drawTwo: 'Draw 2!',

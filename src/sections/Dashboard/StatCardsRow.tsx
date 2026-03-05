@@ -14,7 +14,7 @@ const formatDuration = (ms: number): string => {
 };
 
 export const StatCardsRow = ({ stats }: StatCardsRowProps) => (
-  <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+  <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
     <StatCard label="Total Visitors" value={String(stats.totalVisitors)} />
     <StatCard
       label="Avg Duration"
@@ -29,6 +29,14 @@ export const StatCardsRow = ({ stats }: StatCardsRowProps) => (
       value={
         stats.totalGamesPlayed > 0
           ? `${stats.overallWinRate.toFixed(1)}%`
+          : 'N/A'
+      }
+    />
+    <StatCard
+      label="Avg Rating"
+      value={
+        stats.feedbackCount > 0
+          ? `${stats.avgRating.toFixed(1)} / 5`
           : 'N/A'
       }
     />

@@ -21,6 +21,129 @@ const formatEventTime = (ms: number): string => {
   return minutes > 0 ? `${minutes}m${seconds}s` : `${seconds}s`;
 };
 
+const RATING_COLORS = ['#ef6f6f', '#5b8ef5', '#4dcb7a', '#f0b84d', '#a855f7'];
+
+const ExpandedDetails = ({ session, topics }: { session: SessionRow; topics: string[] }) => (
+  <div className="space-y-3">
+    {topics.length > 0 && (
+      <div>
+        <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          Topics revealed
+        </span>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {topics.map((topic) => (
+            <span
+              key={topic}
+              className="inline-block rounded-full bg-[#5b8ef5]/10 px-2.5 py-0.5 text-xs font-medium text-[#5b8ef5]"
+            >
+              {topic}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+    {session.feedback && (
+      <div>
+        <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          Feedback
+        </span>
+        <div className="mt-1 space-y-1.5">
+          {session.feedback.rating > 0 && (
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }, (_, i) => (
+                <span
+                  key={i}
+                  className={cn(
+                    'inline-block size-2.5 rounded-full',
+                    i >= session.feedback!.rating &&
+                      'bg-neutral-200 dark:bg-neutral-700',
+                  )}
+                  style={
+                    i < session.feedback!.rating
+                      ? { backgroundColor: RATING_COLORS[i] }
+                      : undefined
+                  }
+                />
+              ))}
+              <span className="ml-1 text-xs text-neutral-400">
+                {session.feedback.rating}/5
+              </span>
+            </div>
+          )}
+          {session.feedback.message && (
+            <p className="text-xs text-neutral-600 italic dark:text-neutral-300">
+              &ldquo;{session.feedback.message}&rdquo;
+            </p>
+          )}
+          {session.feedback.email && (
+            <p className="text-xs text-neutral-400">
+              {session.feedback.email}
+            </p>
+          )}
+          {session.feedback.favoriteOpponent && (
+            <span className="inline-block rounded-full bg-[#4dcb7a]/10 px-2.5 py-0.5 text-xs font-medium text-[#4dcb7a]">
+              Fav: {session.feedback.favoriteOpponent}
+            </span>
+          )}
+        </div>
+      </div>
+    )}
+    <div>
+      <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+        Events
+      </span>
+      <div className="mt-1 flex flex-wrap gap-2">
+        {session.events.length === 0 ? (
+          <span className="text-xs text-neutral-400">No events</span>
+        ) : (
+          session.events.map((event, i) => {
+            const detail =
+              event.type === 'topic_revealed' && event.data?.topicKey
+                ? String(event.data.topicKey)
+                : event.type === 'link_clicked' && event.data?.url
+                  ? String(event.data.url)
+                  : null;
+
+            return (
+              <span
+                key={i}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs',
+                  event.type === 'topic_revealed'
+                    ? 'bg-[#5b8ef5]/10 text-[#5b8ef5]'
+                    : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300',
+                )}
+              >
+                {detail ?? event.type}
+                <span className="text-neutral-400">
+                  {formatEventTime(event.timestamp)}
+                </span>
+              </span>
+            );
+          })
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
+  <svg
+    width={14}
+    height={14}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={cn('inline transition-transform', expanded && 'rotate-90')}
+  >
+    <path d="M9 18l6-6-6-6" />
+  </svg>
+);
+
+/** Desktop table row — hidden on mobile */
 export const SessionDetailRow = ({ session }: SessionDetailRowProps) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -55,83 +178,63 @@ export const SessionDetailRow = ({ session }: SessionDetailRowProps) => {
           {session.gamesPlayed}
         </td>
         <td className="px-4 py-3 text-center text-sm">
-          <svg
-            width={14}
-            height={14}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={cn(
-              'inline transition-transform',
-              expanded && 'rotate-90',
-            )}
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ChevronIcon expanded={expanded} />
         </td>
       </tr>
       {expanded && (
         <tr className="border-b border-neutral-100 dark:border-neutral-800">
-          <td colSpan={7} className="px-4 py-3 space-y-3">
-            {topics.length > 0 && (
-              <div>
-                <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                  Topics revealed
-                </span>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {topics.map((topic) => (
-                    <span
-                      key={topic}
-                      className="inline-block rounded-full bg-[#5b8ef5]/10 px-2.5 py-0.5 text-xs font-medium text-[#5b8ef5]"
-                    >
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div>
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Events
-              </span>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {session.events.length === 0 ? (
-                  <span className="text-xs text-neutral-400">No events</span>
-                ) : (
-                  session.events.map((event, i) => {
-                    const detail =
-                      event.type === 'topic_revealed' && event.data?.topicKey
-                        ? String(event.data.topicKey)
-                        : event.type === 'link_clicked' && event.data?.url
-                          ? String(event.data.url)
-                          : null;
-
-                    return (
-                      <span
-                        key={i}
-                        className={cn(
-                          'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs',
-                          event.type === 'topic_revealed'
-                            ? 'bg-[#5b8ef5]/10 text-[#5b8ef5]'
-                            : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300',
-                        )}
-                      >
-                        {detail ?? event.type}
-                        <span className="text-neutral-400">
-                          {formatEventTime(event.timestamp)}
-                        </span>
-                      </span>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+          <td colSpan={7} className="px-4 py-3">
+            <ExpandedDetails session={session} topics={topics} />
           </td>
         </tr>
       )}
     </>
+  );
+};
+
+/** Mobile card — hidden on desktop */
+export const SessionDetailCard = ({ session }: SessionDetailRowProps) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const topics = session.events
+    .filter((e) => e.type === 'topic_revealed')
+    .map((e) => {
+      const key = e.data?.topicKey;
+      return typeof key === 'string' ? key : null;
+    })
+    .filter((t): t is string => t !== null);
+
+  return (
+    <div
+      onClick={() => setExpanded((prev) => !prev)}
+      className="cursor-pointer border-b border-neutral-100 px-4 py-3 transition-colors hover:bg-neutral-50/50 dark:border-neutral-800 dark:hover:bg-white/5"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{session.visitorName}</span>
+            <span className="text-sm">{session.isMobile ? '📱' : '🖥️'}</span>
+          </div>
+          <div className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+            {session.company ? `${session.company} · ` : ''}
+            {session.country}
+          </div>
+        </div>
+        <div className="flex items-center gap-3 text-right">
+          <div>
+            <div className="text-sm tabular-nums">{formatDuration(session.durationMs)}</div>
+            <div className="text-xs text-neutral-400">
+              {session.gamesPlayed} {session.gamesPlayed === 1 ? 'game' : 'games'}
+            </div>
+          </div>
+          <ChevronIcon expanded={expanded} />
+        </div>
+      </div>
+      {expanded && (
+        <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+          <ExpandedDetails session={session} topics={topics} />
+        </div>
+      )}
+    </div>
   );
 };

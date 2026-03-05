@@ -95,15 +95,15 @@ export const GlobeModal = ({ geoPoints, onClose }: GlobeModalProps) => {
 
       {/* Modal */}
       <div
-        className={`relative mx-4 h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl shadow-2xl transition-transform duration-300 ${
+        className={`relative mx-2 h-[85vh] w-full max-w-5xl overflow-hidden rounded-2xl shadow-2xl transition-transform duration-300 sm:mx-4 sm:h-[90vh] sm:rounded-3xl ${
           visible ? 'scale-100' : 'scale-95'
         } ${isDark ? 'bg-[#0a0a1a]' : 'bg-[#050520]'}`}
       >
         {/* Header */}
-        <div className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-white">Visitor Globe</h2>
-            <span className="rounded-full bg-[#ef6f6f]/20 px-2.5 py-0.5 text-xs font-medium text-[#ef6f6f]">
+        <div className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between px-3 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <h2 className="text-sm font-semibold text-white sm:text-lg">Visitor Globe</h2>
+            <span className="rounded-full bg-[#ef6f6f]/20 px-2 py-0.5 text-[10px] font-medium text-[#ef6f6f] sm:px-2.5 sm:text-xs">
               {geoPoints.length}{' '}
               {geoPoints.length === 1 ? 'location' : 'locations'}
             </span>
@@ -187,7 +187,7 @@ export const GlobeModal = ({ geoPoints, onClose }: GlobeModalProps) => {
         </div>
 
         {/* Hint */}
-        <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-500">
+        <p className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] text-neutral-500 sm:bottom-4 sm:text-xs">
           Drag to rotate · Scroll to zoom
         </p>
       </div>

@@ -19,15 +19,19 @@ const formatDate = (dateStr: string): string => {
 };
 
 export const ActivityChart = ({ data }: ActivityChartProps) => (
-  <div className="rounded-2xl bg-white/80 p-5 shadow-sm backdrop-blur-md dark:bg-neutral-900/80">
-    <h2 className="mb-4 text-sm font-semibold">Activity</h2>
+  <div className="rounded-2xl bg-white/80 p-4 shadow-sm backdrop-blur-md sm:p-5 dark:bg-neutral-900/80">
+    <h2 className="mb-3 text-sm font-semibold sm:mb-4">Activity</h2>
     {data.length === 0 ? (
       <p className="py-8 text-center text-sm text-neutral-400">
         No activity data yet
       </p>
     ) : (
-      <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+      <div className="h-[180px] sm:h-[220px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={{ top: 4, right: 4, bottom: 0, left: -28 }}
+        >
           <defs>
             <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#5b8ef5" stopOpacity={0.3} />
@@ -38,7 +42,7 @@ export const ActivityChart = ({ data }: ActivityChartProps) => (
           <XAxis
             dataKey="date"
             tickFormatter={formatDate}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 10 }}
             stroke="currentColor"
             opacity={0.4}
             tickLine={false}
@@ -46,7 +50,7 @@ export const ActivityChart = ({ data }: ActivityChartProps) => (
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 10 }}
             stroke="currentColor"
             opacity={0.4}
             tickLine={false}
@@ -71,6 +75,7 @@ export const ActivityChart = ({ data }: ActivityChartProps) => (
           />
         </AreaChart>
       </ResponsiveContainer>
+      </div>
     )}
   </div>
 );

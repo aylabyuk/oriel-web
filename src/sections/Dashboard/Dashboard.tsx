@@ -14,7 +14,7 @@ export const Dashboard = ({ onBack }: DashboardProps) => {
     useDashboardData();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-6xl space-y-4 px-3 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <DashboardHeader
         onBack={onBack}
         onRefresh={refresh}
@@ -38,7 +38,7 @@ export const Dashboard = ({ onBack }: DashboardProps) => {
       {data && (
         <>
           <StatCardsRow stats={data.stats} />
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             <ActivityChart data={data.dailyActivity} />
             <VisitorMap geoPoints={data.geoPoints} />
           </div>
