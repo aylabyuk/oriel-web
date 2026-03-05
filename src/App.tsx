@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { useAppSelector } from '@/store/hooks';
 import {
@@ -30,18 +30,18 @@ import { InstallPrompt } from '@/components/ui/InstallPrompt';
 import { useGameController } from '@/hooks/useGameController';
 import { useDialogue } from '@/hooks/useDialogue';
 import { useTranslation } from '@/hooks/useTranslation';
-import { usePersistedState } from '@/hooks/usePersistedState';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useToolbar } from '@/hooks/useToolbar';
+import { useCardFlow } from '@/hooks/useCardFlow';
+import { TRACK } from '@/services/analytics';
 import { cn } from '@/utils/cn';
 import {
-  setSoundEnabled,
   playGather,
   playUnoShout,
   playDramaticHit,
   playVictory,
   playDefeat,
 } from '@/utils/sounds';
-import { setMusicEnabled } from '@/utils/music';
-import type { Color } from 'uno-engine';
 
 export const App = () => {
   const hasEnteredWelcome = useAppSelector(selectHasEnteredWelcome);
@@ -63,128 +63,51 @@ export const App = () => {
   const { dialogues, history, requestPersonalInfo } =
     useDialogue(dealingComplete);
   const { t } = useTranslation();
-  const [chatOpen, handleChatToggle] = usePersistedState('chat', true);
+
+  // --- Analytics ---
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [disclaimerAcked, setDisclaimerAcked] = useState(false);
-  const [freeLook, toggleFreeLook] = usePersistedState('freeLook', false);
-  const [freeLookExplainerOpen, setFreeLookExplainerOpen] = useState(false);
-  const handleFreeLookToggle = useCallback(() => {
-    // freeLook is the current value before toggle
-    setFreeLookExplainerOpen(!freeLook);
-    toggleFreeLook();
-  }, [freeLook, toggleFreeLook]);
-  const handleFreeLookExplainerDismiss = useCallback(
-    () => setFreeLookExplainerOpen(false),
-    [],
-  );
-  const [soundOn, handleSoundToggle] = usePersistedState('sound', true);
-  useEffect(() => setSoundEnabled(soundOn), [soundOn]);
-  const [musicOn, handleMusicToggle] = usePersistedState('music', true);
-  useEffect(() => setMusicEnabled(musicOn), [musicOn]);
-  const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
-  const handleRestartClick = useCallback(() => setRestartConfirmOpen(true), []);
-  const handleRestartCancel = useCallback(
-    () => setRestartConfirmOpen(false),
-    [],
-  );
-  const [rulesOpen, setRulesOpen] = useState(false);
-  const handleRulesOpen = useCallback(() => setRulesOpen(true), []);
-  const handleRulesClose = useCallback(() => setRulesOpen(false), []);
+  const [analyticsConsent, setAnalyticsConsent] = useState(true);
+  const { trackEvent } = useAnalytics({
+    consentGiven: analyticsConsent,
+    disclaimerAcked,
+  });
+
+  // --- Toolbar toggles ---
+  const toolbar = useToolbar(trackEvent);
+
+  // --- Draw + Wild card flows ---
+  const cardFlow = useCardFlow({
+    playCard,
+    drawCard,
+    passAfterDraw,
+    cancelVisitorTimer,
+    trackEvent,
+  });
+
+  // --- Onboarding callbacks ---
   const enteredVisitorName = useAppSelector(selectVisitorName);
-  const [pendingWildCardId, setPendingWildCardId] = useState<string | null>(
-    null,
-  );
-  const [drawnWildCardId, setDrawnWildCardId] = useState<string | null>(null);
   const handleSceneReady = useCallback(() => setSceneReady(true), []);
   const handleDealingComplete = useCallback(() => setDealingComplete(true), []);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
-  const handleDisclaimerAck = useCallback(() => setDisclaimerAcked(true), []);
-  const handleWildCardPlayed = useCallback(
-    (cardId: string) => {
-      cancelVisitorTimer();
-      setPendingWildCardId(cardId);
-    },
-    [cancelVisitorTimer],
-  );
-  const handleWildDismiss = useCallback(() => {
-    setPendingWildCardId(null);
-    setDrawnWildCardId(null);
-  }, []);
-  const handleWildColorSelect = useCallback(
-    (color: Color) => {
-      if (pendingWildCardId) playCard(pendingWildCardId, color);
-      setPendingWildCardId(null);
-      setDrawnWildCardId(null);
-    },
-    [pendingWildCardId, playCard],
-  );
-
-  // --- Draw-choice flow ---
-  const pendingDrawRef = useRef<{
-    cardId: string;
-    isPlayable: boolean;
-    isWild: boolean;
-  } | null>(null);
-  const [drawPending, setDrawPending] = useState(false);
-  const [drawChoice, setDrawChoice] = useState<{
-    cardId: string;
-    isWild: boolean;
-  } | null>(null);
-
-  const handleDrawCard = useCallback(() => {
-    const result = drawCard();
-    pendingDrawRef.current = result;
-    if (result) setDrawPending(true);
-  }, [drawCard]);
-
-  const handleAnimationIdle = useCallback(() => {
-    const pending = pendingDrawRef.current;
-    if (!pending) return;
-    pendingDrawRef.current = null;
-    setDrawPending(false);
-    if (pending.isPlayable) {
-      setDrawChoice({ cardId: pending.cardId, isWild: pending.isWild });
-    } else {
-      passAfterDraw();
-    }
-  }, [passAfterDraw]);
-
-  const handleDrawPlay = useCallback(() => {
-    cancelVisitorTimer();
-    if (!drawChoice) return;
-    if (drawChoice.isWild) {
-      setPendingWildCardId(drawChoice.cardId);
-      setDrawnWildCardId(drawChoice.cardId);
-    } else {
-      playCard(drawChoice.cardId);
-    }
-    setDrawChoice(null);
-  }, [drawChoice, playCard, cancelVisitorTimer]);
-
-  const handleDrawCardClicked = useCallback(
-    (_cardId: string) => handleDrawPlay(),
-    [handleDrawPlay],
-  );
-
-  const handleDrawSkip = useCallback(() => {
-    setDrawChoice(null);
-    passAfterDraw();
-  }, [passAfterDraw]);
+  const handleDisclaimerAck = useCallback(() => {
+    setDisclaimerAcked(true);
+    trackEvent(TRACK.DISCLAIMER_ACKNOWLEDGED);
+  }, [trackEvent]);
 
   // --- Play again / restart ---
+  const [challengeReady, setChallengeReady] = useState(false);
+
   const handlePlayAgain = useCallback(() => {
-    setRestartConfirmOpen(false);
-    setPendingWildCardId(null);
-    setDrawnWildCardId(null);
-    setDrawChoice(null);
-    setDrawPending(false);
+    toolbar.dismissRestartConfirm();
+    cardFlow.reset();
     setChallengeReady(false);
     setDealingComplete(false);
-    pendingDrawRef.current = null;
     playGather();
     restartGame();
-  }, [restartGame]);
+    trackEvent(TRACK.PLAY_AGAIN);
+  }, [toolbar, cardFlow, restartGame, trackEvent]);
 
   // --- Game end ---
   const gameEnded = snapshot?.phase === 'ended';
@@ -223,18 +146,14 @@ export const App = () => {
   }, [visitorName, callUno, cancelVisitorTimer]);
 
   // --- WD4 Challenge flow ---
-  const [challengeReady, setChallengeReady] = useState(false);
-
   const handleChallengeReady = useCallback(() => {
     const pending = snapshot?.pendingChallenge;
     if (!pending) return;
-    // If the victim is the human player, show the modal
     const visitorName = snapshot?.players[0]?.name;
     if (pending.victimName === visitorName) {
       playDramaticHit();
       setChallengeReady(true);
     } else {
-      // AI victim — auto-decide
       tryAutoResolveChallenge();
     }
   }, [snapshot, tryAutoResolveChallenge]);
@@ -259,41 +178,49 @@ export const App = () => {
           showTable={hasEnteredWelcome}
           onStartGame={startGame}
           onPlayCard={playCard}
-          onDrawCard={handleDrawCard}
-          onAnimationIdle={handleAnimationIdle}
+          onDrawCard={cardFlow.handleDrawCard}
+          onAnimationIdle={cardFlow.handleAnimationIdle}
           onDealingComplete={handleDealingComplete}
-          onWildCardPlayed={handleWildCardPlayed}
+          onWildCardPlayed={cardFlow.handleWildCardPlayed}
           onSceneReady={handleSceneReady}
           onChallengeReady={handleChallengeReady}
           entranceEnabled={welcomeDismissed}
           dealingEnabled={disclaimerAcked}
-          freeLook={freeLook}
-          deckEnabled={!drawPending && drawChoice === null && !challengeReady}
+          freeLook={toolbar.freeLook}
+          deckEnabled={
+            !cardFlow.drawPending &&
+            cardFlow.drawChoice === null &&
+            !challengeReady
+          }
           playableOverride={
-            drawChoice
-              ? [drawChoice.cardId]
-              : drawnWildCardId
-                ? [drawnWildCardId]
+            cardFlow.drawChoice
+              ? [cardFlow.drawChoice.cardId]
+              : cardFlow.drawnWildCardId
+                ? [cardFlow.drawnWildCardId]
                 : undefined
           }
-          onDrawCardClicked={drawChoice ? handleDrawCardClicked : undefined}
+          onDrawCardClicked={
+            cardFlow.drawChoice ? cardFlow.handleDrawCardClicked : undefined
+          }
           dialogues={dialogues}
         />
       </div>
       <DisclaimerModal
         open={welcomeDismissed && !disclaimerAcked}
         visitorName={enteredVisitorName}
+        analyticsConsent={analyticsConsent}
+        onConsentChange={setAnalyticsConsent}
         onAcknowledge={handleDisclaimerAck}
       />
       <DrawChoiceModal
-        open={drawChoice !== null}
-        onPlay={handleDrawPlay}
-        onSkip={handleDrawSkip}
+        open={cardFlow.drawChoice !== null}
+        onPlay={cardFlow.handleDrawPlay}
+        onSkip={cardFlow.handleDrawSkip}
       />
       <WildColorPicker
-        open={pendingWildCardId != null}
-        onColorSelect={handleWildColorSelect}
-        onDismiss={handleWildDismiss}
+        open={cardFlow.pendingWildCardId != null}
+        onColorSelect={cardFlow.handleWildColorSelect}
+        onDismiss={cardFlow.handleWildDismiss}
       />
       <ChallengeModal
         open={challengeReady}
@@ -308,49 +235,60 @@ export const App = () => {
         onPlayAgain={handlePlayAgain}
       />
       <RestartConfirmModal
-        open={restartConfirmOpen && !gameEnded}
+        open={toolbar.restartConfirmOpen && !gameEnded}
         onConfirm={handlePlayAgain}
-        onCancel={handleRestartCancel}
+        onCancel={toolbar.handleRestartCancel}
       />
       <FreeLookExplainer
-        open={freeLookExplainerOpen}
-        onDismiss={handleFreeLookExplainerDismiss}
+        open={toolbar.freeLookExplainerOpen}
+        onDismiss={toolbar.handleFreeLookExplainerDismiss}
       />
-      <RulesModal open={rulesOpen} onClose={handleRulesClose} />
+      <RulesModal open={toolbar.rulesOpen} onClose={toolbar.handleRulesClose} />
       <UnoButton
         mode={unoMode}
         targetName={unoTargetName}
         duration={unoDuration}
         onPress={handleUnoPress}
       />
-      {/* Floating chat panel */}
       {disclaimerAcked && (
         <ChatHistoryPanel
-          open={chatOpen}
+          open={toolbar.chatOpen}
           history={history}
           onRequestInfo={requestPersonalInfo}
         />
       )}
-      {/* Toolbar (pill) — shown after disclaimer acknowledged */}
       {disclaimerAcked && (
         <div
           className={cn(
             'fixed top-4 z-70 flex w-80 flex-row items-center justify-evenly',
             'rounded-full bg-neutral-100/70 px-1.5 py-1 backdrop-blur-sm',
             'dark:bg-neutral-900/70',
-            // Portrait mobile: centered
             'max-lg:portrait:left-1/2 max-lg:portrait:-translate-x-1/2',
-            // Landscape + desktop: top-right
             'lg:right-4 landscape:right-4',
           )}
         >
           <ThemeToggle />
-          <SoundToggle active={soundOn} onClick={handleSoundToggle} />
-          <MusicToggle active={musicOn} onClick={handleMusicToggle} />
-          <HelpButton onClick={handleRulesOpen} />
-          <FreeLookToggle active={freeLook} onClick={handleFreeLookToggle} />
-          <RestartButton onClick={handleRestartClick} disabled={!snapshot} />
-          <ChatToggle open={chatOpen} onClick={handleChatToggle} />
+          <SoundToggle
+            active={toolbar.soundOn}
+            onClick={toolbar.handleSoundToggle}
+          />
+          <MusicToggle
+            active={toolbar.musicOn}
+            onClick={toolbar.handleMusicToggle}
+          />
+          <HelpButton onClick={toolbar.handleRulesOpen} />
+          <FreeLookToggle
+            active={toolbar.freeLook}
+            onClick={toolbar.handleFreeLookToggle}
+          />
+          <RestartButton
+            onClick={toolbar.handleRestartClick}
+            disabled={!snapshot}
+          />
+          <ChatToggle
+            open={toolbar.chatOpen}
+            onClick={toolbar.handleChatToggle}
+          />
         </div>
       )}
       {welcomeDismissed ? (

@@ -93,6 +93,8 @@ export const en = {
     paul: "The chill guy. Just here for a good time. Might share a joke or two.",
     headsUp:
       "Fair warning: they have strong personalities, zero filter, and will 100% gang up on you if it's funny. They'll also share random facts about me between rounds — some true, some... slightly exaggerated. Don't believe everything Mark says.",
+    consent:
+      "I'm okay with Oriel collecting anonymous gameplay data (play patterns, device info) to improve the experience. No personal data is shared with third parties.",
     closing: 'Have fun out there,',
     signature: 'Oriel',
     button: "Let's Play",

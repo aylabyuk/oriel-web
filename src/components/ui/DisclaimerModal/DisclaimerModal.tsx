@@ -16,12 +16,16 @@ const FRIENDS = [
 type DisclaimerModalProps = {
   open: boolean;
   visitorName: string;
+  analyticsConsent: boolean;
+  onConsentChange: (consent: boolean) => void;
   onAcknowledge: () => void;
 };
 
 export const DisclaimerModal = ({
   open,
   visitorName,
+  analyticsConsent,
+  onConsentChange,
   onAcknowledge,
 }: DisclaimerModalProps) => {
   const { t } = useTranslation();
@@ -79,6 +83,22 @@ export const DisclaimerModal = ({
         <p className="text-xs leading-relaxed text-neutral-400 italic dark:text-white/50">
           {t('disclaimer.headsUp')}
         </p>
+
+        <label
+          htmlFor="analytics-consent"
+          className="flex cursor-pointer items-start gap-2.5"
+        >
+          <input
+            type="checkbox"
+            id="analytics-consent"
+            checked={analyticsConsent}
+            onChange={(e) => onConsentChange(e.target.checked)}
+            className="mt-0.5 size-4 shrink-0 accent-neutral-900 dark:accent-white"
+          />
+          <span className="text-xs leading-relaxed text-neutral-400 dark:text-white/50">
+            {t('disclaimer.consent')}
+          </span>
+        </label>
 
         <div className="text-sm text-neutral-600 dark:text-white/70">
           <p>{t('disclaimer.closing')}</p>
