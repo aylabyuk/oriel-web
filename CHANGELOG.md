@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.3.0](https://github.com/aylabyuk/oriel-web/compare/v1.2.0...v1.3.0) (2026-03-06)
+
+
+### Features
+
+* add code-split analytics dashboard with secret admin access ([1330022](https://github.com/aylabyuk/oriel-web/commit/133002297e20acd34d4b63dae137f84d89bf8939))
+* add Firebase analytics for gameplay data collection ([d6eb6a0](https://github.com/aylabyuk/oriel-web/commit/d6eb6a07da30c8aea4b23eaf5b8f1329dcd51bd5))
+* add post-game feedback form and make dashboard mobile responsive ([84c8ad5](https://github.com/aylabyuk/oriel-web/commit/84c8ad581ca8fa2be4c12244142d04f76606235f))
+* add Progressive Web App (PWA) support ([816f55c](https://github.com/aylabyuk/oriel-web/commit/816f55c0380b507e4ce8e10a81b55b911a591712))
+* add soft-delete for dashboard sessions ([787cf59](https://github.com/aylabyuk/oriel-web/commit/787cf591f7e5574da8945ca0ad4957c7b267cc0b))
+* improve feedback form UX, add side-by-side layout, and UNO gradient accents ([1a6d2da](https://github.com/aylabyuk/oriel-web/commit/1a6d2daa3bb070b2b6abc7b9fe7a0776c206817c))
+* move analytics init to WelcomeScreen and track topic reveals and link clicks ([283bff8](https://github.com/aylabyuk/oriel-web/commit/283bff8731ada569691d8a4728d945d1883d763a))
+* redesign dialogue bubbles and limit free-look camera ([b458e6e](https://github.com/aylabyuk/oriel-web/commit/b458e6e10ce8a3f1ac4528252f5ce92506609f81))
+* redesign OG image to match new UNO card back PWA icon style ([a98c5af](https://github.com/aylabyuk/oriel-web/commit/a98c5af7c326ec0e67a75d963c42d3d848a71dba))
+* redesign PWA icons with UNO card back style and fix dashboard layout ([653ea95](https://github.com/aylabyuk/oriel-web/commit/653ea9566765d7e9fb35c9a0d592c29b808baa9c))
+* replace 2D map with react-globe.gl 3D globe and add time range filter ([9f114ab](https://github.com/aylabyuk/oriel-web/commit/9f114ab066a56419165fa71fd8c94c900a6d7811))
+* track theme toggles and improve session detail view ([53307a0](https://github.com/aylabyuk/oriel-web/commit/53307a0c586c9973b5ea300b239927ed017adaa0))
+* use actual card textures in OG image background ([c57ac2f](https://github.com/aylabyuk/oriel-web/commit/c57ac2fa2a9a5fae8876d51cee0eb7f6a9b1c255))
+
+
+### Bug Fixes
+
+* light theme rating card backs and remove feedback overlay animation ([a9d1a5f](https://github.com/aylabyuk/oriel-web/commit/a9d1a5f8b63f1ff9379a19173567480a10262067))
+* prevent game freeze on draw pile exhaustion ([5a449eb](https://github.com/aylabyuk/oriel-web/commit/5a449ebb2ed217fa4c2c3316cdb85e53d3443268))
+* prevent mobile zoom/overscroll and make disclaimer modal scrollable ([c8e0935](https://github.com/aylabyuk/oriel-web/commit/c8e0935746c7a3f369dc18c31ddd9e4e0e89e114))
+* widen dialogue bubbles for longer messages ([db4b01b](https://github.com/aylabyuk/oriel-web/commit/db4b01b2634fc34883b6554841c5f399e218ebd5))
+
 ## [1.2.0](https://github.com/aylabyuk/oriel-web/compare/v1.1.0...v1.2.0) (2026-02-17)
 
 
