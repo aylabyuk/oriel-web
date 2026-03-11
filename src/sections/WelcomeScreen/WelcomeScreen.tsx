@@ -80,7 +80,6 @@ export const WelcomeScreen = ({
     }
 
     dispatch(submitWelcome());
-    analytics.setConsent(true);
     analytics.initialize({ name: trimmed, company: company.trim() });
   };
 

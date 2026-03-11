@@ -58,10 +58,7 @@ export const App = () => {
   const [sceneReady, setSceneReady] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [disclaimerAcked, setDisclaimerAcked] = useState(false);
-  const [analyticsConsent, setAnalyticsConsent] = useState(true);
-  const { trackEvent } = useAnalytics({
-    consentGiven: analyticsConsent,
-  });
+  const { trackEvent } = useAnalytics();
 
   // --- Toolbar toggles ---
   const toolbar = useToolbar(trackEvent);
@@ -218,8 +215,6 @@ export const App = () => {
       <GameModals
         disclaimerOpen={welcomeDismissed && !disclaimerAcked}
         visitorName={enteredVisitorName}
-        analyticsConsent={analyticsConsent}
-        onConsentChange={setAnalyticsConsent}
         onDisclaimerAck={handleDisclaimerAck}
         drawChoiceOpen={cardFlow.drawChoice !== null}
         onDrawPlay={cardFlow.handleDrawPlay}

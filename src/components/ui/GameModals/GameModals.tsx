@@ -13,8 +13,6 @@ type GameModalsProps = {
   // Disclaimer
   disclaimerOpen: boolean;
   visitorName: string;
-  analyticsConsent: boolean;
-  onConsentChange: (consent: boolean) => void;
   onDisclaimerAck: () => void;
   // Draw choice
   drawChoiceOpen: boolean;
@@ -49,8 +47,6 @@ type GameModalsProps = {
 export const GameModals = ({
   disclaimerOpen,
   visitorName,
-  analyticsConsent,
-  onConsentChange,
   onDisclaimerAck,
   drawChoiceOpen,
   onDrawPlay,
@@ -78,8 +74,6 @@ export const GameModals = ({
     <DisclaimerModal
       open={disclaimerOpen}
       visitorName={visitorName}
-      analyticsConsent={analyticsConsent}
-      onConsentChange={onConsentChange}
       onAcknowledge={onDisclaimerAck}
     />
     <DrawChoiceModal
