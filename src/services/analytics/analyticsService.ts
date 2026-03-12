@@ -9,7 +9,12 @@ import {
 import { getFirestoreDb } from './firebase';
 import { collectDeviceInfo } from './deviceInfo';
 import { fetchGeoLocation } from './geoLocation';
-import type { AnalyticsEvent, AnalyticsEventType, SessionFeedback } from './types';
+import { TEST_VISITOR_NAME } from '@/constants/admin';
+import type {
+  AnalyticsEvent,
+  AnalyticsEventType,
+  SessionFeedback,
+} from './types';
 
 const FLUSH_INTERVAL_MS = 30_000;
 
@@ -49,11 +54,13 @@ export const createAnalyticsService = () => {
     name: string;
     company: string;
   }): Promise<void> => {
-    if (initialized) return;
+    if (initialized || visitor.name === TEST_VISITOR_NAME) return;
 
     const db = getFirestoreDb();
     if (!db) {
-      console.warn('[analytics] init skipped — Firestore DB not available (check env vars)');
+      console.warn(
+        '[analytics] init skipped — Firestore DB not available (check env vars)',
+      );
       return;
     }
 
@@ -157,7 +164,14 @@ export const createAnalyticsService = () => {
     flush();
   };
 
-  return { initialize, trackEvent, trackGameEnd, submitFeedback, flush, destroy };
+  return {
+    initialize,
+    trackEvent,
+    trackGameEnd,
+    submitFeedback,
+    flush,
+    destroy,
+  };
 };
 
 export const analytics = createAnalyticsService();
