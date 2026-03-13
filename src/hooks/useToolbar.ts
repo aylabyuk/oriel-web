@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
-import { usePersistedState } from '@/hooks/usePersistedState';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import {
+  selectSound,
+  selectMusic,
+  selectFreeLook,
+  selectFreeLookExplainerOpen,
+  selectChat,
+  dismissFreeLookExplainer,
+} from '@/store/slices/preferences';
 import { TRACK } from '@/services/analytics';
 import type { AnalyticsEventType } from '@/services/analytics';
 import { setSoundEnabled } from '@/utils/sounds';
@@ -10,41 +18,45 @@ type TrackEventFn = (
   data?: Record<string, unknown>,
 ) => void;
 
-export const useToolbar = (trackEvent: TrackEventFn) => {
-  // --- Sound ---
-  const [soundOn, rawSoundToggle] = usePersistedState('sound', true);
-  useEffect(() => setSoundEnabled(soundOn), [soundOn]);
-  const handleSoundToggle = useCallback(() => {
-    rawSoundToggle();
-    trackEvent(TRACK.TOGGLE_SOUND, { enabled: !soundOn });
-  }, [rawSoundToggle, soundOn, trackEvent]);
+export const useToolbar = (trackEvent: TrackEventFn, audioReady: boolean) => {
+  const dispatch = useAppDispatch();
+  const soundOn = useAppSelector(selectSound);
+  const musicOn = useAppSelector(selectMusic);
+  const freeLook = useAppSelector(selectFreeLook);
+  const freeLookExplainerOpen = useAppSelector(selectFreeLookExplainerOpen);
+  const chatOpen = useAppSelector(selectChat);
 
-  // --- Music ---
-  const [musicOn, rawMusicToggle] = usePersistedState('music', true);
-  useEffect(() => setMusicEnabled(musicOn), [musicOn]);
-  const handleMusicToggle = useCallback(() => {
-    rawMusicToggle();
-    trackEvent(TRACK.TOGGLE_MUSIC, { enabled: !musicOn });
-  }, [rawMusicToggle, musicOn, trackEvent]);
+  // --- Audio side effects ---
+  useEffect(() => setSoundEnabled(audioReady && soundOn), [audioReady, soundOn]);
+  useEffect(() => setMusicEnabled(audioReady && musicOn), [audioReady, musicOn]);
 
-  // --- Chat ---
-  const [chatOpen, rawChatToggle] = usePersistedState('chat', true);
-  const handleChatToggle = useCallback(() => {
-    rawChatToggle();
-    trackEvent(TRACK.TOGGLE_CHAT, { enabled: !chatOpen });
-  }, [rawChatToggle, chatOpen, trackEvent]);
+  // --- Analytics: track preference toggles ---
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    trackEvent(TRACK.TOGGLE_SOUND, { enabled: soundOn });
+  }, [soundOn, trackEvent]);
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    trackEvent(TRACK.TOGGLE_MUSIC, { enabled: musicOn });
+  }, [musicOn, trackEvent]);
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    trackEvent(TRACK.TOGGLE_CHAT, { enabled: chatOpen });
+  }, [chatOpen, trackEvent]);
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    trackEvent(TRACK.TOGGLE_FREE_LOOK, { enabled: freeLook });
+  }, [freeLook, trackEvent]);
+  // Mark mounted after first render so initial values don't trigger analytics
+  useEffect(() => {
+    mountedRef.current = true;
+  }, []);
 
-  // --- Free Look ---
-  const [freeLook, toggleFreeLook] = usePersistedState('freeLook', false);
-  const [freeLookExplainerOpen, setFreeLookExplainerOpen] = useState(false);
-  const handleFreeLookToggle = useCallback(() => {
-    setFreeLookExplainerOpen(!freeLook);
-    toggleFreeLook();
-    trackEvent(TRACK.TOGGLE_FREE_LOOK, { enabled: !freeLook });
-  }, [freeLook, toggleFreeLook, trackEvent]);
+  // --- Free Look explainer ---
   const handleFreeLookExplainerDismiss = useCallback(
-    () => setFreeLookExplainerOpen(false),
-    [],
+    () => dispatch(dismissFreeLookExplainer()),
+    [dispatch],
   );
 
   // --- Rules ---
@@ -74,14 +86,6 @@ export const useToolbar = (trackEvent: TrackEventFn) => {
   );
 
   return {
-    soundOn,
-    handleSoundToggle,
-    musicOn,
-    handleMusicToggle,
-    chatOpen,
-    handleChatToggle,
-    freeLook,
-    handleFreeLookToggle,
     freeLookExplainerOpen,
     handleFreeLookExplainerDismiss,
     rulesOpen,

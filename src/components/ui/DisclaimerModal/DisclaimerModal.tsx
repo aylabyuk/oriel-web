@@ -1,5 +1,6 @@
 import { useSpring, animated } from '@react-spring/web';
 import { useTranslation } from '@/hooks/useTranslation';
+import { PreferencesPanel } from './PreferencesPanel';
 import {
   AI_STRATEGIST,
   AI_TRASH_TALKER,
@@ -93,6 +94,9 @@ export const DisclaimerModal = ({
         </div>
 
         <div className="shrink-0 px-8 pt-2 pb-8">
+          <div className="mb-4">
+            <PreferencesPanel />
+          </div>
           <button
             onClick={onAcknowledge}
             className="w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"

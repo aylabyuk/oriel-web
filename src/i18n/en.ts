@@ -97,6 +97,11 @@ export const en = {
       "I'm okay with Oriel collecting anonymous gameplay data (play patterns, device info) to improve the experience. No personal data is shared with third parties.",
     closing: 'Have fun out there,',
     signature: 'Oriel',
+    preferences: 'Preferences',
+    themeLabel: 'Theme',
+    soundLabel: 'Sound',
+    musicLabel: 'Music',
+    freeLookLabel: 'Free Look',
     button: "Let's Play",
   },
   app: {

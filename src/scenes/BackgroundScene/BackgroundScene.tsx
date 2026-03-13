@@ -7,6 +7,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useAppSelector } from '@/store/hooks';
 import { selectSnapshot } from '@/store/slices/game';
 import { selectMode } from '@/store/slices/theme';
+import { selectFreeLook } from '@/store/slices/preferences';
 import { SceneEnvironment } from '@/components/three/SceneEnvironment';
 import { Table } from '@/components/three/Table';
 import { DirectionOrbit } from '@/components/three/DirectionOrbit';
@@ -132,7 +133,6 @@ type BackgroundSceneProps = {
   entranceEnabled?: boolean;
   dealingEnabled?: boolean;
   deckEnabled?: boolean;
-  freeLook?: boolean;
   playableOverride?: string[];
   dialogues?: (DialogueBubble | null)[];
 };
@@ -151,12 +151,12 @@ export const BackgroundScene = ({
   entranceEnabled = true,
   dealingEnabled = true,
   deckEnabled = true,
-  freeLook = false,
   playableOverride,
   dialogues,
 }: BackgroundSceneProps) => {
   const snapshot = useAppSelector(selectSnapshot);
   const mode = useAppSelector(selectMode);
+  const freeLook = useAppSelector(selectFreeLook);
   const { t } = useTranslation();
   const [tableLoaded, setTableLoaded] = useState(false);
   const [tableReady, setTableReady] = useState(false);

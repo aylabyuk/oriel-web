@@ -7,6 +7,7 @@ import {
 } from '@/store/slices/visitor';
 import { selectMode } from '@/store/slices/theme';
 import { selectSnapshot } from '@/store/slices/game';
+import { selectChat } from '@/store/slices/preferences';
 import { WelcomeScreen } from '@/sections/WelcomeScreen';
 import { UnoButton } from '@/components/ui/UnoButton';
 import { BackgroundScene } from '@/scenes/BackgroundScene';
@@ -37,6 +38,7 @@ export const App = () => {
   const [isDashboardMode, setIsDashboardMode] = useState(false);
   const handleSecretDetected = useCallback(() => setIsDashboardMode(true), []);
   const snapshot = useAppSelector(selectSnapshot);
+  const chatOpen = useAppSelector(selectChat);
   const {
     startGame,
     playCard,
@@ -61,7 +63,7 @@ export const App = () => {
   const { trackEvent } = useAnalytics();
 
   // --- Toolbar toggles ---
-  const toolbar = useToolbar(trackEvent);
+  const toolbar = useToolbar(trackEvent, disclaimerAcked);
 
   // --- Draw + Wild card flows ---
   const cardFlow = useCardFlow({
@@ -193,7 +195,6 @@ export const App = () => {
           onChallengeReady={handleChallengeReady}
           entranceEnabled={welcomeDismissed}
           dealingEnabled={disclaimerAcked}
-          freeLook={toolbar.freeLook}
           deckEnabled={
             !cardFlow.drawPending &&
             cardFlow.drawChoice === null &&
@@ -246,21 +247,13 @@ export const App = () => {
       />
       {disclaimerAcked && (
         <ChatHistoryPanel
-          open={toolbar.chatOpen}
+          open={chatOpen}
           history={history}
           onRequestInfo={requestPersonalInfo}
         />
       )}
       {disclaimerAcked && (
         <Toolbar
-          soundOn={toolbar.soundOn}
-          onSoundToggle={toolbar.handleSoundToggle}
-          musicOn={toolbar.musicOn}
-          onMusicToggle={toolbar.handleMusicToggle}
-          freeLook={toolbar.freeLook}
-          onFreeLookToggle={toolbar.handleFreeLookToggle}
-          chatOpen={toolbar.chatOpen}
-          onChatToggle={toolbar.handleChatToggle}
           onRulesOpen={toolbar.handleRulesOpen}
           onRestartClick={toolbar.handleRestartClick}
           restartDisabled={!snapshot}
