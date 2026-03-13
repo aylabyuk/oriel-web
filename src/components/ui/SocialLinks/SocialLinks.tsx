@@ -3,6 +3,7 @@ import {
   SOCIAL_LINKS,
   EMAIL_ICON_PATH,
   buildEmailUrl,
+  type SocialLink,
 } from '@/constants/social';
 import { analytics, TRACK } from '@/services/analytics';
 
@@ -10,7 +11,7 @@ type SocialLinksProps = {
   compact?: boolean;
 };
 
-const emailLink = {
+const emailLink: SocialLink = {
   label: 'Email',
   url: buildEmailUrl(),
   iconPath: EMAIL_ICON_PATH,
@@ -35,6 +36,7 @@ export const SocialLinks = ({ compact }: SocialLinksProps) => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={link.label}
+          {...(link.download ? { download: true } : {})}
           onClick={() =>
             analytics.trackEvent(TRACK.LINK_CLICKED, {
               label: link.label.toLowerCase(),
