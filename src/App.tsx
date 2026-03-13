@@ -61,7 +61,7 @@ export const App = () => {
   const { trackEvent } = useAnalytics();
 
   // --- Toolbar toggles ---
-  const toolbar = useToolbar(trackEvent);
+  const toolbar = useToolbar(trackEvent, disclaimerAcked);
 
   // --- Draw + Wild card flows ---
   const cardFlow = useCardFlow({
@@ -215,6 +215,12 @@ export const App = () => {
       <GameModals
         disclaimerOpen={welcomeDismissed && !disclaimerAcked}
         visitorName={enteredVisitorName}
+        soundOn={toolbar.soundOn}
+        onSoundToggle={toolbar.handleSoundToggle}
+        musicOn={toolbar.musicOn}
+        onMusicToggle={toolbar.handleMusicToggle}
+        freeLook={toolbar.freeLook}
+        onFreeLookToggle={toolbar.handleFreeLookToggle}
         onDisclaimerAck={handleDisclaimerAck}
         drawChoiceOpen={cardFlow.drawChoice !== null}
         onDrawPlay={cardFlow.handleDrawPlay}

@@ -1,5 +1,9 @@
 import { useSpring, animated } from '@react-spring/web';
 import { useTranslation } from '@/hooks/useTranslation';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { SoundToggle } from '@/components/ui/SoundToggle';
+import { MusicToggle } from '@/components/ui/MusicToggle';
+import { FreeLookToggle } from '@/components/ui/FreeLookToggle';
 import {
   AI_STRATEGIST,
   AI_TRASH_TALKER,
@@ -16,12 +20,24 @@ const FRIENDS = [
 type DisclaimerModalProps = {
   open: boolean;
   visitorName: string;
+  soundOn: boolean;
+  onSoundToggle: () => void;
+  musicOn: boolean;
+  onMusicToggle: () => void;
+  freeLook: boolean;
+  onFreeLookToggle: () => void;
   onAcknowledge: () => void;
 };
 
 export const DisclaimerModal = ({
   open,
   visitorName,
+  soundOn,
+  onSoundToggle,
+  musicOn,
+  onMusicToggle,
+  freeLook,
+  onFreeLookToggle,
   onAcknowledge,
 }: DisclaimerModalProps) => {
   const { t } = useTranslation();
@@ -93,6 +109,37 @@ export const DisclaimerModal = ({
         </div>
 
         <div className="shrink-0 px-8 pt-2 pb-8">
+          <div className="mb-4 rounded-xl bg-neutral-100/80 px-4 py-3 dark:bg-white/5">
+            <p className="mb-3 text-center text-[10px] font-semibold tracking-wide text-neutral-400 uppercase dark:text-white/40">
+              {t('disclaimer.preferences')}
+            </p>
+            <div className="flex items-stretch justify-center">
+              <div className="flex w-16 flex-col items-center gap-1">
+                <ThemeToggle />
+                <span className="text-[10px] font-medium text-neutral-500 dark:text-white/50">
+                  {t('disclaimer.themeLabel')}
+                </span>
+              </div>
+              <div className="flex w-16 flex-col items-center gap-1">
+                <SoundToggle active={soundOn} onClick={onSoundToggle} />
+                <span className="text-[10px] font-medium text-neutral-500 dark:text-white/50">
+                  {t('disclaimer.soundLabel')}
+                </span>
+              </div>
+              <div className="flex w-16 flex-col items-center gap-1">
+                <MusicToggle active={musicOn} onClick={onMusicToggle} />
+                <span className="text-[10px] font-medium text-neutral-500 dark:text-white/50">
+                  {t('disclaimer.musicLabel')}
+                </span>
+              </div>
+              <div className="flex w-16 flex-col items-center gap-1">
+                <FreeLookToggle active={freeLook} onClick={onFreeLookToggle} />
+                <span className="text-[10px] font-medium text-neutral-500 dark:text-white/50">
+                  {t('disclaimer.freeLookLabel')}
+                </span>
+              </div>
+            </div>
+          </div>
           <button
             onClick={onAcknowledge}
             className="w-full cursor-pointer rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-105 focus:ring-2 focus:ring-neutral-400 focus:outline-none dark:bg-white/90 dark:text-neutral-900 dark:focus:ring-white/50"

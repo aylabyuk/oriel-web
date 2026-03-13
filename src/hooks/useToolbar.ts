@@ -10,10 +10,10 @@ type TrackEventFn = (
   data?: Record<string, unknown>,
 ) => void;
 
-export const useToolbar = (trackEvent: TrackEventFn) => {
+export const useToolbar = (trackEvent: TrackEventFn, audioReady: boolean) => {
   // --- Sound ---
   const [soundOn, rawSoundToggle] = usePersistedState('sound', true);
-  useEffect(() => setSoundEnabled(soundOn), [soundOn]);
+  useEffect(() => setSoundEnabled(audioReady && soundOn), [audioReady, soundOn]);
   const handleSoundToggle = useCallback(() => {
     rawSoundToggle();
     trackEvent(TRACK.TOGGLE_SOUND, { enabled: !soundOn });
@@ -21,7 +21,7 @@ export const useToolbar = (trackEvent: TrackEventFn) => {
 
   // --- Music ---
   const [musicOn, rawMusicToggle] = usePersistedState('music', true);
-  useEffect(() => setMusicEnabled(musicOn), [musicOn]);
+  useEffect(() => setMusicEnabled(audioReady && musicOn), [audioReady, musicOn]);
   const handleMusicToggle = useCallback(() => {
     rawMusicToggle();
     trackEvent(TRACK.TOGGLE_MUSIC, { enabled: !musicOn });

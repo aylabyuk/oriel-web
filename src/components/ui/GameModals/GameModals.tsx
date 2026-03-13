@@ -13,6 +13,12 @@ type GameModalsProps = {
   // Disclaimer
   disclaimerOpen: boolean;
   visitorName: string;
+  soundOn: boolean;
+  onSoundToggle: () => void;
+  musicOn: boolean;
+  onMusicToggle: () => void;
+  freeLook: boolean;
+  onFreeLookToggle: () => void;
   onDisclaimerAck: () => void;
   // Draw choice
   drawChoiceOpen: boolean;
@@ -47,6 +53,12 @@ type GameModalsProps = {
 export const GameModals = ({
   disclaimerOpen,
   visitorName,
+  soundOn,
+  onSoundToggle,
+  musicOn,
+  onMusicToggle,
+  freeLook,
+  onFreeLookToggle,
   onDisclaimerAck,
   drawChoiceOpen,
   onDrawPlay,
@@ -74,6 +86,12 @@ export const GameModals = ({
     <DisclaimerModal
       open={disclaimerOpen}
       visitorName={visitorName}
+      soundOn={soundOn}
+      onSoundToggle={onSoundToggle}
+      musicOn={musicOn}
+      onMusicToggle={onMusicToggle}
+      freeLook={freeLook}
+      onFreeLookToggle={onFreeLookToggle}
       onAcknowledge={onDisclaimerAck}
     />
     <DrawChoiceModal
