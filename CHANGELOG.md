@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0](https://github.com/aylabyuk/oriel-web/compare/v1.4.1...v1.5.0) (2026-03-14)
+
+
+### Features
+
+* auto-refresh dashboard with Firestore real-time listener ([8676129](https://github.com/aylabyuk/oriel-web/commit/867612983f9fdbedcc8ec8368781028274d8cbc7))
+* convert event logs from pills to vertical timeline ([f4da3a4](https://github.com/aylabyuk/oriel-web/commit/f4da3a482d15f068d0e3281aafee231be697ac0b))
+* display city and country on separate lines in desktop row ([bd66c93](https://github.com/aylabyuk/oriel-web/commit/bd66c93c22a3d91b8689e8bb783fd3574f4cef46))
+* display visitor city alongside country in dashboard ([e4fd7cf](https://github.com/aylabyuk/oriel-web/commit/e4fd7cf958a040cc33a7a2cb4c7e85cefeeee18a))
+
 ## [1.4.1](https://github.com/aylabyuk/oriel-web/compare/v1.4.0...v1.4.1) (2026-03-14)
 
 
