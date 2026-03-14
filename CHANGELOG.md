@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/aylabyuk/oriel-web/compare/v1.4.0...v1.4.1) (2026-03-14)
+
+
+### Bug Fixes
+
+* resolve merge conflict in useToolbar, use ref for trackEvent in effects ([2a63453](https://github.com/aylabyuk/oriel-web/commit/2a63453e7b4149d9702a6785cd47ed3dd9d9821b))
+
 ## [1.4.0](https://github.com/aylabyuk/oriel-web/compare/v1.3.0...v1.4.0) (2026-03-13)
 
 
