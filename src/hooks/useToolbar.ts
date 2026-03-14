@@ -32,22 +32,24 @@ export const useToolbar = (trackEvent: TrackEventFn, audioReady: boolean) => {
 
   // --- Analytics: track preference toggles ---
   const mountedRef = useRef(false);
+  const trackEventRef = useRef(trackEvent);
+  trackEventRef.current = trackEvent;
   useEffect(() => {
     if (!mountedRef.current) return;
-    trackEvent(TRACK.TOGGLE_SOUND, { enabled: soundOn });
-  }, [soundOn, trackEvent]);
+    trackEventRef.current(TRACK.TOGGLE_SOUND, { enabled: soundOn });
+  }, [soundOn]);
   useEffect(() => {
     if (!mountedRef.current) return;
-    trackEvent(TRACK.TOGGLE_MUSIC, { enabled: musicOn });
-  }, [musicOn, trackEvent]);
+    trackEventRef.current(TRACK.TOGGLE_MUSIC, { enabled: musicOn });
+  }, [musicOn]);
   useEffect(() => {
     if (!mountedRef.current) return;
-    trackEvent(TRACK.TOGGLE_CHAT, { enabled: chatOpen });
-  }, [chatOpen, trackEvent]);
+    trackEventRef.current(TRACK.TOGGLE_CHAT, { enabled: chatOpen });
+  }, [chatOpen]);
   useEffect(() => {
     if (!mountedRef.current) return;
-    trackEvent(TRACK.TOGGLE_FREE_LOOK, { enabled: freeLook });
-  }, [freeLook, trackEvent]);
+    trackEventRef.current(TRACK.TOGGLE_FREE_LOOK, { enabled: freeLook });
+  }, [freeLook]);
   // Mark mounted after first render so initial values don't trigger analytics
   useEffect(() => {
     mountedRef.current = true;
