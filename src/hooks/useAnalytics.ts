@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { selectSnapshot } from '@/store/slices/game';
 import { analytics } from '@/services/analytics';
@@ -59,12 +59,12 @@ export const useAnalytics = ({
     };
   }, []);
 
-  const trackEvent = (
-    type: AnalyticsEventType,
-    data?: Record<string, unknown>,
-  ) => {
-    analytics.trackEvent(type, data);
-  };
+  const trackEvent = useCallback(
+    (type: AnalyticsEventType, data?: Record<string, unknown>) => {
+      analytics.trackEvent(type, data);
+    },
+    [],
+  );
 
   return { trackEvent };
 };
