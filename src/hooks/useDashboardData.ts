@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAllSessions, softDeleteSession } from '@/services/analytics/sessionsReader';
+import { subscribeToSessions, softDeleteSession } from '@/services/analytics/sessionsReader';
 import type { SessionDocument } from '@/services/analytics/types';
 import type {
   DashboardData,
@@ -160,26 +160,23 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const sessions = await fetchAllSessions();
-      setAllSessions(sessions);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to load sessions';
-      setError(message);
-      console.error('[dashboard] fetch failed:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    const unsubscribe = subscribeToSessions(
+      (sessions) => {
+        setAllSessions(sessions);
+        setLoading(false);
+      },
+      (err) => {
+        const message =
+          err instanceof Error ? err.message : 'Failed to load sessions';
+        setError(message);
+        setLoading(false);
+        console.error('[dashboard] subscription error:', err);
+      },
+    );
+
+    return unsubscribe;
+  }, []);
 
   const data = useMemo(() => {
     if (!allSessions) return null;
@@ -200,5 +197,5 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     );
   }, []);
 
-  return { data, loading, error, timeRange, setTimeRange, refresh: load, deleteSession: handleDelete };
+  return { data, loading, error, timeRange, setTimeRange, refresh: () => {}, deleteSession: handleDelete };
 };
