@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.0](https://github.com/aylabyuk/oriel-web/compare/v1.3.0...v1.4.0) (2026-03-13)
+
+
+### Features
+
+* add preference toggles to disclaimer modal ([baf31fa](https://github.com/aylabyuk/oriel-web/commit/baf31fa45fb3b245b58430f4974f9d32ae31c06e))
+* replace HackerRank link with downloadable resume ([41701a6](https://github.com/aylabyuk/oriel-web/commit/41701a6b6523fbae43c899365fe58d271040a368))
+* skip analytics for test visitor name ([b26bdee](https://github.com/aylabyuk/oriel-web/commit/b26bdee257652e647dbd95cc6b75c76525a936ed))
+
 ## [1.3.0](https://github.com/aylabyuk/oriel-web/compare/v1.2.0...v1.3.0) (2026-03-11)
 
 
