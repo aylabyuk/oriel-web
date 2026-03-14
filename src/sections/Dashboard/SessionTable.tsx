@@ -62,7 +62,7 @@ export const SessionTable = ({ sessions, onDelete }: SessionTableProps) => {
               <th className="px-4 py-2">Name</th>
               <th className="px-4 py-2">Company</th>
               <th className="px-4 py-2 text-center">Device</th>
-              <th className="px-4 py-2">Country</th>
+              <th className="px-4 py-2">Location</th>
               <th className="px-4 py-2">Duration</th>
               <th className="px-4 py-2 text-center">Games</th>
               <th className="px-4 py-2" />

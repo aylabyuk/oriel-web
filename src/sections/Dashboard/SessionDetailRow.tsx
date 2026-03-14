@@ -259,7 +259,7 @@ export const SessionDetailRow = ({ session, onDelete }: SessionDetailRowProps) =
           {session.isMobile ? '📱' : '🖥️'}
         </td>
         <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">
-          {session.country}
+          {session.city ? `${session.city}, ${session.country}` : session.country}
         </td>
         <td className="px-4 py-3 text-sm tabular-nums">
           {formatDuration(session.durationMs)}
@@ -307,7 +307,7 @@ export const SessionDetailCard = ({ session, onDelete }: SessionDetailRowProps) 
           </div>
           <div className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
             {session.company ? `${session.company} · ` : ''}
-            {session.country}
+            {session.city ? `${session.city}, ${session.country}` : session.country}
           </div>
         </div>
         <div className="flex items-center gap-3 text-right">
