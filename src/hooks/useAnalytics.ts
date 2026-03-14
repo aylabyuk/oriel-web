@@ -4,20 +4,9 @@ import { selectSnapshot } from '@/store/slices/game';
 import { analytics } from '@/services/analytics';
 import type { AnalyticsEventType } from '@/services/analytics';
 
-type UseAnalyticsOptions = {
-  consentGiven: boolean;
-};
-
-export const useAnalytics = ({
-  consentGiven,
-}: UseAnalyticsOptions) => {
+export const useAnalytics = () => {
   const snapshot = useAppSelector(selectSnapshot);
   const prevPhaseRef = useRef<string | null>(null);
-
-  // Sync consent to analytics service
-  useEffect(() => {
-    analytics.setConsent(consentGiven);
-  }, [consentGiven]);
 
   // Track game end results
   useEffect(() => {

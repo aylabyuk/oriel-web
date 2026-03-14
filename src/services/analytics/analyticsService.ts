@@ -9,7 +9,12 @@ import {
 import { getFirestoreDb } from './firebase';
 import { collectDeviceInfo } from './deviceInfo';
 import { fetchGeoLocation } from './geoLocation';
-import type { AnalyticsEvent, AnalyticsEventType, SessionFeedback } from './types';
+import { TEST_VISITOR_NAME } from '@/constants/admin';
+import type {
+  AnalyticsEvent,
+  AnalyticsEventType,
+  SessionFeedback,
+} from './types';
 
 const FLUSH_INTERVAL_MS = 30_000;
 
@@ -22,11 +27,10 @@ export const createAnalyticsService = () => {
   let gamesPlayed = 0;
   let gamesWon = 0;
   let totalScore = 0;
-  let consentGiven = false;
   let initialized = false;
 
   const flush = async (): Promise<void> => {
-    if (!consentGiven || !sessionDocRef || eventBuffer.length === 0) return;
+    if (!sessionDocRef || eventBuffer.length === 0) return;
 
     const eventsToFlush = [...eventBuffer];
     eventBuffer = [];
@@ -50,14 +54,13 @@ export const createAnalyticsService = () => {
     name: string;
     company: string;
   }): Promise<void> => {
-    if (!consentGiven || initialized) {
-      console.warn('[analytics] init skipped — consent:', consentGiven, 'initialized:', initialized);
-      return;
-    }
+    if (initialized || visitor.name === TEST_VISITOR_NAME) return;
 
     const db = getFirestoreDb();
     if (!db) {
-      console.warn('[analytics] init skipped — Firestore DB not available (check env vars)');
+      console.warn(
+        '[analytics] init skipped — Firestore DB not available (check env vars)',
+      );
       return;
     }
 
@@ -113,7 +116,7 @@ export const createAnalyticsService = () => {
     type: AnalyticsEventType,
     data?: Record<string, unknown>,
   ): void => {
-    if (!consentGiven || !initialized) return;
+    if (!initialized) return;
 
     const event: AnalyticsEvent = {
       type,
@@ -138,7 +141,7 @@ export const createAnalyticsService = () => {
   const submitFeedback = async (
     feedback: SessionFeedback,
   ): Promise<boolean> => {
-    if (!consentGiven || !sessionDocRef) return false;
+    if (!sessionDocRef) return false;
     try {
       await updateDoc(sessionDocRef, { feedback: arrayUnion(feedback) });
       trackEvent('feedback_submitted', {
@@ -153,10 +156,6 @@ export const createAnalyticsService = () => {
     }
   };
 
-  const setConsent = (given: boolean): void => {
-    consentGiven = given;
-  };
-
   const destroy = (): void => {
     if (flushTimer) {
       clearInterval(flushTimer);
@@ -165,7 +164,14 @@ export const createAnalyticsService = () => {
     flush();
   };
 
-  return { initialize, trackEvent, trackGameEnd, submitFeedback, flush, setConsent, destroy };
+  return {
+    initialize,
+    trackEvent,
+    trackGameEnd,
+    submitFeedback,
+    flush,
+    destroy,
+  };
 };
 
 export const analytics = createAnalyticsService();

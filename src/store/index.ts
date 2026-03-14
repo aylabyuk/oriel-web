@@ -3,12 +3,14 @@ import { themeSlice } from '@/store/slices/theme';
 import { navigationSlice } from '@/store/slices/navigation';
 import { gameSlice } from '@/store/slices/game';
 import { visitorSlice } from '@/store/slices/visitor';
+import { preferencesSlice } from '@/store/slices/preferences';
 
 export const rootReducer = combineReducers({
   theme: themeSlice.reducer,
   navigation: navigationSlice.reducer,
   game: gameSlice.reducer,
   visitor: visitorSlice.reducer,
+  preferences: preferencesSlice.reducer,
 });
 
 export const store = configureStore({

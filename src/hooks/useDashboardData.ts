@@ -75,18 +75,21 @@ const computeDailyActivity = (sessions: SessionDocument[]): DailyActivity[] => {
     countByDate.set(date, (countByDate.get(date) ?? 0) + 1);
   }
 
-  if (countByDate.size === 0) return [];
+  const todayKey = formatDateKey(new Date());
 
-  const sortedDates = [...countByDate.keys()].sort();
-  const start = new Date(sortedDates[0]);
-  const end = new Date(sortedDates[sortedDates.length - 1]);
+  const allDates = countByDate.size > 0
+    ? [...countByDate.keys(), todayKey].sort()
+    : [todayKey];
+
+  const start = new Date(allDates[0] + 'T00:00:00.000Z');
+  const end = new Date(allDates[allDates.length - 1] + 'T00:00:00.000Z');
   const result: DailyActivity[] = [];
 
   const cursor = new Date(start);
   while (cursor <= end) {
     const key = formatDateKey(cursor);
     result.push({ date: key, visitors: countByDate.get(key) ?? 0 });
-    cursor.setDate(cursor.getDate() + 1);
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 
   return result;
