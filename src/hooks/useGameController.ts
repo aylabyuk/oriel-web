@@ -13,6 +13,7 @@ import {
 import { playBluffCaught, playLegitPlay, playUnoPenalty } from '@/utils/sounds';
 import {
   AI_ANIMATION_WAIT,
+  AI_DRAW_ANIMATION_WAIT,
   AI_THINK_MIN,
   AI_THINK_MAX,
   AI_CATCH_MIN,
@@ -78,7 +79,7 @@ export const useGameController = () => {
           }
         } else {
           g.draw();
-          // Check if the drawn card is playable (e.g. Wild) — play it instead of passing
+          // Wait for draw animation to finish before deciding to play or pass
           const nowPlayable = g.getPlayableCardsForPlayer(playerName);
           if (nowPlayable.length > 0) {
             const card =
@@ -86,13 +87,21 @@ export const useGameController = () => {
             const chosenColor = card.isWildCard()
               ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
               : undefined;
-            try {
-              g.playCard(card, chosenColor);
-            } catch {
-              g.pass();
-            }
+            aiTimerRef.current = setTimeout(() => {
+              const g2 = gameRef.current;
+              if (!g2 || g2.getSnapshot().phase === 'ended') return;
+              try {
+                g2.playCard(card, chosenColor);
+              } catch {
+                g2.pass();
+              }
+            }, AI_DRAW_ANIMATION_WAIT);
           } else {
-            g.pass();
+            aiTimerRef.current = setTimeout(() => {
+              const g2 = gameRef.current;
+              if (!g2 || g2.getSnapshot().phase === 'ended') return;
+              g2.pass();
+            }, AI_DRAW_ANIMATION_WAIT);
           }
         }
       } catch (err) {
@@ -148,20 +157,28 @@ export const useGameController = () => {
           }
         } else {
           g.draw();
-          // Check if drawn card is playable
+          // Wait for draw animation to finish before deciding to play or pass
           const nowPlayable = g.getPlayableCards();
           if (nowPlayable.length > 0) {
             const card = nowPlayable[0];
             const chosenColor = card.isWildCard()
               ? ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)]
               : undefined;
-            try {
-              g.playCard(card, chosenColor);
-            } catch {
-              g.pass();
-            }
+            visitorTimerRef.current = setTimeout(() => {
+              const g2 = gameRef.current;
+              if (!g2 || g2.getSnapshot().phase === 'ended') return;
+              try {
+                g2.playCard(card, chosenColor);
+              } catch {
+                g2.pass();
+              }
+            }, AI_DRAW_ANIMATION_WAIT);
           } else {
-            g.pass();
+            visitorTimerRef.current = setTimeout(() => {
+              const g2 = gameRef.current;
+              if (!g2 || g2.getSnapshot().phase === 'ended') return;
+              g2.pass();
+            }, AI_DRAW_ANIMATION_WAIT);
           }
         }
       } catch {
