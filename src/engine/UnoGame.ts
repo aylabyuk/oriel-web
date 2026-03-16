@@ -166,6 +166,13 @@ export class UnoGame {
 
       if (chosenColor) card.color = chosenColor;
       this.engine.play(card);
+
+      // If the WD4 was the winning card the engine fires the 'end' event
+      // which sets this.phase = 'ended'. Clear the dangling challenge so
+      // no auto-resolve timer tries to interact with the finished game.
+      if ((this.phase as GamePhase) === 'ended') {
+        this._pendingChallenge = null;
+      }
       return;
     }
 
@@ -244,6 +251,13 @@ export class UnoGame {
   resolveChallenge(accepted: boolean): ChallengeResult | null {
     const challenge = this._pendingChallenge;
     if (!challenge) return null;
+
+    // If the game already ended (e.g. WD4 was the winning card), clear the
+    // challenge but do NOT revert phase back to 'playing'.
+    if (this.phase === 'ended') {
+      this._pendingChallenge = null;
+      return null;
+    }
 
     this._pendingChallenge = null;
     this.phase = 'playing';
@@ -357,14 +371,17 @@ export class UnoGame {
 
     return {
       phase: this.phase,
-      currentPlayerName: this.engine.currentPlayer.name,
+      currentPlayerName: this.engine.currentPlayer?.name ?? this.winner ?? '',
       players,
       discardPile: this.discardHistory.map(serializeCard),
       direction: serializeDirection(this.engine.playingDirection),
       drawPile: this.engine.deck.cards.map(serializeCard),
       winner: this.winner,
       score: this.score,
-      playableCardIds: this.getPlayableCards().map((c) => getCardId(c)),
+      playableCardIds:
+        this.phase === 'ended'
+          ? []
+          : this.getPlayableCards().map((c) => getCardId(c)),
       pendingChallenge: this.getPendingChallenge(),
       unoCallable: this._unoCallable
         ? { playerName: this._unoCallable, deadline: 0 }

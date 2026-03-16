@@ -254,9 +254,21 @@ export const useMagnetState = (
 
   // --- During gameplay: sync with snapshot when in playing phase ---
 
+  // Track whether the final sync for the ended game has been applied so we
+  // don't keep re-running the effect on every syncTick.
+  const endSyncedRef = useRef(false);
+  useEffect(() => {
+    if (snapshot?.phase !== 'ended') endSyncedRef.current = false;
+  }, [snapshot?.phase]);
+
   useEffect(() => {
     if (!snapshot || state.phase !== 'playing') return;
     if (animatingRef.current) return;
+
+    // Once the game has ended and we've completed the last animation,
+    // apply the final snapshot once then stop processing further syncs
+    // so no stale callbacks attempt to interact with the finished engine.
+    if (snapshot.phase === 'ended' && endSyncedRef.current) return;
 
     // Detect if a card was played: new discard pile is longer than current
     const newTopCard = snapshot.discardPile[snapshot.discardPile.length - 1];
@@ -347,6 +359,7 @@ export const useMagnetState = (
       }
     }
 
+    if (snapshot.phase === 'ended') endSyncedRef.current = true;
     setState(snapshotToMagnetState(snapshot));
   }, [snapshot, state.phase, syncTick]); // eslint-disable-line react-hooks/exhaustive-deps
 

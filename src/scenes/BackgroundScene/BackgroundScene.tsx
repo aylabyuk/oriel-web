@@ -28,6 +28,7 @@ import type { DialogueBubble } from '@/types/dialogue';
 import { SEATS, SEAT_ORDER, unoColorToHex } from '@/constants';
 import { toDisplayName } from '@/constants/players';
 import { useTranslation } from '@/hooks/useTranslation';
+import { CanvasErrorBoundary } from '@/components/three/CanvasErrorBoundary';
 import {
   DEBUG_MAGNETS,
   EFFECT_VALUES,
@@ -391,6 +392,7 @@ export const BackgroundScene = ({
 
   return (
     <div className="h-full w-full">
+      <CanvasErrorBoundary>
       <Canvas
         camera={{
           position: [...DEFAULT_CAMERA_POSITION],
@@ -510,6 +512,7 @@ export const BackgroundScene = ({
           />
         </EffectComposer>
       </Canvas>
+      </CanvasErrorBoundary>
     </div>
   );
 };

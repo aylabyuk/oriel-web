@@ -182,6 +182,24 @@ export const useGameController = () => {
     };
   }, []);
 
+  /** Cancel every pending timer — used when the game ends or restarts. */
+  const cancelAllTimers = useCallback(() => {
+    cancelVisitorTimer();
+    if (aiTimerRef.current) {
+      clearTimeout(aiTimerRef.current);
+      aiTimerRef.current = null;
+    }
+    if (unoCatchTimerRef.current) {
+      clearTimeout(unoCatchTimerRef.current);
+      unoCatchTimerRef.current = null;
+    }
+    if (unoAiTimerRef.current) {
+      clearTimeout(unoAiTimerRef.current);
+      unoAiTimerRef.current = null;
+    }
+    aiScheduledRef.current = false;
+  }, [cancelVisitorTimer]);
+
   const startGame = useCallback(() => {
     if (gameRef.current) return;
 
@@ -197,6 +215,13 @@ export const useGameController = () => {
       dispatch(setSnapshot(snap));
 
       if (event.type === 'uno_penalty') playUnoPenalty();
+
+      // When the game ends, cancel all pending timers immediately so no
+      // stale callbacks attempt to interact with the finished engine.
+      if (snap.phase === 'ended') {
+        cancelAllTimers();
+        return;
+      }
 
       // Don't schedule AI play while a WD4 challenge is pending
       if (snap.pendingChallenge) return;
@@ -254,10 +279,11 @@ export const useGameController = () => {
         }
       }
 
-      // After any event, schedule the next player's move (skip if game ended)
+      // After any event, schedule the next player's move
+      // (game-ended is already handled by the early return above)
       if (
-        (event.type === 'turn_changed' || event.type === 'card_played') &&
-        snap.phase !== 'ended'
+        event.type === 'turn_changed' ||
+        event.type === 'card_played'
       ) {
         scheduleAiPlay();
         scheduleVisitorAutoPlay();
@@ -270,13 +296,13 @@ export const useGameController = () => {
     // If the first player is AI, kick off their play; otherwise start visitor timer
     scheduleAiPlay();
     scheduleVisitorAutoPlay();
-  }, [visitorName, dispatch, scheduleAiPlay, scheduleVisitorAutoPlay]);
+  }, [visitorName, dispatch, scheduleAiPlay, scheduleVisitorAutoPlay, cancelAllTimers]);
 
   const playCard = useCallback(
     (cardId: string, chosenColor?: Color) => {
       cancelVisitorTimer();
       const game = gameRef.current;
-      if (!game) return;
+      if (!game || game.getSnapshot().phase === 'ended') return;
       const playerName = visitorName || 'Player';
       const card = game.findCardInHand(playerName, cardId);
       if (!card) return;
@@ -296,7 +322,7 @@ export const useGameController = () => {
   } | null => {
     cancelVisitorTimer();
     const game = gameRef.current;
-    if (!game) return null;
+    if (!game || game.getSnapshot().phase === 'ended') return null;
     const playerName = visitorName || 'Player';
     if (game.getCurrentPlayerName() !== playerName) return null;
 
@@ -329,7 +355,7 @@ export const useGameController = () => {
   const passAfterDraw = useCallback(() => {
     cancelVisitorTimer();
     const game = gameRef.current;
-    if (!game) return;
+    if (!game || game.getSnapshot().phase === 'ended') return;
     game.pass();
   }, [cancelVisitorTimer]);
 
@@ -375,7 +401,7 @@ export const useGameController = () => {
   const callUno = useCallback(
     (playerName: string) => {
       const game = gameRef.current;
-      if (!game) return;
+      if (!game || game.getSnapshot().phase === 'ended') return;
       if (unoCatchTimerRef.current) {
         clearTimeout(unoCatchTimerRef.current);
         unoCatchTimerRef.current = null;
@@ -400,18 +426,14 @@ export const useGameController = () => {
 
   const restartGame = useCallback(() => {
     if (!gameRef.current) return;
-    cancelVisitorTimer();
-    if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
-    if (unoCatchTimerRef.current) clearTimeout(unoCatchTimerRef.current);
-    if (unoAiTimerRef.current) clearTimeout(unoAiTimerRef.current);
-    aiScheduledRef.current = false;
+    cancelAllTimers();
     gameRef.current = null;
     // Null snapshot triggers useMagnetState to collect cards back to deck
     dispatch(setSnapshot(null));
     dispatch(clearEvents());
     // After cards settle, start a fresh game which triggers dealing animation
     setTimeout(() => startGame(), RESTART_COLLECT_DELAY);
-  }, [dispatch, startGame, cancelVisitorTimer]);
+  }, [dispatch, startGame, cancelAllTimers]);
 
   const getGameEndInfo = useCallback((): GameEndInfo | null => {
     return gameRef.current?.getGameEndInfo() ?? null;
