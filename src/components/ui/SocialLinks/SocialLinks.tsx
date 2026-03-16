@@ -33,10 +33,10 @@ export const SocialLinks = ({ compact }: SocialLinksProps) => {
         <a
           key={link.label}
           href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...(link.download
+            ? { download: 'Oriel_Absin_Resume.pdf' }
+            : { target: '_blank', rel: 'noopener noreferrer' })}
           aria-label={link.label}
-          {...(link.download ? { download: true } : {})}
           onClick={() =>
             analytics.trackEvent(TRACK.LINK_CLICKED, {
               label: link.label.toLowerCase(),
