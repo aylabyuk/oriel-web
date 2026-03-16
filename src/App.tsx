@@ -23,6 +23,7 @@ import { useToolbar } from '@/hooks/useToolbar';
 import { useCardFlow } from '@/hooks/useCardFlow';
 import { TRACK } from '@/services/analytics';
 import {
+  getCtx,
   playGather,
   playUnoShout,
   playDramaticHit,
@@ -82,6 +83,9 @@ export const App = () => {
   }, [trackEvent]);
   const handleWelcomeExited = useCallback(() => setWelcomeDismissed(true), []);
   const handleDisclaimerAck = useCallback(() => {
+    // Create / resume AudioContext during user gesture so the browser
+    // allows audio playback (autoplay policy).
+    getCtx();
     setDisclaimerAcked(true);
     trackEvent(TRACK.DISCLAIMER_ACKNOWLEDGED);
   }, [trackEvent]);

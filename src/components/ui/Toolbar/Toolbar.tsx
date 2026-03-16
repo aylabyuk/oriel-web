@@ -17,6 +17,7 @@ import { FreeLookToggle } from '@/components/ui/FreeLookToggle';
 import { RestartButton } from '@/components/ui/RestartButton';
 import { ChatToggle } from '@/components/ui/ChatToggle';
 import { cn } from '@/utils/cn';
+import { getCtx } from '@/utils/sounds';
 
 type ToolbarProps = {
   onRulesOpen: () => void;
@@ -46,8 +47,8 @@ export const Toolbar = ({
       )}
     >
       <ThemeToggle />
-      <SoundToggle active={soundOn} onClick={() => dispatch(toggleSound())} />
-      <MusicToggle active={musicOn} onClick={() => dispatch(toggleMusic())} />
+      <SoundToggle active={soundOn} onClick={() => { getCtx(); dispatch(toggleSound()); }} />
+      <MusicToggle active={musicOn} onClick={() => { getCtx(); dispatch(toggleMusic()); }} />
       <HelpButton onClick={onRulesOpen} />
       <FreeLookToggle active={freeLook} onClick={() => dispatch(toggleFreeLook())} />
       <RestartButton onClick={onRestartClick} disabled={restartDisabled} />
