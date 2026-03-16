@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.2](https://github.com/aylabyuk/oriel-web/compare/v1.5.1...v1.5.2) (2026-03-16)
+
+
+### Bug Fixes
+
+* delay AI play-after-draw to let draw animation complete ([e121629](https://github.com/aylabyuk/oriel-web/commit/e1216299b0817b79e6c9bd17f93463ee7c47a410))
+* resume AudioContext during user gesture for audio playback ([1881045](https://github.com/aylabyuk/oriel-web/commit/18810453f36f2c9fb910080885c31a33ddb679d5))
+* resume download serves index.html instead of PDF ([0fc7eb2](https://github.com/aylabyuk/oriel-web/commit/0fc7eb2cc9de1ab23fb989cbc04dd9a282b21238))
+
 ## [1.5.1](https://github.com/aylabyuk/oriel-web/compare/v1.5.0...v1.5.1) (2026-03-16)
 
 
