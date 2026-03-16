@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/aylabyuk/oriel-web/compare/v1.5.0...v1.5.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* prevent game-over crash by canceling timers and guarding ended state ([9d330e5](https://github.com/aylabyuk/oriel-web/commit/9d330e57adda397dfd814c44b23c86568ae60ad7))
+
 ## [1.5.0](https://github.com/aylabyuk/oriel-web/compare/v1.4.1...v1.5.0) (2026-03-14)
 
 
